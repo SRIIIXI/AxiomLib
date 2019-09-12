@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
 
-project(CoreC)
+project(CoreLite)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -33,5 +33,5 @@ ${PROJECT_HEADER_DIR}/Stack.h
 ${PROJECT_HEADER_DIR}/CoreLib.h
 )
 
-add_library(${PROJECT_NAME} STATIC SHARED ${SOURCE} ${HEADERS})
+add_library(${PROJECT_NAME} STATIC ${SOURCE} ${HEADERS})
 
