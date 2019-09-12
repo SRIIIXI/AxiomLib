@@ -1,5 +1,4 @@
 ﻿#include "Base64.h"
-#include "Character.h"
 #include "KeyValue.h"
 #include "List.h"
 #include "Map.h"

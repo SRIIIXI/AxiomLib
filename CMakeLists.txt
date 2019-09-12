@@ -33,5 +33,5 @@ ${PROJECT_HEADER_DIR}/Stack.h
 ${PROJECT_HEADER_DIR}/CoreLib.h
 )
 
-add_library(${PROJECT_NAME}  ${SOURCE} ${HEADERS})
+add_library(${PROJECT_NAME} STATIC SHARED ${SOURCE} ${HEADERS})
 
