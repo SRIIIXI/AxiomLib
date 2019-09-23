@@ -6,8 +6,7 @@
 
 Queue *queueAllocate(Queue* qptr)
 {
-    qptr = (Queue*)malloc(sizeof(Queue));
-    memset(qptr, 0, sizeof(Queue));
+    qptr = (Queue*)calloc(1, sizeof(Queue));
     return qptr;
 }
 

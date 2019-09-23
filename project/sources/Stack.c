@@ -6,8 +6,7 @@
 
 Stack *stackAllocate(Stack* sptr)
 {
-    sptr = (Stack*)malloc(sizeof(Stack));
-    memset(sptr, 0, sizeof(Stack));
+    sptr = (Stack*)calloc(1, sizeof(Stack));
     return sptr;
 }
 

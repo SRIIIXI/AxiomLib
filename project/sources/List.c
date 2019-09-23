@@ -6,8 +6,7 @@
 
 List *listAllocate(List* lptr)
 {
-    lptr = (List*)malloc(sizeof(List));
-    memset(lptr, 0, sizeof(List));
+    lptr = (List*)calloc(1, sizeof(List));
     return lptr;
 }
 

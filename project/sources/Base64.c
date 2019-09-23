@@ -20,9 +20,7 @@ void encodebase64(const unsigned char *data, unsigned long inputlength, char *en
 {
 	*outputlength = 4 * ((inputlength + 2) / 3);
 
-	encodedString = (char*)malloc((size_t)(*outputlength) + 1);
-
-	memset(encodedString, 0, (size_t)(*outputlength) + 1);
+	encodedString = (char*)calloc(1, (size_t)(*outputlength) + 1);
 
 	if (encodedString == NULL)
 	{
@@ -56,7 +54,6 @@ void encodebase64(const unsigned char *data, unsigned long inputlength, char *en
 
 void decodebase64(const char *encodedString, unsigned long inputlength, unsigned char *decodedData, unsigned long *outputlength)
 {
-
 	char decodingtable[256] = { 0 };
 
 	for (int i = 0; i < 64; i++)
@@ -64,14 +61,14 @@ void decodebase64(const char *encodedString, unsigned long inputlength, unsigned
 		decodingtable[(unsigned char)encodingtable[i]] = i;
 	}
 
-
 	if (inputlength % 4 != 0) return;
 
 	*outputlength = inputlength / 4 * 3;
+
 	if (encodedString[inputlength - 1] == '=') (*outputlength)--;
 	if (encodedString[inputlength - 2] == '=') (*outputlength)--;
 
-	decodedData = (unsigned char*)malloc(*outputlength);
+	decodedData = (unsigned char*)calloc(1, *outputlength);
 
 	if (decodedData == NULL)
 	{
@@ -81,7 +78,6 @@ void decodebase64(const char *encodedString, unsigned long inputlength, unsigned
 
 	for (unsigned int i = 0, j = 0; i < inputlength;)
 	{
-
 		uint32_t sextet_a = encodedString[i] == '=' ? 0 & i++ : decodingtable[encodedString[i++]];
 		uint32_t sextet_b = encodedString[i] == '=' ? 0 & i++ : decodingtable[encodedString[i++]];
 		uint32_t sextet_c = encodedString[i] == '=' ? 0 & i++ : decodingtable[encodedString[i++]];

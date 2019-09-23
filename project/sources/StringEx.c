@@ -18,8 +18,7 @@ char* strfromwstr(const wchar_t* wstr)
     {
         for (wlen = 0; wstr[wlen] != '\0'; wlen++) {}
 
-        str = (char*)malloc(wlen+1);
-        memset(str, 0, wlen+1);
+        str = (char*)calloc(1, wlen+1);
 
         for (size_t idx = 0; idx < wlen; idx++)
         {
@@ -32,8 +31,7 @@ char* strfromwstr(const wchar_t* wstr)
 
 char* strfromint(size_t num)
 {
-	char* ptr = (char*)malloc((size_t)32);
-	memset(ptr, 0, (size_t)32);
+	char* ptr = (char*)calloc(1, (size_t)32);
 
 	int sign = 1;
 	size_t remainder = 1;
