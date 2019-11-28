@@ -17,7 +17,7 @@ extern TreeNode* treenode_allocate(void* data, size_t sz);
 extern void treenode_free(TreeNode* ptr);
 extern void treenode_copy(TreeNode* dest, TreeNode* orig);
 
-extern bool treenode_are_equal(TreeNode* first, TreeNode* second);
+extern bool treenode_is_equal(TreeNode* first, TreeNode* second);
 extern bool treenode_is_greater(TreeNode* first, TreeNode* second);
 extern bool treenode_is_less(TreeNode* first, TreeNode* second);
 

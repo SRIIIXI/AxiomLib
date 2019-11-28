@@ -2,6 +2,8 @@
 #define _KEY_VALUE_C
 
 #include "Node.h"
+#include <stddef.h>
+#include <stdbool.h>
 
 typedef struct KeyValue
 {
@@ -9,12 +11,12 @@ typedef struct KeyValue
     Node*	Value;
 }KeyValue;
 
-extern void keyValueCopy(KeyValue* dest, KeyValue* orig);
+extern void keyvalue_copy(KeyValue* dest, KeyValue* orig);
 
-extern int keyValueAreEqual(KeyValue* first, KeyValue* second);
+extern bool keyvalue_is_equal(KeyValue* first, KeyValue* second);
 
-extern int keyValueIsGreater(KeyValue* first, KeyValue* second);
+extern bool keyvalue_is_greater(KeyValue* first, KeyValue* second);
 
-extern int keyValueIsLess(KeyValue* first, KeyValue* second);
+extern bool keyvalue_is_less(KeyValue* first, KeyValue* second);
 
 #endif

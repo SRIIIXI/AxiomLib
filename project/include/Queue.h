@@ -11,11 +11,11 @@ typedef struct Queue
     Node* Tail;
 }Queue;
 
-extern Queue* queueAllocate(Queue *qptr);
-extern void queueClear(Queue* qptr);
+extern Queue* queue_allocate(Queue *qptr);
+extern void queue_clear(Queue* qptr);
 
-extern Node* queueEnqueue(Queue* qptr, void* data, size_t sz);
-extern Node* queueDenqueue(Queue* qptr);
-extern size_t queueItemCount(Queue* qptr);
+extern Node* queue_enqueue(Queue* qptr, void* data, size_t sz);
+extern Node* queue_denqueue(Queue* qptr);
+extern size_t queue_item_count(Queue* qptr);
 
 #endif

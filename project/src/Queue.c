@@ -4,13 +4,13 @@
 #include <memory.h>
 #include <stdlib.h>
 
-Queue *queueAllocate(Queue* qptr)
+Queue *queue_allocate(Queue* qptr)
 {
     qptr = (Queue*)calloc(1, sizeof(Queue));
     return qptr;
 }
 
-void queueClear(Queue *qptr)
+void queue_clear(Queue *qptr)
 {
     if(qptr == NULL)
     {
@@ -18,14 +18,14 @@ void queueClear(Queue *qptr)
     }
 }
 
-Node* queueEnqueue(Queue *qptr, void* data, size_t sz)
+Node* queue_enqueue(Queue *qptr, void* data, size_t sz)
 {
     if(qptr == NULL)
     {
-        qptr = queueAllocate(qptr);
+        qptr = queue_allocate(qptr);
     }
 
-    Node* ptr = nodeAllocate(data, sz);
+    Node* ptr = node_allocate(data, sz);
 
     if(qptr->Count == 0)
     {
@@ -43,7 +43,7 @@ Node* queueEnqueue(Queue *qptr, void* data, size_t sz)
     return ptr;
 }
 
-Node* queueDenqueue(Queue *qptr)
+Node* queue_denqueue(Queue *qptr)
 {
     if(qptr == NULL)
     {
@@ -59,7 +59,7 @@ Node* queueDenqueue(Queue *qptr)
     return oldtail;
 }
 
-size_t queueItemCount(Queue *qptr)
+size_t queue_item_count(Queue *qptr)
 {
     if(qptr != NULL)
     {

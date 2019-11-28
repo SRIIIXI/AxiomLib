@@ -4,13 +4,13 @@
 #include <memory.h>
 #include <stdlib.h>
 
-List *listAllocate(List* lptr)
+List * list_allocate(List* lptr)
 {
     lptr = (List*)calloc(1, sizeof(List));
     return lptr;
 }
 
-void listClear(List* lptr)
+void list_clear(List* lptr)
 {
     if(lptr == NULL)
     {
@@ -18,14 +18,14 @@ void listClear(List* lptr)
     }
 }
 
-Node* listAddToHead(List* lptr, void* data, size_t sz)
+Node* list_add_to_head(List* lptr, void* data, size_t sz)
 {
     if(lptr == NULL)
     {
-        lptr = listAllocate(lptr);
+        lptr = list_allocate(lptr);
     }
 
-    Node* ptr = nodeAllocate(data, sz);
+    Node* ptr = node_allocate(data, sz);
 
     if(lptr->Count == 0)
     {
@@ -43,14 +43,14 @@ Node* listAddToHead(List* lptr, void* data, size_t sz)
     return ptr;
 }
 
-Node* listAddToTail(List* lptr, void* data, size_t sz)
+Node* list_add_to_tail(List* lptr, void* data, size_t sz)
 {
     if(lptr == NULL)
     {
-        lptr = listAllocate(lptr);
+        lptr = list_allocate(lptr);
     }
 
-    Node* ptr = nodeAllocate(data, sz);
+    Node* ptr = node_allocate(data, sz);
 
     if(lptr->Count == 0)
     {
@@ -68,13 +68,13 @@ Node* listAddToTail(List* lptr, void* data, size_t sz)
     return ptr;
 }
 
-Node* listInsert(List* lptr, void* data, size_t sz, int pos)
+Node* list_insert(List* lptr, void* data, size_t sz, int pos)
 {
 	if (lptr == NULL)
 	{
 		if (pos == 0)
 		{
-			lptr = listAllocate(lptr);
+			lptr = list_allocate(lptr);
 		}
 
 		if (pos > 0)
@@ -92,7 +92,7 @@ Node* listInsert(List* lptr, void* data, size_t sz, int pos)
 
     if(pos == 0)
     {
-        return listAddToHead(lptr, data, sz);
+        return list_add_to_head(lptr, data, sz);
     }
 
     int idx = 1;
@@ -103,14 +103,14 @@ Node* listInsert(List* lptr, void* data, size_t sz, int pos)
 	{
 		if (pos == lptr->Count)
 		{
-			return listAddToTail(lptr, data, sz);
+			return list_add_to_tail(lptr, data, sz);
 		}
 
 		for(Node* curptr = lptr->Head ; curptr->Next != NULL; curptr = curptr->Next, idx++)
 		{
 			if(pos == idx)
 			{
-				ptr = nodeAllocate(data, sz);
+				ptr = node_allocate(data, sz);
 
 				Node* prev = curptr->Previous;
 				Node* next = curptr->Next;
@@ -132,7 +132,7 @@ Node* listInsert(List* lptr, void* data, size_t sz, int pos)
     return ptr;
 }
 
-void listRemoveFromHead(List* lptr)
+void list_remove_from_head(List* lptr)
 {
     if(lptr == NULL)
     {
@@ -142,11 +142,11 @@ void listRemoveFromHead(List* lptr)
     Node* oldhead = lptr->Head;
     lptr->Head = lptr->Head->Next;
     lptr->Head->Previous = NULL;
-    nodeFree(oldhead);
+    node_free(oldhead);
     lptr->Count--;
 }
 
-void listRemoveFromTail(List* lptr)
+void list_remove_from_tail(List* lptr)
 {
     if(lptr == NULL)
     {
@@ -156,11 +156,11 @@ void listRemoveFromTail(List* lptr)
     Node* oldtail = lptr->Tail;
     lptr->Tail = oldtail->Previous;
     lptr->Tail->Next = NULL;
-    nodeFree(oldtail);
+    node_free(oldtail);
     lptr->Count--;
 }
 
-void listRemove(List* lptr, const Node* node)
+void list_remove(List* lptr, const Node* node)
 {
     if(lptr == NULL || node == NULL)
     {
@@ -173,12 +173,12 @@ void listRemove(List* lptr, const Node* node)
         {
             if(curptr->Next == NULL)
             {
-                listRemoveFromTail(lptr);
+				list_remove_from_tail(lptr);
             }
 
             if(curptr->Previous == NULL)
             {
-                listRemoveFromHead(lptr);
+				list_remove_from_head(lptr);
             }
 
             Node* prev = curptr->Previous;
@@ -191,7 +191,7 @@ void listRemove(List* lptr, const Node* node)
 
             next->Previous = prev;
 
-            nodeFree(curptr);
+            node_free(curptr);
 
             lptr->Count--;
             break;
@@ -199,7 +199,7 @@ void listRemove(List* lptr, const Node* node)
     }
 }
 
-void listRemoveAt(List* lptr, int pos)
+void list_remove_at(List* lptr, int pos)
 {
     if(lptr == NULL || pos < 0)
     {
@@ -213,12 +213,12 @@ void listRemoveAt(List* lptr, int pos)
 
     if(pos == lptr->Count -1)
     {
-        listRemoveFromTail(lptr);
+		list_remove_from_tail(lptr);
     }
 
     if(pos == 0)
     {
-        listRemoveFromHead(lptr);
+		list_remove_from_head(lptr);
     }
 
     int idx = 1;
@@ -232,7 +232,7 @@ void listRemoveAt(List* lptr, int pos)
             prev->Next = next;
             next->Previous = prev;
 
-            nodeFree(curptr);
+            node_free(curptr);
 
             lptr->Count--;
             break;
@@ -240,7 +240,7 @@ void listRemoveAt(List* lptr, int pos)
     }
 }
 
-void listRemoveValue(List* lptr, void* data, size_t sz)
+void list_remove_value(List* lptr, void* data, size_t sz)
 {
     if(lptr == NULL)
     {
@@ -249,30 +249,30 @@ void listRemoveValue(List* lptr, void* data, size_t sz)
 
     Node* ptr = NULL;
 
-    Node* node = nodeAllocate(data, sz);
+    Node* node = node_allocate(data, sz);
 
-    ptr = listGetFirst(lptr);
+    ptr = list_get_first(lptr);
 
     int idx = 0;
 
-    while(1)
+    while(true)
     {
         if(ptr == NULL)
         {
             break;
         }
 
-        if(nodeAreEqual(ptr, node))
+        if(node_is_equal(ptr, node))
         {
             if(idx == lptr->Count - 1)
             {
-                listRemoveFromTail(lptr);
+				list_remove_from_tail(lptr);
                 break;
             }
 
             if(idx == 0)
             {
-                listRemoveFromHead(lptr);
+				list_remove_from_head(lptr);
                 break;
             }
 
@@ -282,20 +282,20 @@ void listRemoveValue(List* lptr, void* data, size_t sz)
             prev->Next = next;
             next->Previous = prev;
 
-            nodeFree(ptr);
+            node_free(ptr);
             lptr->Count--;
             break;
         }
 
-        ptr = listGetNext(lptr);
+        ptr = list_get_next(lptr);
         idx++;
     }
 
-    nodeFree(node);
+    node_free(node);
     return;
 }
 
-size_t listItemCount(List* lptr)
+size_t list_item_count(List* lptr)
 {
     if(lptr != NULL)
     {
@@ -305,7 +305,7 @@ size_t listItemCount(List* lptr)
     return -1;
 }
 
-size_t listIndexOf(List *lptr, const Node* node)
+size_t list_index_of(List *lptr, const Node* node)
 {
     if(lptr == NULL)
     {
@@ -314,7 +314,7 @@ size_t listIndexOf(List *lptr, const Node* node)
 
     Node* ptr = NULL;
 
-    ptr = listGetFirst(lptr);
+    ptr = list_get_first(lptr);
 
 	size_t idx = 0;
 
@@ -323,14 +323,14 @@ size_t listIndexOf(List *lptr, const Node* node)
         return idx;
     }
 
-    while(1)
+    while(true)
     {
         if(ptr == NULL)
         {
             break;
         }
 
-        ptr = listGetNext(lptr);
+        ptr = list_get_next(lptr);
         idx++;
 
         if(ptr == node)
@@ -342,7 +342,7 @@ size_t listIndexOf(List *lptr, const Node* node)
     return -1;
 }
 
-size_t listIndexOfValue(List* lptr, void* data, size_t sz)
+size_t list_index_of_value(List* lptr, void* data, size_t sz)
 {
     if(lptr == NULL)
     {
@@ -351,40 +351,40 @@ size_t listIndexOfValue(List* lptr, void* data, size_t sz)
 
     Node* ptr = NULL;
 
-    Node* node = nodeAllocate(data, sz);
+    Node* node = node_allocate(data, sz);
 
-    ptr = listGetFirst(lptr);
+    ptr = list_get_first(lptr);
 
 	size_t idx = 0;
 
-    if(nodeAreEqual(ptr, node))
+    if(node_is_equal(ptr, node))
     {
-        nodeFree(node);
+        node_free(node);
         return idx;
     }
 
-    while(1)
+    while(true)
     {
         if(ptr == NULL)
         {
             break;
         }
 
-        ptr = listGetNext(lptr);
+        ptr = list_get_next(lptr);
         idx++;
 
-        if(nodeAreEqual(ptr, node))
+        if(node_is_equal(ptr, node))
         {
-            nodeFree(node);
+			node_free(node);
             return idx;
         }
     }
 
-    nodeFree(node);
+	node_free(node);
     return -1;
 }
 
-Node* listGetAt(List* lptr, int atpos)
+Node* list_get_at(List* lptr, int atpos)
 {
     if(lptr == NULL)
     {
@@ -398,20 +398,20 @@ Node* listGetAt(List* lptr, int atpos)
 
     Node* ptr = NULL;
 
-    ptr = listGetFirst(lptr);
+    ptr = list_get_first(lptr);
 
     if(atpos > 0)
     {
         for(int idx = 0; idx < atpos; idx++)
         {
-            ptr = listGetNext(lptr);
+            ptr = list_get_next(lptr);
         }
     }
 
     return ptr;
 }
 
-Node* listGetFirst(List* lptr)
+Node* list_get_first(List* lptr)
 {
     if(lptr == NULL)
     {
@@ -422,7 +422,7 @@ Node* listGetFirst(List* lptr)
     return lptr->IteratorPosition;
 }
 
-Node* listGetNext(List* lptr)
+Node* list_get_next(List* lptr)
 {
     if(lptr == NULL)
     {
@@ -434,7 +434,7 @@ Node* listGetNext(List* lptr)
     return lptr->IteratorPosition;
 }
 
-Node* listGetLast(List* lptr)
+Node* list_get_last(List* lptr)
 {
     if(lptr == NULL)
     {
@@ -445,7 +445,7 @@ Node* listGetLast(List* lptr)
     return lptr->IteratorPosition;
 }
 
-Node* listGetPrevious(List* lptr)
+Node* list_get_previous(List* lptr)
 {
     if(lptr == NULL)
     {
@@ -457,7 +457,7 @@ Node* listGetPrevious(List* lptr)
     return lptr->IteratorPosition;
 }
 
-List *listSort(List* lptr)
+List * list_sort(List* lptr)
 {
     if(lptr == NULL)
     {
@@ -467,7 +467,7 @@ List *listSort(List* lptr)
     return NULL;
 }
 
-List* listMerge(List* lptrFirst, List* lptrSecond)
+List* list_merge(List* lptrFirst, List* lptrSecond)
 {
     if(lptrFirst == NULL)
     {
@@ -482,7 +482,7 @@ List* listMerge(List* lptrFirst, List* lptrSecond)
     return NULL;
 }
 
-List* listJoin(List* lptrFirst, List* lptrSecond)
+List* list_join(List* lptrFirst, List* lptrSecond)
 {
     if(lptrFirst == NULL)
     {

@@ -4,7 +4,7 @@
 #include <memory.h>
 #include <stdlib.h>
 
-Node* nodeAllocate(void* data, size_t sz)
+Node* node_allocate(void* data, size_t sz)
 {
     Node* nd = (Node*)calloc(1, sizeof(Node));
 
@@ -23,13 +23,13 @@ Node* nodeAllocate(void* data, size_t sz)
     return nd;
 }
 
-void nodeFree(Node* ptr)
+void node_free(Node* ptr)
 {
     free(ptr->Data);
     free(ptr);
 }
 
-void nodeCopy(Node* dest, Node* orig)
+void node_copy(Node* dest, Node* orig)
 {
     if( (dest != NULL && dest->Data != NULL)
             && (orig != NULL && orig->Data != NULL) )
@@ -41,60 +41,60 @@ void nodeCopy(Node* dest, Node* orig)
     }
 }
 
-int nodeAreEqual(Node* first, Node* second)
+bool node_is_equal(Node* first, Node* second)
 {
     if( (first != NULL && first->Data != NULL)
             && (second != NULL && second->Data != NULL) )
     {
         if(first->Size != second->Size)
         {
-            return 0;
+            return false;
         }
 
         if(memcmp(first->Data, second->Data, first->Size) == 0)
         {
-            return 1;
+            return true;
         }
     }
 
-    return 0;
+    return false;
 }
 
-int nodeIsGreater(Node* first, Node* second)
+bool node_is_greater(Node* first, Node* second)
 {
     if( (first != NULL && first->Data != NULL)
             && (second != NULL && second->Data != NULL) )
     {
         if(first->Size != second->Size)
         {
-            return 0;
+            return false;
         }
 
         if(memcmp(first->Data, second->Data, first->Size) > 0)
         {
-            return 1;
+            return true;
         }
     }
 
-    return 0;
+    return false;
 }
 
-int nodeIsLess(Node* first, Node* second)
+bool node_is_less(Node* first, Node* second)
 {
     if( (first != NULL && first->Data != NULL)
             && (second != NULL && second->Data != NULL) )
     {
         if(first->Size != second->Size)
         {
-            return 0;
+            return false;
         }
 
         if(memcmp(first->Data, second->Data, first->Size) < 0)
         {
-            return 1;
+            return true;
         }
     }
 
-    return 0;
+    return false;
 }
 

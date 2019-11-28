@@ -2,6 +2,8 @@
 #define _LIST_C
 
 #include "Node.h"
+#include <stddef.h>
+#include <stdbool.h>
 
 typedef struct List
 {
@@ -11,31 +13,31 @@ typedef struct List
     Node* IteratorPosition;
 }List;
 
-extern List* listAllocate(List* lptr);
-extern void listClear(List* lptr);
+extern List* list_allocate(List* lptr);
+extern void list_clear(List* lptr);
 
-extern Node* listAddToHead(List* lptr, void* data, size_t sz);
-extern Node* listAddToTail(List* lptr, void* data, size_t sz);
-extern Node* listInsert(List* lptr, void* data, size_t sz, int pos);
+extern Node* list_add_to_head(List* lptr, void* data, size_t sz);
+extern Node* list_add_to_tail(List* lptr, void* data, size_t sz);
+extern Node* list_insert(List* lptr, void* data, size_t sz, int pos);
 
-extern void listRemoveFromHead(List* lptr);
-extern void listRemoveFromTail(List* lptr);
-extern void listRemove(List* lptr, const Node* node);
-extern void listRemoveAt(List* lptr, int pos);
-extern void listRemoveValue(List* lptr, void* data, size_t sz);
+extern void list_remove_from_head(List* lptr);
+extern void list_remove_from_tail(List* lptr);
+extern void list_remove(List* lptr, const Node* node);
+extern void list_remove_at(List* lptr, int pos);
+extern void list_remove_value(List* lptr, void* data, size_t sz);
 
-extern size_t listItemCount(List* lptr);
-extern size_t listIndexOf(List* lptr, const Node* node);
-extern size_t listIndexOfValue(List* lptr, void* data, size_t sz);
-extern Node* listGetAt(List* lptr, int atpos);
+extern size_t list_item_count(List* lptr);
+extern size_t list_index_of(List* lptr, const Node* node);
+extern size_t list_index_of_value(List* lptr, void* data, size_t sz);
+extern Node* list_get_at(List* lptr, int atpos);
 
-extern Node* listGetFirst(List* lptr);
-extern Node* listGetLast(List* lptr);
-extern Node* listGetNext(List* lptr);
-extern Node* listGetPrevious(List* lptr);
+extern Node* list_get_first(List* lptr);
+extern Node* list_get_next(List* lptr);
+extern Node* list_get_last(List* lptr);
+extern Node* list_get_previous(List* lptr);
 
-extern List* listSort(List* lptr);
-extern List* listMerge(List* lptrFirst, List* lptrSecond);
-extern List* listJoin(List* lptrFirst, List* lptrSecond);
+extern List* list_sort(List* lptr);
+extern List* list_merge(List* lptrFirst, List* lptrSecond);
+extern List* list_join(List* lptrFirst, List* lptrSecond);
 
 #endif

@@ -41,7 +41,7 @@ void treenode_copy(TreeNode* dest, TreeNode* orig)
     }
 }
 
-bool treenode_are_equal(TreeNode* first, TreeNode* second)
+bool treenode_is_equal(TreeNode* first, TreeNode* second)
 {
     if( (first != NULL && first->Data != NULL)
             && (second != NULL && second->Data != NULL) )

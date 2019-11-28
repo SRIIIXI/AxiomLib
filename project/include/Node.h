@@ -2,6 +2,7 @@
 #define _NODE_C
 
 #include <stddef.h>
+#include <stdbool.h>
 
 typedef struct Node
 {
@@ -11,13 +12,13 @@ typedef struct Node
     struct Node* Previous;
 }Node;
 
-extern Node* nodeAllocate(void* data, size_t sz);
+extern Node* node_allocate(void* data, size_t sz);
 
-extern void nodeFree(Node* ptr);
-extern void nodeCopy(Node* dest, Node* orig);
+extern void node_free(Node* ptr);
+extern void node_copy(Node* dest, Node* orig);
 
-extern int nodeAreEqual(Node* first, Node* second);
-extern int nodeIsGreater(Node* first, Node* second);
-extern int nodeIsLess(Node* first, Node* second);
+extern bool node_is_equal(Node* first, Node* second);
+extern bool node_is_greater(Node* first, Node* second);
+extern bool node_is_less(Node* first, Node* second);
 
 #endif

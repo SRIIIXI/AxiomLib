@@ -4,23 +4,23 @@
 #include <memory.h>
 #include <stdlib.h>
 
-void keyValueCopy(KeyValue* dest, KeyValue* orig)
+void keyvalue_copy(KeyValue* dest, KeyValue* orig)
 {
-    nodeCopy(dest->Key, orig->Key);
-    nodeCopy(dest->Value, orig->Value);
+	node_copy(dest->Key, orig->Key);
+	node_copy(dest->Value, orig->Value);
 }
 
-int keyValueAreEqual(KeyValue* first, KeyValue* second)
+bool keyvalue_is_equal(KeyValue* first, KeyValue* second)
 {
-    return nodeAreEqual(first->Key, second->Key);
+    return node_is_equal(first->Key, second->Key);
 }
 
-int keyValueIsGreater(KeyValue* first, KeyValue* second)
+bool keyvalue_is_greater(KeyValue* first, KeyValue* second)
 {
-    return nodeIsGreater(first->Key, second->Key);
+    return node_is_greater(first->Key, second->Key);
 }
 
-int keyValueIsLess(KeyValue* first, KeyValue* second)
+bool keyvalue_is_less(KeyValue* first, KeyValue* second)
 {
-    return nodeIsLess(first->Key, second->Key);
+    return node_is_less(first->Key, second->Key);
 }

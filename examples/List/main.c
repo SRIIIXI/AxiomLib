@@ -18,13 +18,13 @@ int main(int argc, char *argv[])
 
     List* list = NULL;
 
-    list = listAllocate(list);
+    list = list_allocate(list);
 
-    listAddToTail(list, "One", strlen("One")+1);
-    listAddToTail(list, "Two", strlen("Two")+1);
-    listAddToTail(list, "Three", strlen("Three")+1);
-    listAddToTail(list, "Four", strlen("Four")+1);
-    listAddToTail(list, "Five", strlen("Five")+1);
+	list_add_to_tail(list, "One", strlen("One")+1);
+	list_add_to_tail(list, "Two", strlen("Two")+1);
+	list_add_to_tail(list, "Three", strlen("Three")+1);
+	list_add_to_tail(list, "Four", strlen("Four")+1);
+	list_add_to_tail(list, "Five", strlen("Five")+1);
 
     listPrintForward(list);
 
@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     printLine;
 
     printf("Remove first\n");
-    listRemoveFromHead(list);
+	list_remove_from_head(list);
 
     printLine;
 
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     printLine;
 
     printf("Remove last\n");
-    listRemoveFromTail(list);
+	list_remove_from_tail(list);
 
     printLine;
 
@@ -71,7 +71,7 @@ void listPrintForward(List* lptr)
     printf("Forward traversal\n");
     Node* ptr = NULL;
 
-    ptr = listGetFirst(lptr);
+    ptr = list_get_first(lptr);
 
     while(1)
     {
@@ -81,7 +81,7 @@ void listPrintForward(List* lptr)
         }
 
         printf("%s\n", (char*)ptr->Data);
-        ptr = listGetNext(lptr);
+        ptr = list_get_next(lptr);
     }
 }
 
@@ -90,7 +90,7 @@ void listPrintReverse(List* lptr)
     printf("Reverse traversal\n");
     Node* ptr = NULL;
 
-    ptr = listGetLast(lptr);
+    ptr = list_get_last(lptr);
 
     while(1)
     {
@@ -100,7 +100,7 @@ void listPrintReverse(List* lptr)
         }
 
         printf("%s\n", (char*)ptr->Data);
-        ptr = listGetPrevious(lptr);
+        ptr = list_get_previous(lptr);
     }
 }
 
@@ -108,6 +108,6 @@ void listRandomAccess(List* lptr, size_t index)
 {
     printf("Random access, index %zd\n", index);
 
-    Node* ptr = listGetAt(lptr, 2);
+    Node* ptr = list_get_at(lptr, 2);
     printf("%s\n", (char*)ptr->Data);
 }

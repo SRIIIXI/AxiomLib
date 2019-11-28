@@ -4,13 +4,13 @@
 #include <memory.h>
 #include <stdlib.h>
 
-Stack *stackAllocate(Stack* sptr)
+Stack *stack_allocate(Stack* sptr)
 {
     sptr = (Stack*)calloc(1, sizeof(Stack));
     return sptr;
 }
 
-void stackClear(Stack* sptr)
+void stack_clear(Stack* sptr)
 {
     if(sptr == NULL)
     {
@@ -18,14 +18,14 @@ void stackClear(Stack* sptr)
     }
 }
 
-Node* stackPush(Stack* sptr, void* data, size_t sz)
+Node* stack_push(Stack* sptr, void* data, size_t sz)
 {
     if(sptr == NULL)
     {
-        sptr = stackAllocate(sptr);
+        sptr = stack_allocate(sptr);
     }
 
-    Node* ptr = nodeAllocate(data, sz);
+    Node* ptr = node_allocate(data, sz);
 
     if(sptr->Count == 0)
     {
@@ -43,7 +43,7 @@ Node* stackPush(Stack* sptr, void* data, size_t sz)
     return ptr;
 }
 
-Node *stackPop(Stack* sptr)
+Node *stack_pop(Stack* sptr)
 {
     if(sptr == NULL)
     {
@@ -59,7 +59,7 @@ Node *stackPop(Stack* sptr)
     return oldtail;
 }
 
-size_t stackItemCount(Stack *sptr)
+size_t stack_item_count(Stack *sptr)
 {
     if(sptr != NULL)
     {
