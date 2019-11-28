@@ -1,8 +1,8 @@
 #ifndef _STRING_EX_C
 #define _STRING_EX_C
 
-#include "List.h"
 #include <stddef.h>
+#include <stdbool.h>
 
 #if defined(_WIN32) || defined(WIN32) || defined (_WIN64) || defined (WIN64)
 #define strtoull(str, endptr, base) _strtoui64(str, endptr, base)
@@ -20,8 +20,8 @@ extern char* strrev(char* ptr);
 
 extern char* strsegrev(char* str, size_t start, size_t term);
 
-extern size_t strindexofsubstr(char* str, const char* substr);
-extern size_t strindexofchar(char* str, const char ch);
+extern long long strindexofsubstr(char* str, const char* substr);
+extern long long strindexofchar(char* str, const char ch);
 
 extern size_t strcountsubstr(char* str, const char* substr);
 extern size_t strcountchar(char* str, const char ch);
@@ -49,8 +49,8 @@ extern char* strrepcharfirst(char* str, const char oldchar, const char newchar);
 extern char* strrepcharall(char* str, const char oldchar, const char newchar);
 extern char* strrepcharat(char* str, const char newchar, size_t pos);
 
-extern List* strsplitsubstr(char* str, const char* substr);
-extern List* strsplitchar(char* str, const char ch);
-extern char* strjoin(List *strlist);
+//extern List* strsplitsubstr(char* str, const char* substr);
+//extern List* strsplitchar(char* str, const char ch);
+//extern char* strjoin(List *strlist);
 
 #endif

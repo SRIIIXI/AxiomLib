@@ -1,4 +1,4 @@
-#include "List.h"
+#include "Queue.h"
 #include "Node.h"
 
 #include <stdio.h>
@@ -6,12 +6,16 @@
 #include <stdlib.h>
 
 #define printLine printf("\n")
+
+/*
 void listPrintForward(List* lptr);
 void listPrintReverse(List* lptr);
 void listRandomAccess(List* lptr, size_t index);
+*/
 
 int main(int argc, char *argv[])
 {
+	/*
     List* list = NULL;
 
     list = list_allocate(list);
@@ -57,11 +61,12 @@ int main(int argc, char *argv[])
     printLine;
 
     listPrintReverse(list);
-
+	*/
 
     return 0;
 }
 
+/*
 void listPrintForward(List* lptr)
 {
     printf("Forward traversal\n");
@@ -107,3 +112,4 @@ void listRandomAccess(List* lptr, size_t index)
     Node* ptr = list_get_at(lptr, 2);
     printf("%s\n", (char*)ptr->Data);
 }
+*/

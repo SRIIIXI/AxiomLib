@@ -20,10 +20,13 @@ char* strfromwstr(const wchar_t* wstr)
 
         str = (char*)calloc(1, wlen+1);
 
-        for (size_t idx = 0; idx < wlen; idx++)
-        {
-            str[idx] = wstr[idx];
-        }
+		if (str != NULL)
+		{
+			for (size_t idx = 0; idx < wlen; idx++)
+			{
+				str[idx] = wstr[idx];
+			}
+		}
     }
 
     return str;
@@ -32,6 +35,11 @@ char* strfromwstr(const wchar_t* wstr)
 char* strfromint(size_t num)
 {
 	char* ptr = (char*)calloc(1, (size_t)32);
+
+	if (ptr == NULL)
+	{
+		return NULL;
+	}
 
 	int sign = 1;
 	size_t remainder = 1;
@@ -44,7 +52,7 @@ char* strfromint(size_t num)
 		dividend = dividend*-1;
 	}
 
-	while (dividend)
+	while (dividend && ctr < 32)
 	{
 		remainder = dividend % 10;
 		dividend = dividend / 10;
@@ -117,9 +125,9 @@ char* strsegrev(char* str, size_t start, size_t term)
     return str;
 }
 
-size_t strindexofsubstr(char* str, const char* substr)
+long long strindexofsubstr(char* str, const char* substr)
 {
-    int result = -1;
+    long long result = -1;
 
     char* pdest = (char*)strstr( str, substr );
 
@@ -133,7 +141,7 @@ size_t strindexofsubstr(char* str, const char* substr)
     return result;
 }
 
-size_t strindexofchar(char* str, const char ch)
+long long strindexofchar(char* str, const char ch)
 {
     for (int ctr = 0; str[ctr] != '\0'; ctr++)
     {
@@ -148,12 +156,46 @@ size_t strindexofchar(char* str, const char ch)
 
 size_t strcountsubstr(char* str, const char* substr)
 {
-    return -1;
+	size_t ctr = 0;
+
+	size_t offset = strlen(substr);
+
+	char* ptr = str;
+
+	bool contiue_scan = true;
+
+	while (contiue_scan)
+	{
+		long long index = strindexofsubstr(ptr, substr);
+
+		if (index > -1)
+		{
+			ptr = ptr + index + offset;
+			ctr++;
+			contiue_scan = true;
+		}
+		else
+		{
+			contiue_scan = false;
+		}
+	}
+
+    return ctr;
 }
 
 size_t strcountchar(char* str, const char ch)
 {
-    return -1;
+	size_t ctr = 0;
+
+	for (int index = 0; str[index] != '\0'; index++)
+	{
+		if (str[index] == ch)
+		{
+			ctr++;
+		}
+	}
+
+	return ctr;
 }
 
 extern char* strtolower(char* str)
@@ -188,12 +230,9 @@ char* strlefttrim(char* str)
 
     int ctr = 0;
 
-    int trimlen = 0;
-
     while (isspace(*ptr))
     {
         ptr++;
-        trimlen++;
     }
 
     while (*ptr)
@@ -212,7 +251,7 @@ char* strrighttrim(char* str)
 {
     size_t len = strlen(str);
 
-    for (size_t ctr = len - 1; ctr > -1; ctr--)
+    for (int ctr = len - 1; ctr > -1; ctr--)
     {
         if (isspace(str[ctr]))
         {
@@ -364,17 +403,17 @@ char* strrepcharat(char* str, const char newchar, size_t pos)
     return NULL;
 }
 
-extern List* strsplitsubstr(char* str, const char* substr)
-{
-    return NULL;
-}
-
-extern List* strsplitchar(char* str, const char ch)
-{
-    return NULL;
-}
-
-extern char* strjoin(List* strlist)
-{
-    return NULL;
-}
+//extern List* strsplitsubstr(char* str, const char* substr)
+//{
+//    return NULL;
+//}
+//
+//extern List* strsplitchar(char* str, const char ch)
+//{
+//    return NULL;
+//}
+//
+//extern char* strjoin(List* strlist)
+//{
+//    return NULL;
+//}
