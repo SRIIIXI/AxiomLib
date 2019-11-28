@@ -4,10 +4,10 @@ project(List)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-include_directories(../../project/headers/)
+include_directories(../../project/include/)
 
-set(PROJECT_SOURCE_DIR ../../project/sources)
-set(PROJECT_HEADER_DIR ../../project/headers)
+set(PROJECT_SOURCE_DIR ../../project/src)
+set(PROJECT_HEADER_DIR ../../project/include)
 
 set(SOURCE
 ${SOURCE}

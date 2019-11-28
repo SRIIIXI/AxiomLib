@@ -4,10 +4,10 @@ project(CoreLite)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-include_directories(./headers)
+include_directories(./include)
 
-set(PROJECT_SOURCE_DIR ./sources)
-set(PROJECT_HEADER_DIR ./headers)
+set(PROJECT_SOURCE_DIR ./src)
+set(PROJECT_HEADER_DIR ./include)
 
 set(SOURCE
 ${SOURCE}
