@@ -8,8 +8,6 @@
 #include "StringEx.h"
 #include "Tree.h"
 
-#pragma once
-
 #if defined(_WIN32) || defined(WIN32) || defined (_WIN64) || defined (WIN64)
 
 #include <windows.h>

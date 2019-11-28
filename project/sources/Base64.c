@@ -16,7 +16,7 @@ const char encodingtable[] = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
 const int modulustable[] = { 0, 2, 1 };
 
 
-void encodebase64(const unsigned char *data, unsigned long inputlength, char *encodedString, unsigned long *outputlength)
+void encode_base64(const unsigned char *data, unsigned long inputlength, char *encodedString, unsigned long *outputlength)
 {
 	*outputlength = 4 * ((inputlength + 2) / 3);
 
@@ -52,7 +52,7 @@ void encodebase64(const unsigned char *data, unsigned long inputlength, char *en
 }
 
 
-void decodebase64(const char *encodedString, unsigned long inputlength, unsigned char *decodedData, unsigned long *outputlength)
+void decode_base64(const char *encodedString, unsigned long inputlength, unsigned char *decodedData, unsigned long *outputlength)
 {
 	char decodingtable[256] = { 0 };
 
