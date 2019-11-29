@@ -2,7 +2,7 @@
 /*
 BSD 2-Clause License
 
-Copyright (c) 2017, SRIIIXI (subratoroy@hotmail.com)
+Copyright (c) 2017, Subrato Roy (subratoroy@hotmail.com)
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

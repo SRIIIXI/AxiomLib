@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8.12)
 project(CoreLib)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 include_directories(./include)
 
@@ -37,5 +38,5 @@ ${PROJECT_HEADER_DIR}/StringEx.h
 ${PROJECT_HEADER_DIR}/CoreLib.h
 )
 
-add_library(${PROJECT_NAME} STATIC ${SOURCE} ${HEADERS})
+add_library(${PROJECT_NAME} SHARED ${SOURCE} ${HEADERS})
 
