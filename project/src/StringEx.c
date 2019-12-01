@@ -407,12 +407,12 @@ char* strrepcharat(char* str, const char newchar, size_t pos)
 //{
 //    return NULL;
 //}
-//
-//extern List* strsplitchar(char* str, const char ch)
-//{
-//    return NULL;
-//}
-//
+
+extern char* strsplitchar(char* str, const char ch)
+{
+    return strrepcharall(str, ch, '\0');
+}
+
 //extern char* strjoin(List* strlist)
 //{
 //    return NULL;

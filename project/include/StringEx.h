@@ -50,7 +50,7 @@ extern char* strrepcharall(char* str, const char oldchar, const char newchar);
 extern char* strrepcharat(char* str, const char newchar, size_t pos);
 
 //extern List* strsplitsubstr(char* str, const char* substr);
-//extern List* strsplitchar(char* str, const char ch);
+extern char* strsplitchar(char* str, const char ch);
 //extern char* strjoin(List *strlist);
 
 #endif
