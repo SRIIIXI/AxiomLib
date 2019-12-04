@@ -270,7 +270,11 @@ char* strlefttrim(char* str)
         ptr++;
     }
 
-    str[ctr] = '\0';
+	while (str[ctr] != '\0')
+	{
+		str[ctr] = '\0';
+		ctr++;
+	}
 
     return str;
 }
@@ -370,17 +374,40 @@ char* strremcharat(char* str, size_t pos)
     return str;
 }
 
-char* strrepsubstrfirst(char* str, const char* substr)
+char* strrepsubstrfirst(char* str, const char* oldsubstr, const char* newsubstr)
 {
-    return NULL;
+	char* buffer = NULL;
+
+	long long pos = strindexofsubstr(str, oldsubstr);
+
+	if (pos > -1)
+	{
+		size_t oldslen = strlen(oldsubstr);
+		size_t newslen = strlen(newsubstr);
+		
+		if (newslen > oldslen)
+		{
+			buffer = (char*)calloc(oldslen + (newslen - oldslen) + 1, sizeof(char));
+
+			if (buffer != NULL)
+			{
+				memcpy(buffer, str, pos);
+				memcpy(buffer + pos, newsubstr, newslen);
+				memcpy(buffer + pos + newslen, str + pos + oldslen, strlen(str) - oldslen);
+			}
+		}
+		else
+		{
+			buffer = str;
+			memcpy(buffer + oldslen, newsubstr, newslen);
+			memcpy(buffer + newslen, str + oldslen, strlen(str) - oldslen);
+		}
+	}
+
+    return buffer;
 }
 
-char* strrepsubstrall(char* str, const char* substr)
-{
-    return NULL;
-}
-
-char* strrepsubstrat(char* str, size_t pos, size_t len)
+char* strrepsubstrall(char* str, const char* oldsubstr, const char* newsubstr)
 {
     return NULL;
 }

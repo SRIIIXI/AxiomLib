@@ -69,9 +69,8 @@ extern char* strremcharfirst(char* str, const char oldchar);
 extern char* strremcharall(char* str, const char oldchar);
 extern char* strremcharat(char* str, size_t pos);
 
-extern char* strrepsubstrfirst(char* str, const char* substr);
-extern char* strrepsubstrall(char* str, const char* substr);
-extern char* strrepsubstrat(char* str, size_t pos, size_t len);
+extern char* strrepsubstrfirst(char* str, const char* oldsubstr, const char* newsubstr);
+extern char* strrepsubstrall(char* str, const char* oldsubstr, const char* newsubstr);
 
 extern char* strrepcharfirst(char* str, const char oldchar, const char newchar);
 extern char* strrepcharall(char* str, const char oldchar, const char newchar);

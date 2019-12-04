@@ -36,9 +36,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 int main(int argc, char *argv[])
 {
-	char* ptr = "   aaa mmmBBB7654aaa___Hello! he&aa%xxxxaa";
+	//char* ptr1 = "   aaa mmmBBB7654aaa___Hello! he&aa%xxxxaa";
+	char* ptr1 = "   abcdef";
 
-	ptr = strlefttrim(ptr);
+	ptr1 = strlefttrim(ptr1);
 
     return 0;
 }
