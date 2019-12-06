@@ -36,10 +36,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 int main(int argc, char *argv[])
 {
-	//char* ptr1 = "   aaa mmmBBB7654aaa___Hello! he&aa%xxxxaa";
-	char* ptr1 = "   abcdef";
+	char* ptr = "abcdefxxx";
 
-	ptr1 = strlefttrim(ptr1);
+	ptr = strrepsubstrfirst(ptr, "xxx", "123");
 
     return 0;
 }

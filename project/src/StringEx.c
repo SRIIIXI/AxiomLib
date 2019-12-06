@@ -39,6 +39,11 @@ wchar_t *strtowstr(const char *str)
 
 char* strfromwstr(const wchar_t* wstr)
 {
+	if(wstr == NULL)
+	{
+		return NULL;
+	}
+
     size_t wlen = 0;
     char* str = NULL;
 
@@ -376,40 +381,73 @@ char* strremcharat(char* str, size_t pos)
 
 char* strrepsubstrfirst(char* str, const char* oldsubstr, const char* newsubstr)
 {
+	if(str == NULL || oldsubstr == NULL || newsubstr == NULL)
+	{
+		return NULL;
+	}
+
 	char* buffer = NULL;
 
 	long long pos = strindexofsubstr(str, oldsubstr);
 
-	if (pos > -1)
+	if(pos < 0)
 	{
-		size_t oldslen = strlen(oldsubstr);
-		size_t newslen = strlen(newsubstr);
-		
-		if (newslen > oldslen)
-		{
-			buffer = (char*)calloc(oldslen + (newslen - oldslen) + 1, sizeof(char));
+		return NULL;
+	}
 
-			if (buffer != NULL)
-			{
-				memcpy(buffer, str, pos);
-				memcpy(buffer + pos, newsubstr, newslen);
-				memcpy(buffer + pos + newslen, str + pos + oldslen, strlen(str) - oldslen);
-			}
+	size_t slen = strlen(str);
+	size_t oldslen = strlen(oldsubstr);
+	size_t newslen = strlen(newsubstr);
+
+	if(oldslen < 1 || newslen < 1)
+	{
+		return NULL;
+	}
+
+	if(newslen > oldslen)
+	{
+		buffer = (char*)calloc(slen + (newslen - oldslen) + 1, sizeof(char));
+
+		if(buffer == NULL)
+		{
+			return NULL;
+		}
+	}
+	else
+	{
+		buffer = str;
+	}
+
+	size_t idx = 0;
+	size_t ctr = 0;
+
+	for(idx = 0; idx < slen; ++idx)
+	{
+		if(idx < pos)
+		{
+			buffer[idx] = str[idx];
 		}
 		else
 		{
-			buffer = str;
-			memcpy(buffer + oldslen, newsubstr, newslen);
-			memcpy(buffer + newslen, str + oldslen, strlen(str) - oldslen);
+			if(idx < pos + newslen)
+			{
+				buffer[idx] = newsubstr[ctr];
+				ctr++;
+			}
+			else
+			{
+				buffer[idx] = buffer[idx + (oldslen - newslen)];
+			}
 		}
 	}
-
+		
     return buffer;
 }
 
 char* strrepsubstrall(char* str, const char* oldsubstr, const char* newsubstr)
 {
-    return NULL;
+	char* buffer = NULL;
+	return buffer;
 }
 
 char* strrepcharfirst(char* str, const char oldchar, const char newchar)
