@@ -54,7 +54,7 @@ void    logger_set_logdirectory(size_t loggerid, const char* dirpath);
 void    logger_set_modulename(size_t loggerid, const char* mname);
 size_t  logger_get_instance();
 
-#define writeLog(loggerid, str,level) logger_write(loggerid, str,level,__FUNCTIONNAME__,__FILE__,__LINE__);
-#define writeLogNormal(loggerid, str) logger_write(loggerid, str,LOG_INFO,__FUNCTIONNAME__,__FILE__,__LINE__);
+#define writeLog(loggerid, str, level) logger_write(loggerid, str, level, __FUNCTIONNAME__, __FILE__, __LINE__);
+#define writeLogNormal(loggerid, str) logger_write(loggerid, str, LOG_INFO, __FUNCTIONNAME__, __FILE__, __LINE__);
 
 #endif
