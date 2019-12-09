@@ -447,6 +447,72 @@ char* strrepsubstrfirst(char* str, const char* oldsubstr, const char* newsubstr)
 char* strrepsubstrall(char* str, const char* oldsubstr, const char* newsubstr)
 {
 	char* buffer = NULL;
+
+	if(str == NULL || oldsubstr == NULL || newsubstr == NULL)
+	{
+		return NULL;
+	}
+
+	size_t slen = strlen(str);
+	size_t oldslen = strlen(oldsubstr);
+	size_t newslen = strlen(newsubstr);
+
+	if(oldslen < 1 || newslen < 1)
+	{
+		return NULL;
+	}
+
+	size_t numsubstr = strcountsubstr(str, oldsubstr);
+
+	if(numsubstr < 1)
+	{
+		return NULL;
+	}
+
+	if(newslen > oldslen)
+	{
+		buffer = (char*)calloc(slen + (newslen - oldslen)*numsubstr + 1, sizeof(char));
+
+		if(buffer == NULL)
+		{
+			return NULL;
+		}
+	}
+	else
+	{
+		buffer = str;
+	}
+
+	long long pos = strindexofsubstr(str, oldsubstr);
+
+	while(pos > -1)
+	{
+		size_t idx = 0;
+		size_t ctr = 0;
+
+		for(idx = 0; idx < slen; ++idx)
+		{
+			if(idx < pos)
+			{
+				buffer[idx] = str[idx];
+			}
+			else
+			{
+				if(idx < pos + newslen)
+				{
+					buffer[idx] = newsubstr[ctr];
+					ctr++;
+				}
+				else
+				{
+					buffer[idx] = buffer[idx + (oldslen - newslen)];
+				}
+			}
+		}
+
+		pos = strindexofsubstr(str, oldsubstr);
+	}
+
 	return buffer;
 }
 
@@ -493,20 +559,46 @@ char* strrepcharat(char* str, const char newchar, size_t pos)
             return str;
         }
     }
+
     return NULL;
 }
 
-//extern List* strsplitsubstr(char* str, const char* substr)
-//{
-//    return NULL;
-//}
-
-extern char* strsplitchar(char* str, const char ch)
+extern char** strsplitsubstr(const char* str, const char* delimiter)
 {
-    return strrepcharall(str, ch, '\0');
+	if(str == NULL || delimiter == NULL)
+	{
+		return NULL;
+	}
+
+	size_t substr_count = strcountsubstr(str, delimiter);
+
+	if(substr_count < 1)
+	{
+		return NULL;
+	}
+
+	char** buffer = NULL;
+
+	buffer = (char*)calloc(0, sizeof(char)* substr_count);
+
+	return NULL;
 }
 
-//extern char* strjoin(List* strlist)
-//{
-//    return NULL;
-//}
+extern char** strsplitchar(const char* str, const char delimiter)
+{
+	char temp_delimiter[2] = {delimiter, 0};
+
+	return strsplitsubstr(str, temp_delimiter);
+}
+
+extern char* strjoinwithsubstr(const char** strlist, const char* delimiter)
+{
+	return NULL;
+}
+
+extern char* strjoinwithchar(const char** strlist, const char delimiter)
+{
+	char temp_delimiter[2] = { delimiter, 0 };
+
+	return strjoinwithsubstr(strlist, temp_delimiter);
+}

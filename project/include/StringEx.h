@@ -76,8 +76,9 @@ extern char* strrepcharfirst(char* str, const char oldchar, const char newchar);
 extern char* strrepcharall(char* str, const char oldchar, const char newchar);
 extern char* strrepcharat(char* str, const char newchar, size_t pos);
 
-//extern List* strsplitsubstr(char* str, const char* substr);
-extern char* strsplitchar(char* str, const char ch);
-//extern char* strjoin(List *strlist);
+extern char** strsplitsubstr(const char* str, const char* delimiter);
+extern char** strsplitchar(const char* str, const char delimiter);
+extern char* strjoinwithsubstr(const char **strlist, const char* delimiter);
+extern char* strjoinwithchar(const char** strlist, const char delimiter);
 
 #endif
