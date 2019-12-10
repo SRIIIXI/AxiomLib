@@ -577,9 +577,28 @@ extern char** strsplitsubstr(const char* str, const char* delimiter)
 		return NULL;
 	}
 
+	size_t delimete_len = strlen(delimiter);
+
 	char** buffer = NULL;
 
 	buffer = (char*)calloc(0, sizeof(char)* substr_count);
+
+	size_t current_index = 0;
+	size_t ctr = 0;
+
+	long long pos = 0;
+
+	while(true)
+	{
+		pos = strindexofsubstr(&str[current_index], delimiter);
+
+		if(pos < 0)
+		{
+			break;
+		}
+
+		current_index = current_index + delimete_len;
+	}
 
 	return NULL;
 }
