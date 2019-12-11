@@ -577,27 +577,47 @@ extern char** strsplitsubstr(const char* str, const char* delimiter)
 		return NULL;
 	}
 
-	size_t delimete_len = strlen(delimiter);
+	size_t delimiter_len = strlen(delimiter);
+	size_t str_len = strlen(str);
 
 	char** buffer = NULL;
 
 	buffer = (char*)calloc(0, sizeof(char)* substr_count);
 
 	size_t current_index = 0;
+	size_t next_index = 0;
+	size_t current_len = 0;
 	size_t ctr = 0;
 
-	long long pos = 0;
+	long long current_pos = 0;
+	long long next_pos = 0;
 
 	while(true)
 	{
-		pos = strindexofsubstr(&str[current_index], delimiter);
+		current_pos = strindexofsubstr(&str[current_index], delimiter);
 
-		if(pos < 0)
+		if(current_pos < 0)
 		{
 			break;
 		}
 
-		current_index = current_index + delimete_len;
+		next_index = current_pos + delimiter_len;
+		next_pos = strindexofsubstr(&str[next_index], delimiter);
+
+		if(next_pos < 0)
+		{
+			current_len = str_len - (current_pos + delimiter_len);
+		}
+		else
+		{
+			current_len = str_len - (current_pos + delimiter_len);
+		}
+
+		buffer[ctr] = (char*)calloc(0, sizeof(char)*(current_len + 1));
+		memcpy(buffer[ctr], &str[current_pos + delimiter_len], current_len);
+
+		current_index = current_pos + delimiter_len;
+		ctr++;
 	}
 
 	return NULL;

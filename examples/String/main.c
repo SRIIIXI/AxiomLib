@@ -38,7 +38,9 @@ int main(int argc, char *argv[])
 {
 	char* ptr = "abcdefxxx66xxx77xxx88xxx";
 
-	ptr = strrepsubstrall(ptr, "xxx", "123");
+	//ptr = strrepsubstrall(ptr, "xxx", "123");
+
+    char** strlist = strsplitsubstr(ptr, "xxx");
 
     return 0;
 }
