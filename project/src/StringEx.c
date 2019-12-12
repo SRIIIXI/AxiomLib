@@ -518,19 +518,19 @@ char* strrepsubstrall(char* str, const char* oldsubstr, const char* newsubstr)
 
 char* strrepcharfirst(char* str, const char oldchar, const char newchar)
 {
-    if(str != NULL)
-    {
-        for(size_t pos = 0; str[pos] != 0; pos++)
-        {
-            if(str[pos] == oldchar)
-            {
-                str[pos] = newchar;
-                return str;
-            }
-        }
-        return str;
-    }
-    return NULL;
+	if(str != NULL)
+	{
+		for(size_t pos = 0; str[pos] != 0; pos++)
+		{
+			if(str[pos] == oldchar)
+			{
+				str[pos] = newchar;
+				return str;
+			}
+		}
+		return str;
+	}
+	return NULL;
 }
 
 char* strrepcharall(char* str, const char oldchar, const char newchar)
