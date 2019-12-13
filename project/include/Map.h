@@ -29,34 +29,25 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _MAP_C
 #define _MAP_C
 
-#include "KeyValue.h"
-#include "Node.h"
+#include "Buffer.h"
+#include "Tree.h"
 
 typedef struct Map
 {
-	unsigned long Count;
-	unsigned long MapMemorySize;
-	KeyValue* MapMemory;
-	long IteratorPosition;
+    Tree data;
 }Map;
 
-extern void mapClear(Map* mptr);
-extern void mapAllocate(Map* mptr);
+extern void map_allocate(Map* mptr);
+extern void map_clear(Map* mptr);
 
-extern void mapInsert(Map* mptr, Node key, const Node data);
-extern void mapRemove(Map* mptr, const Node key);
+extern void map_insert(Map* mptr, Buffer* key, const Buffer* data);
+extern void map_remove(Map* mptr, const Buffer* key);
 
-extern size_t mapItemCount();
-extern size_t mapIndexOf(const Node key);
+extern size_t map_item_count();
 
-extern Node* mapGetkey(Map* mptr, const Node data);
-extern Node* mapGetvalue(Map* mptr, const Node key);
-extern KeyValue* mapGetAt(Map* mptr, unsigned int atpos);
+extern Buffer* map_get_key(Map* mptr, const Buffer* data);
+extern Buffer* map_get_value(Map* mptr, const Buffer key);
 
-extern KeyValue* mapGetFirst(Map* mptr);
-extern KeyValue* mapGetLast(Map* mptr);
-extern KeyValue* mapGetNext(Map* mptr);
-extern KeyValue* mapGetPrevious(Map* mptr);
 
 
 #endif

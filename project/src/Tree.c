@@ -20,10 +20,67 @@ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
 FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+SERVICES{} LOSS OF USE, DATA, OR PROFITS{} OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "Tree.h"
+
+void tree_balance(Tree* tptr);
+
+Tree* tree_allocate(Tree* tptr)
+{
+    tptr = (Tree*)calloc(1, sizeof(Tree));
+    return tptr;
+}
+
+void tree_clear(Tree* tptr)
+{
+    if(tptr == NULL)
+    {
+        return;
+    }
+}
+
+void tree_add(Tree* tptr, const TreeNode* node)
+{
+}
+
+TreeNode* tree_add_value(Tree* tptr, void* data, size_t sz)
+{
+    return NULL;
+}
+
+void tree_remove(Tree* tptr, const TreeNode* node)
+{
+}
+
+void tree_remove_value(Tree* tptr, void* data, size_t sz)
+{
+}
+
+size_t tree_item_count(Tree* tptr)
+{
+    return -1;
+}
+
+TreeNode* tree_get_root(Tree* tptr)
+{
+    return NULL;
+}
+
+TreeNode* tree_get_next(Tree* tptr)
+{
+    return NULL;
+}
+
+Tree* tree_merge(Tree* tptrFirst, Tree* tptrSecond)
+{
+}
+
+void tree_balance(Tree* tptr)
+{
+
+}

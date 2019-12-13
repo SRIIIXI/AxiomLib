@@ -26,22 +26,26 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _KEY_VALUE_C
-#define _KEY_VALUE_C
+#ifndef _BUFFER_C
+#define _BUFFER_C
 
-#include "Node.h"
 #include <stddef.h>
 #include <stdbool.h>
 
-typedef struct KeyValue
+typedef struct Buffer
 {
-    Node*	Key;
-    Node*	Value;
-}KeyValue;
+    void* Data;
+    size_t Size;
+    size_t Memory;
+}Buffer;
 
-extern void keyvalue_copy(KeyValue* dest, KeyValue* orig);
-extern bool keyvalue_is_equal(KeyValue* first, KeyValue* second);
-extern bool keyvalue_is_greater(KeyValue* first, KeyValue* second);
-extern bool keyvalue_is_less(KeyValue* first, KeyValue* second);
+extern Buffer* buffer_allocate(void* data, size_t sz);
+
+extern void buffer_free(Buffer* ptr);
+extern void buffer_copy(Buffer* dest, Buffer* orig);
+
+extern bool buffer_is_equal(Buffer* first, Buffer* second);
+extern bool buffer_is_greater(Buffer* first, Buffer* second);
+extern bool buffer_is_less(Buffer* first, Buffer* second);
 
 #endif
