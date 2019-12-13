@@ -46,7 +46,7 @@ extern void map_remove(Map* mptr, const Buffer* key);
 extern size_t map_item_count();
 
 extern Buffer* map_get_key(Map* mptr, const Buffer* data);
-extern Buffer* map_get_value(Map* mptr, const Buffer key);
+extern Buffer* map_get_value(Map* mptr, const Buffer* key);
 
 
 

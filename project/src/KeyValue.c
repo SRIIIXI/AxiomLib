@@ -34,21 +34,21 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 void keyvalue_copy(KeyValue* dest, KeyValue* orig)
 {
-	node_copy(dest->Key, orig->Key);
-	node_copy(dest->Value, orig->Value);
+	buffer_copy(dest->Key, orig->Key);
+	buffer_copy(dest->Value, orig->Value);
 }
 
 bool keyvalue_is_equal(KeyValue* first, KeyValue* second)
 {
-    return node_is_equal(first->Key, second->Key);
+    return buffer_is_equal(first->Key, second->Key);
 }
 
 bool keyvalue_is_greater(KeyValue* first, KeyValue* second)
 {
-    return node_is_greater(first->Key, second->Key);
+    return buffer_is_greater(first->Key, second->Key);
 }
 
 bool keyvalue_is_less(KeyValue* first, KeyValue* second)
 {
-    return node_is_less(first->Key, second->Key);
+    return buffer_is_less(first->Key, second->Key);
 }
