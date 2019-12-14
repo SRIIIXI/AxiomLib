@@ -32,7 +32,9 @@ void tree_balance(Tree* tptr);
 
 Tree* tree_allocate(Tree* tptr)
 {
-    tptr = (Tree*)calloc(1, sizeof(Tree));
+    tptr = (Tree*)calloc(0, sizeof(Tree));
+    tptr->Count = 0;
+    tptr->Root = NULL;
     return tptr;
 }
 
@@ -46,11 +48,24 @@ void tree_clear(Tree* tptr)
 
 void tree_add(Tree* tptr, const TreeNode* node)
 {
+    if(tptr->Count == 0 && tptr->Root == NULL)
+    {
+        tptr->Root = node;
+        tptr->Count++;
+    }
+    else
+    {
+
+    }
 }
 
 TreeNode* tree_add_value(Tree* tptr, void* data, size_t sz)
 {
-    return NULL;
+    TreeNode* tn = treenode_allocate(data, sz);
+
+    tree_add(tptr, tn);
+
+    return tn;
 }
 
 void tree_remove(Tree* tptr, const TreeNode* node)
@@ -63,12 +78,12 @@ void tree_remove_value(Tree* tptr, void* data, size_t sz)
 
 size_t tree_item_count(Tree* tptr)
 {
-    return -1;
+    return tptr->Count;
 }
 
 TreeNode* tree_get_root(Tree* tptr)
 {
-    return NULL;
+    return tptr->Root;
 }
 
 TreeNode* tree_get_next(Tree* tptr)

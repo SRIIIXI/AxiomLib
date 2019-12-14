@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 typedef struct Tree
 {
 	size_t Count;
-	struct Tree* Root;
+	TreeNode* Root;
 }Tree;
 
 extern Tree* tree_allocate(Tree* tptr);
