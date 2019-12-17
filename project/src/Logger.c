@@ -28,7 +28,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "Logger.h"
 
-size_t logger_start_logging()
+char log_level_names[5][16] = {"Information", "Error", "Warning", "Critical", "Panic"};
+
+size_t	logger_initialize(int flsz, const char* mname, const char* dirpath)
+{
+    return -1;
+}
+
+size_t logger_start_logging(size_t loggerid)
 {
 	return -1;
 }

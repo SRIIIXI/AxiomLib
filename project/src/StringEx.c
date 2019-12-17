@@ -582,7 +582,12 @@ extern char** strsplitsubstr(const char* str, const char* delimiter)
 
 	char** buffer = NULL;
 
-	buffer = (char*)calloc(0, sizeof(char)* substr_count);
+	buffer = (char*)calloc(1, sizeof(char)* substr_count);
+
+	if(buffer == NULL)
+	{
+		return NULL;
+	}
 
 	size_t current_index = 0;
 	size_t next_index = 0;
@@ -613,7 +618,13 @@ extern char** strsplitsubstr(const char* str, const char* delimiter)
 			current_len = str_len - (current_pos + delimiter_len);
 		}
 
-		buffer[ctr] = (char*)calloc(0, sizeof(char)*(current_len + 1));
+		buffer[ctr] = (char*)calloc(1, sizeof(char)*(current_len + 1));
+
+		if(buffer[ctr] == NULL)
+		{
+			return NULL;
+		}
+
 		memcpy(buffer[ctr], &str[current_pos + delimiter_len], current_len);
 
 		current_index = current_pos + delimiter_len;

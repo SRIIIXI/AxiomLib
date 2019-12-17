@@ -46,7 +46,8 @@ typedef enum LogLevel
 	LOG_PANIC = 4
 }LogLevel;
 
-size_t	logger_start_logging();
+size_t	logger_initialize(int flsz, const char* mname, const char* dirpath);
+void	logger_start_logging(size_t loggerid);
 void    logger_stop_logging(size_t loggerid);
 void    logger_write(size_t loggerid, const char* logentry, LogLevel llevel, const char* func, const char* file, int line);
 void    logger_set_logfilesize(size_t loggerid, int flsz);
@@ -54,7 +55,7 @@ void    logger_set_logdirectory(size_t loggerid, const char* dirpath);
 void    logger_set_modulename(size_t loggerid, const char* mname);
 size_t  logger_get_instance();
 
-#define writeLog(loggerid, str, level) logger_write(loggerid, str, level, __FUNCTIONNAME__, __FILE__, __LINE__);
-#define writeLogNormal(loggerid, str) logger_write(loggerid, str, LOG_INFO, __FUNCTIONNAME__, __FILE__, __LINE__);
+#define writeLog(str, level) logger_write(logger_get_instance(), str, level, __FUNCTIONNAME__, __FILE__, __LINE__);
+#define writeLogNormal(str) logger_write(logger_get_instance(), str, LOG_INFO, __FUNCTIONNAME__, __FILE__, __LINE__);
 
 #endif
