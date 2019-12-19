@@ -27,10 +27,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "Logger.h"
+#include "Map.h"
 
 char log_level_names[5][16] = {"Information", "Error", "Warning", "Critical", "Panic"};
 
-size_t	logger_initialize(int flsz, const char* mname, const char* dirpath)
+typedef struct Logger
+{
+    size_t LogFileSizeMB;
+    char ModuleName[33];
+    char LogDirectory[1025];
+}Logger;
+
+Map loggerMap;
+
+size_t	logger_initialize(size_t flszmb, const char* mname, const char* dirpath)
 {
     return -1;
 }
