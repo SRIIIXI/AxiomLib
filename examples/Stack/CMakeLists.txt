@@ -11,6 +11,7 @@ set(PROJECT_HEADER_DIR ../../project/include)
 
 set(SOURCE
 ${SOURCE}
+${PROJECT_SOURCE_DIR}/Buffer.c
 ${PROJECT_SOURCE_DIR}/Node.c
 ${PROJECT_SOURCE_DIR}/Stack.c
 ./main.c
@@ -18,6 +19,7 @@ ${PROJECT_SOURCE_DIR}/Stack.c
 
 set(HEADERS
 ${HEADERS}
+${PROJECT_HEADER_DIR}/Buffer.h
 ${PROJECT_HEADER_DIR}/Node.h
 ${PROJECT_HEADER_DIR}/Stack.h
 )

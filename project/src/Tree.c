@@ -34,8 +34,13 @@ void tree_balance(Tree* tptr);
 Tree* tree_allocate(Tree* tptr)
 {
     tptr = (Tree*)calloc(1, sizeof(Tree));
-    tptr->Count = 0;
-    tptr->Root = NULL;
+
+    if(tptr != NULL)
+    {
+        tptr->Count = 0;
+        tptr->Root = NULL;
+    }
+
     return tptr;
 }
 
@@ -60,9 +65,13 @@ void tree_add(Tree* tptr, TreeNode* node)
 
         while(current != NULL)
         {
-            if(treenode_is_less(node, current) || treenode_is_equal(node, current))
+            if(treenode_is_less(node, current))
             {
                 node->Left = current;
+            }
+            else
+            {
+                node->Right = current;
             }
         }
     }

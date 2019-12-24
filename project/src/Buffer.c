@@ -39,11 +39,11 @@ Buffer* buffer_allocate(void* data, size_t sz)
     if(nd != NULL)
     {
         nd->Data = (char*)calloc(1, sz);
-        nd->Size = sz;
-        nd->Memory = sz;
 
         if(nd->Data != NULL)
         {
+            nd->Size = sz;
+            nd->Memory = sz;
             memcpy(nd->Data, data, sz);
         }
     }
@@ -58,29 +58,38 @@ void buffer_free(Buffer* ptr)
 
 void buffer_copy(Buffer* dest, Buffer* orig)
 {
-    if((dest != NULL && dest->Data != NULL)
-       && (orig != NULL && orig->Data != NULL))
+    if(orig != NULL)
     {
-        free(dest->Data);
-        dest->Size = orig->Size;
-        dest->Data = (char*)calloc(1, dest->Size);
-        memcpy(dest->Data, orig->Data, dest->Size);
+        if(orig->Data != NULL)
+        {
+            if(dest->Data != NULL)
+            {
+                free(dest->Data);
+            }
+
+            dest->Size = orig->Size;
+            dest->Data = (char*)calloc(1, dest->Size);
+
+            memcpy(dest->Data, orig->Data, dest->Size);
+        }
     }
 }
 
 bool buffer_is_equal(Buffer* first, Buffer* second)
 {
-    if((first != NULL && first->Data != NULL)
-       && (second != NULL && second->Data != NULL))
+    if(first != NULL && second != NULL)
     {
-        if(first->Size != second->Size)
+       if (first->Data != NULL && second->Data != NULL)
         {
-            return false;
-        }
+            if(first->Size != second->Size)
+            {
+                return false;
+            }
 
-        if(memcmp(first->Data, second->Data, first->Size) == 0)
-        {
-            return true;
+            if(memcmp(first->Data, second->Data, first->Size) == 0)
+            {
+                return true;
+            }
         }
     }
 
@@ -89,17 +98,19 @@ bool buffer_is_equal(Buffer* first, Buffer* second)
 
 bool buffer_is_greater(Buffer* first, Buffer* second)
 {
-    if((first != NULL && first->Data != NULL)
-       && (second != NULL && second->Data != NULL))
+    if(first != NULL && second != NULL)
     {
-        if(first->Size != second->Size)
+        if(first->Data != NULL && second->Data != NULL)
         {
-            return false;
-        }
+            if(first->Size != second->Size)
+            {
+                return false;
+            }
 
-        if(memcmp(first->Data, second->Data, first->Size) > 0)
-        {
-            return true;
+            if(memcmp(first->Data, second->Data, first->Size) > 0)
+            {
+                return true;
+            }
         }
     }
 
@@ -108,17 +119,19 @@ bool buffer_is_greater(Buffer* first, Buffer* second)
 
 bool buffer_is_less(Buffer* first, Buffer* second)
 {
-    if((first != NULL && first->Data != NULL)
-       && (second != NULL && second->Data != NULL))
+    if(first != NULL && second != NULL)
     {
-        if(first->Size != second->Size)
+        if(first->Data != NULL && second->Data != NULL)
         {
-            return false;
-        }
+            if(first->Size != second->Size)
+            {
+                return false;
+            }
 
-        if(memcmp(first->Data, second->Data, first->Size) < 0)
-        {
-            return true;
+            if(memcmp(first->Data, second->Data, first->Size) < 0)
+            {
+                return true;
+            }
         }
     }
 

@@ -38,21 +38,15 @@ Node* node_allocate(void* data, size_t sz)
 
 	if (nd != NULL)
 	{
-        nd->NodeData = (Buffer*)calloc(1, sizeof(Buffer));
-
+        nd->NodeData = buffer_allocate(data, sz);
+ 
         if(nd->NodeData != NULL)
         {
-            nd->NodeData->Data = (char*)calloc(1, sz);
-            nd->NodeData->Size = sz;
             nd->Next = NULL;
             nd->Previous = NULL;
-
-            if (nd->NodeData->Data != NULL)
-            {
-                memcpy(nd->NodeData->Data, data, sz);
-            }
         }
 	}
+
     return nd;
 }
 
@@ -72,9 +66,7 @@ void node_copy(Node* dest, Node* orig)
             if(dest->NodeData->Data != NULL && orig->NodeData->Data != NULL)
             {
                 free(dest->NodeData->Data);
-                dest->NodeData->Size = orig->NodeData->Size;
-                dest->NodeData->Data = (char*)calloc(1, dest->NodeData->Size);
-                memcpy(dest->NodeData->Data, orig->NodeData->Data, dest->NodeData->Size);
+                dest = node_allocate(orig->NodeData->Data, orig->NodeData->Size);
             }
         }
     }

@@ -11,6 +11,7 @@ set(PROJECT_HEADER_DIR ../../project/include)
 
 set(SOURCE
 ${SOURCE}
+${PROJECT_SOURCE_DIR}/Buffer.c
 ${PROJECT_SOURCE_DIR}/TreeNode.c
 ${PROJECT_SOURCE_DIR}/Tree.c
 ${PROJECT_SOURCE_DIR}/StringEx.c
@@ -19,6 +20,7 @@ ${PROJECT_SOURCE_DIR}/StringEx.c
 
 set(HEADERS
 ${HEADERS}
+${PROJECT_HEADER_DIR}/Buffer.h
 ${PROJECT_HEADER_DIR}/TreeNode.h
 ${PROJECT_HEADER_DIR}/Tree.h
 )
