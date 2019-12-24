@@ -38,50 +38,66 @@ Node* node_allocate(void* data, size_t sz)
 
 	if (nd != NULL)
 	{
-		nd->Data = (char*)calloc(1, sz);
-		nd->Size = sz;
-		nd->Next = NULL;
-		nd->Previous = NULL;
+        nd->NodeData = (Buffer*)calloc(1, sizeof(Buffer));
 
-		if (nd->Data != NULL)
-		{
-			memcpy(nd->Data, data, sz);
-		}
+        if(nd->NodeData != NULL)
+        {
+            nd->NodeData->Data = (char*)calloc(1, sz);
+            nd->NodeData->Size = sz;
+            nd->Next = NULL;
+            nd->Previous = NULL;
+
+            if (nd->NodeData->Data != NULL)
+            {
+                memcpy(nd->NodeData->Data, data, sz);
+            }
+        }
 	}
     return nd;
 }
 
 void node_free(Node* ptr)
 {
-    free(ptr->Data);
+    free(ptr->NodeData->Data);
+    free(ptr->NodeData);
     free(ptr);
 }
 
 void node_copy(Node* dest, Node* orig)
 {
-    if( (dest != NULL && dest->Data != NULL)
-            && (orig != NULL && orig->Data != NULL) )
+    if(dest != NULL && orig != NULL)
     {
-        free(dest->Data);
-        dest->Size = orig->Size;
-        dest->Data = (char*)calloc(1, dest->Size);
-        memcpy(dest->Data, orig->Data, dest->Size);
+        if(dest->NodeData != NULL && orig->NodeData != NULL)
+        {
+            if(dest->NodeData->Data != NULL && orig->NodeData->Data != NULL)
+            {
+                free(dest->NodeData->Data);
+                dest->NodeData->Size = orig->NodeData->Size;
+                dest->NodeData->Data = (char*)calloc(1, dest->NodeData->Size);
+                memcpy(dest->NodeData->Data, orig->NodeData->Data, dest->NodeData->Size);
+            }
+        }
     }
 }
 
 bool node_is_equal(Node* first, Node* second)
 {
-    if( (first != NULL && first->Data != NULL)
-            && (second != NULL && second->Data != NULL) )
+    if(first != NULL && second != NULL)
     {
-        if(first->Size != second->Size)
+        if(first->NodeData != NULL && second->NodeData != NULL)
         {
-            return false;
-        }
+            if(first->NodeData->Data != NULL && second->NodeData->Data != NULL)
+            {
+                if(first->NodeData->Size != second->NodeData->Size)
+                {
+                    return false;
+                }
 
-        if(memcmp(first->Data, second->Data, first->Size) == 0)
-        {
-            return true;
+                if(memcmp(first->NodeData->Data, second->NodeData->Data, first->NodeData->Size) == 0)
+                {
+                    return true;
+                }
+            }
         }
     }
 
@@ -90,17 +106,22 @@ bool node_is_equal(Node* first, Node* second)
 
 bool node_is_greater(Node* first, Node* second)
 {
-    if( (first != NULL && first->Data != NULL)
-            && (second != NULL && second->Data != NULL) )
+    if(first != NULL && second != NULL)
     {
-        if(first->Size != second->Size)
+        if(first->NodeData != NULL && second->NodeData != NULL)
         {
-            return false;
-        }
+            if(first->NodeData->Data != NULL && second->NodeData->Data != NULL)
+            {
+                if(first->NodeData->Size != second->NodeData->Size)
+                {
+                    return false;
+                }
 
-        if(memcmp(first->Data, second->Data, first->Size) > 0)
-        {
-            return true;
+                if(memcmp(first->NodeData->Data, second->NodeData->Data, first->NodeData->Size) > 0)
+                {
+                    return true;
+                }
+            }
         }
     }
 
@@ -109,17 +130,22 @@ bool node_is_greater(Node* first, Node* second)
 
 bool node_is_less(Node* first, Node* second)
 {
-    if( (first != NULL && first->Data != NULL)
-            && (second != NULL && second->Data != NULL) )
+    if(first != NULL && second != NULL)
     {
-        if(first->Size != second->Size)
+        if(first->NodeData != NULL && second->NodeData != NULL)
         {
-            return false;
-        }
+            if(first->NodeData->Data != NULL && second->NodeData->Data != NULL)
+            {
+                if(first->NodeData->Size != second->NodeData->Size)
+                {
+                    return false;
+                }
 
-        if(memcmp(first->Data, second->Data, first->Size) < 0)
-        {
-            return true;
+                if(memcmp(first->NodeData->Data, second->NodeData->Data, first->NodeData->Size) < 0)
+                {
+                    return true;
+                }
+            }
         }
     }
 

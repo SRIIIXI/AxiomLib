@@ -40,7 +40,7 @@ typedef struct Tree
 extern Tree* tree_allocate(Tree* tptr);
 extern void tree_clear(Tree* tptr);
 
-extern void tree_add(Tree* tptr, const TreeNode* node);
+extern void tree_add(Tree* tptr, TreeNode* node);
 extern TreeNode* tree_add_value(Tree* tptr, void* data, size_t sz);
 
 extern void tree_remove(Tree* tptr, const TreeNode* node);

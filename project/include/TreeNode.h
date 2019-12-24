@@ -31,11 +31,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stddef.h>
 #include <stdbool.h>
+#include "Buffer.h"
 
 typedef struct TreeNode
 {
-    void* Data;
-    size_t Size;
+    Buffer* NodeData;
     struct TreeNode* Left;
     struct TreeNode* Right;
 }TreeNode;

@@ -46,7 +46,8 @@ typedef enum LogLevel
 	LOG_PANIC = 4
 }LogLevel;
 
-size_t	logger_initialize(size_t flszmb, const char* mname, const char* dirpath);
+size_t	logger_allocate(size_t flszmb, const char* mname, const char* dirpath);
+void    logger_release(size_t loggerid);
 void	logger_start_logging(size_t loggerid);
 void    logger_stop_logging(size_t loggerid);
 void    logger_write(size_t loggerid, const char* logentry, LogLevel llevel, const char* func, const char* file, int line);

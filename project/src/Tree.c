@@ -27,6 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "Tree.h"
+#include <stdlib.h>
 
 void tree_balance(Tree* tptr);
 
@@ -46,7 +47,7 @@ void tree_clear(Tree* tptr)
     }
 }
 
-void tree_add(Tree* tptr, const TreeNode* node)
+void tree_add(Tree* tptr, TreeNode* node)
 {
     if(tptr->Count == 0 && tptr->Root == NULL)
     {
@@ -55,7 +56,15 @@ void tree_add(Tree* tptr, const TreeNode* node)
     }
     else
     {
+        TreeNode* current = tptr->Root;
 
+        while(current != NULL)
+        {
+            if(treenode_is_less(node, current) || treenode_is_equal(node, current))
+            {
+                node->Left = current;
+            }
+        }
     }
 }
 

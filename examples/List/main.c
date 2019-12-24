@@ -104,7 +104,7 @@ void listPrintForward(List* lptr)
             break;
         }
 
-        printf("%s\n", (char*)ptr->Data);
+        printf("%s\n", (char*)ptr->NodeData->Data);
         ptr = list_get_next(lptr);
     }
 }
@@ -123,7 +123,7 @@ void listPrintReverse(List* lptr)
             break;
         }
 
-        printf("%s\n", (char*)ptr->Data);
+        printf("%s\n", (char*)ptr->NodeData->Data);
         ptr = list_get_previous(lptr);
     }
 }
@@ -133,5 +133,5 @@ void listRandomAccess(List* lptr, size_t index)
     printf("Random access, index %zd\n", index);
 
     Node* ptr = list_get_at(lptr, 2);
-    printf("%s\n", (char*)ptr->Data);
+    printf("%s\n", (char*)ptr->NodeData->Data);
 }
