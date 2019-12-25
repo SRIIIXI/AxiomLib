@@ -26,35 +26,14 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _LOGGER_C
-#define _LOGGER_C
-
-#if defined(_WIN32) || defined(WIN32)
-#define __FUNCTIONNAME__ __FUNCTION__
-#else
-#define __FUNCTIONNAME__ __PRETTY_FUNCTION__
-#endif
+#ifndef _DIRECTORY_C
+#define _DIRECTORY_C
 
 #include <stddef.h>
+#include <stdbool.h>
 
-typedef enum LogLevel
-{
-	LOG_INFO = 0,
-	LOG_ERROR = 1,
-	LOG_WARNING = 2,
-	LOG_CRITICAL = 3,
-	LOG_PANIC = 4
-}LogLevel;
-
-size_t	logger_allocate_default();
-size_t	logger_allocate(size_t flszmb, const char* mname, const char* dirpath);
-void    logger_release(size_t loggerid);
-void	logger_start_logging(size_t loggerid);
-void    logger_stop_logging(size_t loggerid);
-void    logger_write(size_t loggerid, const char* logentry, LogLevel llevel, const char* func, const char* file, int line);
-size_t  logger_get_instance();
-
-#define writeLog(str, level) logger_write(logger_get_instance(), str, level, __FUNCTIONNAME__, __FILE__, __LINE__);
-#define writeLogNormal(str) logger_write(logger_get_instance(), str, LOG_INFO, __FUNCTIONNAME__, __FILE__, __LINE__);
+bool dir_is_exists(const char* dirname);
+bool dir_create_directory(const char* dirname);
+char* dir_get_parent_directory(const char* dirname, char* parent_dir);
 
 #endif

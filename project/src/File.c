@@ -26,35 +26,72 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _LOGGER_C
-#define _LOGGER_C
 
-#if defined(_WIN32) || defined(WIN32)
-#define __FUNCTIONNAME__ __FUNCTION__
+#include "File.h"
+
+#if defined(_WIN32)  || defined(WIN32)
+#define getcwd(ptr,n) _getcwd(ptr,n)
+#define chdir(str) _chdir(str)
+#if defined(_MSC_VER)
+#define DIRECTORY_SEPARATOR '\\'
 #else
-#define __FUNCTIONNAME__ __PRETTY_FUNCTION__
+#define DIRECTORY_SEPARATOR '/'
+#endif
+#include <Windows.h>
+#include <direct.h>
+#else
+#define DIRECTORY_SEPARATOR '/'
+#include <dirent.h>
+#include <unistd.h>
+#include <sys/stat.h>
 #endif
 
-#include <stddef.h>
+#include <stdlib.h>
+#include <memory.h>
+#include <stdio.h>
 
-typedef enum LogLevel
+bool file_is_exists(const char* filename)
 {
-	LOG_INFO = 0,
-	LOG_ERROR = 1,
-	LOG_WARNING = 2,
-	LOG_CRITICAL = 3,
-	LOG_PANIC = 4
-}LogLevel;
+	FILE* fp = fopen(filename, "r");
 
-size_t	logger_allocate_default();
-size_t	logger_allocate(size_t flszmb, const char* mname, const char* dirpath);
-void    logger_release(size_t loggerid);
-void	logger_start_logging(size_t loggerid);
-void    logger_stop_logging(size_t loggerid);
-void    logger_write(size_t loggerid, const char* logentry, LogLevel llevel, const char* func, const char* file, int line);
-size_t  logger_get_instance();
+	if(fp)
+	{
+		fclose(fp);
+		return true;
+	}
 
-#define writeLog(str, level) logger_write(logger_get_instance(), str, level, __FUNCTIONNAME__, __FILE__, __LINE__);
-#define writeLogNormal(str) logger_write(logger_get_instance(), str, LOG_INFO, __FUNCTIONNAME__, __FILE__, __LINE__);
+	return false;
+}
 
-#endif
+char* file_get_parent_directory(const char* filename, char* parent_dir)
+{
+	size_t origlen = strlen(filename);
+
+	parent_dir = (char*)calloc(1, sizeof(char) * (origlen + 1));
+
+	if(parent_dir == NULL)
+	{
+		return NULL;
+	}
+
+	memcpy(parent_dir, filename, origlen);
+
+	int len = (int)strlen(parent_dir);
+
+	if(len < 2)
+		return;
+
+	int ctr = len - 1;
+
+	while(true)
+	{
+		parent_dir[ctr] = 0;
+		ctr--;
+		if(parent_dir[ctr] == '/' || parent_dir[ctr] == '\\')
+		{
+			break;
+		}
+	}
+
+	return parent_dir;
+}
