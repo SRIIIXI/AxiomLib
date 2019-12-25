@@ -33,10 +33,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <process.h>
 
 #if defined(_WIN32) || defined(WIN32)
 #include <Windows.h>
+#include <process.h>
 #define getcwd(s, i) _getcwd(s, i)
 #define getpid() _getpid()
 #endif
@@ -108,7 +108,7 @@ size_t	logger_allocate(size_t flszmb, const char* mname, const char* dirpath)
 
     if(mname != NULL)
     {
-        strcat(loggers[index]->FileName, mname, 32);
+        strcat(loggers[index]->FileName, mname);
     }
     else
     {
