@@ -54,7 +54,8 @@ void    logger_stop_logging(size_t loggerid);
 void    logger_write(size_t loggerid, const char* logentry, LogLevel llevel, const char* func, const char* file, int line);
 size_t  logger_get_instance();
 
-#define writeLog(str, level) logger_write(logger_get_instance(), str, level, __FUNCTIONNAME__, __FILE__, __LINE__);
-#define writeLogNormal(str) logger_write(logger_get_instance(), str, LOG_INFO, __FUNCTIONNAME__, __FILE__, __LINE__);
+#define WriteLog(str, level) logger_write(id, str, level, __FUNCTIONNAME__, __FILE__, __LINE__);
+#define WriteLogNormal(id, str) logger_write(id, str, LOG_INFO, __FUNCTIONNAME__, __FILE__, __LINE__);
 
 #endif
+

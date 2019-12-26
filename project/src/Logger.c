@@ -27,21 +27,29 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "Logger.h"
-#include "Map.h"
 #include "Directory.h"
 #include "File.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <stdint.h>
 
 #if defined(_WIN32) || defined(WIN32)
 #include <Windows.h>
 #include <process.h>
 #define getcwd(s, i) _getcwd(s, i)
 #define getpid() _getpid()
+#define END_OF_LINE "\r\n"
+#else
+#define END_OF_LINE "\n"
 #endif
 
+#define MAX_LOGGERS 512
+
 char log_level_names[5][16] = {"Information", "Error", "Warning", "Critical", "Panic"};
+
+void normalize_function_name(char* func_name);
 
 typedef struct Logger
 {
@@ -52,7 +60,7 @@ typedef struct Logger
     int PID;
 }Logger;
 
-Logger *loggers[512] = {0};
+static Logger *loggers[MAX_LOGGERS] = {0};
 
 size_t	logger_allocate_default()
 {
@@ -74,7 +82,7 @@ size_t	logger_allocate(size_t flszmb, const char* mname, const char* dirpath)
 
     if(loggers[index] == NULL)
     {
-        return -1;
+        return SIZE_MAX;
     }
 
     loggers[index]->PID = getpid();
@@ -124,6 +132,11 @@ size_t	logger_allocate(size_t flszmb, const char* mname, const char* dirpath)
 
 void logger_release(size_t loggerid)
 {
+    if(loggerid > MAX_LOGGERS)
+    {
+        return;
+    }
+
     if(loggers[loggerid] == NULL)
     {
         return;
@@ -140,6 +153,11 @@ void logger_release(size_t loggerid)
 
 void logger_start_logging(size_t loggerid)
 {
+    if(loggerid > MAX_LOGGERS)
+    {
+        return;
+    }
+
     if(loggers[loggerid] == NULL)
     {
         return;
@@ -157,6 +175,11 @@ void logger_start_logging(size_t loggerid)
 
 void logger_stop_logging(size_t loggerid)
 {
+    if(loggerid > MAX_LOGGERS)
+    {
+        return;
+    }
+
     if(loggers[loggerid] == NULL)
     {
         return;
@@ -172,6 +195,11 @@ void logger_stop_logging(size_t loggerid)
 
 void logger_write(size_t loggerid, const char* logentry, LogLevel llevel, const char* func, const char* file, int line)
 {
+    if(loggerid > MAX_LOGGERS)
+    {
+        return;
+    }
+
     if(loggers[loggerid] == NULL)
     {
         return;
@@ -196,10 +224,57 @@ void logger_write(size_t loggerid, const char* logentry, LogLevel llevel, const 
         // Reopen the log file with original name
         logger_start_logging(loggers[loggerid]);
     }
+
+    normalize_function_name((char*)func);
+
+    time_t t ;
+    struct tm *tmp ;
+    time(&t);
+    tmp = localtime(&t);
+
+    // Timestamp
+    fprintf(loggers[loggerid]->FileHandle, "%d-%d-%d %d:%d%d\t",
+             tmp->tm_mday, tmp->tm_mon, tmp->tm_year,
+             tmp->tm_hour, tmp->tm_min, tmp->tm_sec);
+
+    // Level
+    fprintf(loggers[loggerid]->FileHandle, "%s\t", log_level_names[llevel]);
+
+    // File
+    fprintf(loggers[loggerid]->FileHandle, "%s\t", file);
+
+    // Function
+    fprintf(loggers[loggerid]->FileHandle, "%s\t", func);
+
+    // Message
+    fprintf(loggers[loggerid]->FileHandle, "%s", logentry);
+
+    // End of line
+    fprintf(loggers[loggerid]->FileHandle, END_OF_LINE);
+
+    // Flush th contents
+    fflush(loggers[loggerid]->FileHandle);
 }
 
 size_t logger_get_instance()
 {
-    return 0;
+    size_t index = 0;
+
+    for(index = 0; index < MAX_LOGGERS; index++)
+    {
+        if(loggers[index] != NULL)
+        {
+            if(loggers[index]->PID == getpid())
+            {
+                return index;
+            }
+        }
+    }
+
+    return SIZE_MAX;
 }
 
+void normalize_function_name(char* func_name)
+{
+
+}

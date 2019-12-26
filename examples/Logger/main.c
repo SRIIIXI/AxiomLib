@@ -26,15 +26,25 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _FILE_C
-#define _FILE_C
+#include "Logger.h"
 
-#include <stddef.h>
-#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
-bool file_is_exists(const char* filename);
-char* file_get_parent_directory(const char* filename, char* parent_dir);
-char* file_get_basename(const char* filename, char* basename);
-char* file_get_extension(const char* filename, char* extension);
+#define printLine printf("\n")
 
-#endif
+int main(int argc, char *argv[])
+{
+    size_t loggerid = logger_allocate(1, argv[0], NULL);
+
+    logger_start_logging(loggerid);
+
+    WriteLogNormal(loggerid, "Hello");
+
+    logger_stop_logging(loggerid);
+
+    logger_release(loggerid);
+
+    return 0;
+}

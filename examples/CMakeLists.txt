@@ -14,6 +14,7 @@ add_subdirectory(Queue)
 add_subdirectory(Stack)
 add_subdirectory(String)
 add_subdirectory(Tree)
+add_subdirectory(Logger)
 
 
 

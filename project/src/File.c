@@ -95,3 +95,73 @@ char* file_get_parent_directory(const char* filename, char* parent_dir)
 
 	return parent_dir;
 }
+
+char* file_get_basename(const char* filename, char* basename)
+{
+    size_t origlen = strlen(filename);
+
+    size_t filename_len = 0;
+
+    for(size_t index = origlen - 1; ; index--, filename_len++)
+
+    basename = (char*)calloc(1, sizeof(char) * (origlen + 1));
+
+    if(parent_dir == NULL)
+    {
+        return NULL;
+    }
+
+    memcpy(basename, filename, origlen);
+
+    int len = (int)strlen(basename);
+
+    if(len < 2)
+        return NULL;
+
+    int ctr = len - 1;
+
+    while(true)
+    {
+        basename[ctr] = 0;
+        ctr--;
+        if(basename[ctr] == '/' || basename[ctr] == '\\')
+        {
+            break;
+        }
+    }
+
+    return basename;
+}
+
+char* file_get_extension(const char* filename, char* extension)
+{
+    size_t origlen = strlen(filename);
+
+    extension = (char*)calloc(1, sizeof(char) * (origlen + 1));
+
+    if(extension == NULL)
+    {
+        return NULL;
+    }
+
+    memcpy(extension, filename, origlen);
+
+    int len = (int)strlen(extension);
+
+    if(len < 2)
+        return NULL;
+
+    int ctr = len - 1;
+
+    while(true)
+    {
+        extension[ctr] = 0;
+        ctr--;
+        if(extension[ctr] == '/' || extension[ctr] == '\\')
+        {
+            break;
+        }
+    }
+
+    return extension;
+}
