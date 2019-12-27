@@ -106,7 +106,7 @@ char* file_get_basename(const char* filename, char* basename)
 
     basename = (char*)calloc(1, sizeof(char) * (origlen + 1));
 
-    if(parent_dir == NULL)
+    if(basename == NULL)
     {
         return NULL;
     }

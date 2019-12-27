@@ -15,6 +15,8 @@ add_subdirectory(Stack)
 add_subdirectory(String)
 add_subdirectory(Tree)
 add_subdirectory(Logger)
+add_subdirectory(File)
+add_subdirectory(Directory)
 
 
 
