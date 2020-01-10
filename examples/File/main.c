@@ -36,5 +36,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 int main(int argc, char *argv[])
 {
+    char *filename = "/aa/bb/cc/dd/yy.xx.config";
+
+    char *ext = NULL;
+
+    file_get_extension(filename, ext);
+
+    char* base = NULL;
+
+    file_get_basename(filename, base);
+
     return 0;
 }

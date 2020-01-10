@@ -98,44 +98,27 @@ char* file_get_parent_directory(const char* filename, char* parent_dir)
 
 char* file_get_basename(const char* filename, char* basename)
 {
-    size_t origlen = strlen(filename);
+	size_t origlen = strlen(filename);
+	size_t index = 0;
 
-    size_t filename_len = 0;
+	basename = (char*)calloc(1, sizeof(char) * (origlen + 1));
 
-    for(size_t index = origlen - 1; ; index--, filename_len++)
+	if(basename == NULL)
+	{
+		return NULL;
+	}
 
-    basename = (char*)calloc(1, sizeof(char) * (origlen + 1));
+	for(index = origlen - 1; filename[index] != '/' && filename[index] != '\\'; index--) { }
 
-    if(basename == NULL)
-    {
-        return NULL;
-    }
+	memcpy(basename, &filename[index + 1], index);
 
-    memcpy(basename, filename, origlen);
-
-    int len = (int)strlen(basename);
-
-    if(len < 2)
-        return NULL;
-
-    int ctr = len - 1;
-
-    while(true)
-    {
-        basename[ctr] = 0;
-        ctr--;
-        if(basename[ctr] == '/' || basename[ctr] == '\\')
-        {
-            break;
-        }
-    }
-
-    return basename;
+	return basename;
 }
 
 char* file_get_extension(const char* filename, char* extension)
 {
     size_t origlen = strlen(filename);
+    size_t index = 0;
 
     extension = (char*)calloc(1, sizeof(char) * (origlen + 1));
 
@@ -144,24 +127,9 @@ char* file_get_extension(const char* filename, char* extension)
         return NULL;
     }
 
-    memcpy(extension, filename, origlen);
+    for(index = origlen - 1; filename[index] != '.'; index--) { }
 
-    int len = (int)strlen(extension);
-
-    if(len < 2)
-        return NULL;
-
-    int ctr = len - 1;
-
-    while(true)
-    {
-        extension[ctr] = 0;
-        ctr--;
-        if(extension[ctr] == '/' || extension[ctr] == '\\')
-        {
-            break;
-        }
-    }
+    memcpy(extension, &filename[index+1], index-1);
 
     return extension;
 }
