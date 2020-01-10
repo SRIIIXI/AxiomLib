@@ -49,37 +49,37 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <memory.h>
 
-char* dir_get_parent_directory(const char* dirname, char* parent_dir)
+char* dir_get_parent_directory(const char* dirname, char** parent_dir)
 {
 	size_t origlen = strlen(dirname);
 
-	parent_dir = (char*)calloc(1, sizeof(char)*(origlen+1));
+	*parent_dir = (char*)calloc(1, sizeof(char) * (origlen + 1));
 
-	if(parent_dir == NULL)
+	if(*parent_dir == NULL)
 	{
 		return NULL;
 	}
 
-	memcpy(parent_dir, dirname, origlen);
+	memcpy(*parent_dir, dirname, origlen);
 
-	int len = (int)strlen(parent_dir);
+	int len = (int)strlen(*parent_dir);
 
 	if(len < 2)
-        return NULL;
+		return NULL;
 
 	int ctr = len - 1;
 
 	while(true)
 	{
-		parent_dir[ctr] = 0;
+		(*parent_dir)[ctr] = 0;
 		ctr--;
-		if(parent_dir[ctr] == '/' || parent_dir[ctr] == '\\')
+		if((*parent_dir)[ctr] == '/' || (*parent_dir)[ctr] == '\\')
 		{
 			break;
 		}
 	}
 
-	return parent_dir;
+	return *parent_dir;
 }
 
 #if defined(_WIN32) || defined(WIN32)
