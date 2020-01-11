@@ -34,6 +34,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 bool dir_is_exists(const char* dirname);
 bool dir_create_directory(const char* dirname);
-char* dir_get_parent_directory(const char* dirname, char** parent_dir);
+char* dir_get_parent_directory(const char* dirname);
 
 #endif

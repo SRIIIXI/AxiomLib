@@ -63,20 +63,20 @@ bool file_is_exists(const char* filename)
 	return false;
 }
 
-char* file_get_parent_directory(const char* filename, char** parent_dir)
+char* file_get_parent_directory(const char* filename)
 {
 	size_t origlen = strlen(filename);
 
-	*parent_dir = (char*)calloc(1, sizeof(char) * (origlen + 1));
+	char* parent_dir = (char*)calloc(1, sizeof(char) * (origlen + 1));
 
-	if(*parent_dir == NULL)
+	if(parent_dir == NULL)
 	{
 		return NULL;
 	}
 
-	memcpy(*parent_dir, filename, origlen);
+	memcpy(parent_dir, filename, origlen);
 
-	int len = (int)strlen(*parent_dir);
+	int len = (int)strlen(parent_dir);
 
 	if(len < 2)
         return NULL;
@@ -85,51 +85,51 @@ char* file_get_parent_directory(const char* filename, char** parent_dir)
 
 	while(true)
 	{
-		(*parent_dir)[ctr] = 0;
+		parent_dir[ctr] = 0;
 		ctr--;
-		if((*parent_dir)[ctr] == '/' || (*parent_dir)[ctr] == '\\')
+		if(parent_dir[ctr] == '/' || parent_dir[ctr] == '\\')
 		{
 			break;
 		}
 	}
 
-	return *parent_dir;
+	return parent_dir;
 }
 
-char* file_get_basename(const char* filename, char** basename)
+char* file_get_basename(const char* filename)
 {
 	size_t origlen = strlen(filename);
 	size_t index = 0;
 
-	*basename = (char*)calloc(1, sizeof(char) * (origlen + 1));
+	char* basename = (char*)calloc(1, sizeof(char) * (origlen + 1));
 
-	if(*basename == NULL)
+	if(basename == NULL)
 	{
 		return NULL;
 	}
 
 	for(index = origlen - 1; filename[index] != '/' && filename[index] != '\\'; index--) { }
 
-	memcpy(*basename, &filename[index + 1], index);
+	memcpy(basename, &filename[index + 1], index);
 
-	return *basename;
+	return basename;
 }
 
-char* file_get_extension(const char* filename, char** extension)
+char* file_get_extension(const char* filename)
 {
     size_t origlen = strlen(filename);
     size_t index = 0;
 
-    *extension = (char*)calloc(1, sizeof(char) * (origlen + 1));
+    char* extension = (char*)calloc(1, sizeof(char) * (origlen + 1));
 
-    if(*extension == NULL)
+    if(extension == NULL)
     {
         return NULL;
     }
 
     for(index = origlen - 1; filename[index] != '.'; index--) { }
 
-    memcpy(*extension, &filename[index+1], index-1);
+    memcpy(extension, &filename[index+1], index-1);
 
-    return *extension;
+    return extension;
 }

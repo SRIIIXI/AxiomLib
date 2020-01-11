@@ -40,15 +40,15 @@ int main(int argc, char *argv[])
 
     char *ext = NULL;
 
-    ext = file_get_extension(filename, &ext);
+    ext = file_get_extension(filename);
 
     char* base = NULL;
 
-    base = file_get_basename(filename, &base);
+    base = file_get_basename(filename);
 
     char *parent = NULL;
 
-    parent = file_get_parent_directory(filename, &parent);
+    parent = file_get_parent_directory(filename);
 
     return 0;
 }

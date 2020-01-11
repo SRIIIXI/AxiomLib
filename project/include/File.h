@@ -33,8 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdbool.h>
 
 bool file_is_exists(const char* filename);
-char* file_get_parent_directory(const char* filename, char** parent_dir);
-char* file_get_basename(const char* filename, char** basename);
-char* file_get_extension(const char* filename, char** extension);
+char* file_get_parent_directory(const char* filename);
+char* file_get_basename(const char* filename);
+char* file_get_extension(const char* filename);
 
 #endif
