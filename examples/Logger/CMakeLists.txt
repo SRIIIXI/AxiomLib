@@ -14,6 +14,7 @@ ${SOURCE}
 ${PROJECT_SOURCE_DIR}/File.c
 ${PROJECT_SOURCE_DIR}/Directory.c
 ${PROJECT_SOURCE_DIR}/Logger.c
+${PROJECT_SOURCE_DIR}/StringEx.c
 ./main.c
 )
 
@@ -22,6 +23,7 @@ ${HEADERS}
 ${PROJECT_HEADER_DIR}/File.h
 ${PROJECT_HEADER_DIR}/Directory.h
 ${PROJECT_HEADER_DIR}/Logger.h
+${PROJECT_HEADER_DIR}/StringEx.h
 )
 
 add_executable(${PROJECT_NAME}  ${SOURCE} ${HEADERS})

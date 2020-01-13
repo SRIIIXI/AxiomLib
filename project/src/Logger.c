@@ -29,6 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Logger.h"
 #include "Directory.h"
 #include "File.h"
+#include "StringEx.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -65,12 +66,9 @@ static Logger *loggers[MAX_LOGGERS] = {0};
 size_t	logger_allocate_default()
 {
     char owner[33] = {0};
-    char wd_path[1025] = {0};
-    int wd_len = 0;
-    getcwd(wd_path, wd_len);
     sprintf(owner, "%d", getpid());
 
-    return logger_allocate(10, owner, wd_path);
+    return logger_allocate(10, owner, NULL);
 }
 
 size_t	logger_allocate(size_t flszmb, const char* mname, const char* dirpath)
@@ -99,24 +97,41 @@ size_t	logger_allocate(size_t flszmb, const char* mname, const char* dirpath)
 
     if(dirpath != NULL)
     {
-        if(!dir_is_exists(dirpath))
-        {
-            dir_create_directory(dirpath);
-        }
-
         strcat(loggers[index]->FileName, dirpath);
+
+        if(dirpath[strlen(dirpath) - 1] != '\\' || dirpath[strlen(dirpath) - 1] != '/')
+        {
+            strcat(loggers[index]->FileName, "/");
+        }
     }
     else
     {
         char wd_path[1025] = { 0 };
-        int wd_len = 0;
+        int wd_len = 1024;
         getcwd(wd_path, wd_len);
-        strcat(loggers[index]->FileName, wd_path);
+        char* parent_dir = dir_get_parent_directory(wd_path);
+        strcat(loggers[index]->FileName, parent_dir);
+        strcat(loggers[index]->FileName, "log/");
+        free(parent_dir);
+    }
+
+    if(!dir_is_exists(loggers[index]->FileName))
+    {
+        dir_create_directory(loggers[index]->FileName);
     }
 
     if(mname != NULL)
     {
-        strcat(loggers[index]->FileName, mname);
+        if(strcountchar(mname, '/') > 0 || strcountchar(mname, '\\'))
+        {
+            char* base_name = file_get_basename(mname);
+            strcat(loggers[index]->FileName, base_name);
+            free(base_name);
+        }
+        else
+        {
+            strcat(loggers[index]->FileName, mname);
+        }
     }
     else
     {
@@ -205,6 +220,11 @@ void logger_write(size_t loggerid, const char* logentry, LogLevel llevel, const 
         return;
     }
 
+    if(loggers[loggerid]->FileHandle == NULL || loggers[loggerid]->IsOpen == false)
+    {
+        return;
+    }
+
     // Check the file size
     size_t sz = ftell(loggers[loggerid]->FileHandle);
 
@@ -233,7 +253,7 @@ void logger_write(size_t loggerid, const char* logentry, LogLevel llevel, const 
     tmp = localtime(&t);
 
     // Timestamp
-    fprintf(loggers[loggerid]->FileHandle, "%d-%d-%d %d:%d%d\t",
+    fprintf(loggers[loggerid]->FileHandle, "%d-%d-%d %d:%d:%d\t",
              tmp->tm_mday, tmp->tm_mon, tmp->tm_year,
              tmp->tm_hour, tmp->tm_min, tmp->tm_sec);
 
@@ -241,9 +261,12 @@ void logger_write(size_t loggerid, const char* logentry, LogLevel llevel, const 
     fprintf(loggers[loggerid]->FileHandle, "%s\t", log_level_names[llevel]);
 
     // File
-    fprintf(loggers[loggerid]->FileHandle, "%s\t", file);
+    char* base_file_name = file_get_basename(file);
+    fprintf(loggers[loggerid]->FileHandle, "%s\t", base_file_name);
+    free(base_file_name);
 
     // Function
+    normalize_function_name(func);
     fprintf(loggers[loggerid]->FileHandle, "%s\t", func);
 
     // Message
