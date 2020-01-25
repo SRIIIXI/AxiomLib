@@ -4,24 +4,21 @@ project(Queue)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-include_directories(../../project/include/)
-
-set(PROJECT_SOURCE_DIR ../../project/src)
-set(PROJECT_HEADER_DIR ../../project/include)
+include_directories(../../project/c/include/ ../../project/cpp/include/)
 
 set(SOURCE
 ${SOURCE}
-${PROJECT_SOURCE_DIR}/Buffer.c
-${PROJECT_SOURCE_DIR}/Node.c
-${PROJECT_SOURCE_DIR}/Queue.c
+../../project/c/src/Buffer.c
+../../project/c/src/Node.c
+../../project/c/src/Queue.c
 ./main.c
 )
 
 set(HEADERS
 ${HEADERS}
-${PROJECT_HEADER_DIR}/Buffer.h
-${PROJECT_HEADER_DIR}/Node.h
-${PROJECT_HEADER_DIR}/Queue.h
+../../project/c/include/Buffer.h
+../../project/c/include/Node.h
+../../project/c/include/Queue.h
 )
 
 add_executable(${PROJECT_NAME}  ${SOURCE} ${HEADERS})

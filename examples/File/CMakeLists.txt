@@ -11,13 +11,13 @@ set(PROJECT_HEADER_DIR ../../project/include)
 
 set(SOURCE
 ${SOURCE}
-${PROJECT_SOURCE_DIR}/File.c
+../../project/c/src/File.c
 ./main.c
 )
 
 set(HEADERS
 ${HEADERS}
-${PROJECT_HEADER_DIR}/File.h
+../../project/c/include/File.h
 )
 
 add_executable(${PROJECT_NAME}  ${SOURCE} ${HEADERS})

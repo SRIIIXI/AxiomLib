@@ -4,22 +4,19 @@ project(Map)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-include_directories(../../project/include/)
-
-set(PROJECT_SOURCE_DIR ../../project/src)
-set(PROJECT_HEADER_DIR ../../project/include)
+include_directories(../../project/c/include/ ../../project/cpp/include/)
 
 set(SOURCE
 ${SOURCE}
-${PROJECT_SOURCE_DIR}/Buffer.c
-${PROJECT_SOURCE_DIR}/Map.c
+../../project/c/src/Buffer.c
+../../project/c/src/Map.c
 ./main.c
 )
 
 set(HEADERS
 ${HEADERS}
-${PROJECT_HEADER_DIR}/Buffer.h
-${PROJECT_HEADER_DIR}/Map.h
+../../project/c/include/Buffer.h
+../../project/c/include/Map.h
 )
 
 add_executable(${PROJECT_NAME}  ${SOURCE} ${HEADERS})
