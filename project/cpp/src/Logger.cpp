@@ -1,13 +1,8 @@
 #include "Logger.hpp"
 #include "StringEx.hpp"
 
-#if defined (_FILESYSTEM_)
 #include <filesystem>
 namespace fs = std::filesystem;
-#else
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
-#endif
 
 #include <thread>
 #include <chrono>
