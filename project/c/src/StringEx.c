@@ -563,7 +563,7 @@ char* strrepcharat(char* str, const char newchar, size_t pos)
     return NULL;
 }
 
-extern char** strsplitsubstr(const char* str, const char* delimiter)
+extern char** strsplitsubstr(const char* str, const char* delimiter, size_t *numsubstr)
 {
 	if(str == NULL || delimiter == NULL)
 	{
@@ -571,74 +571,63 @@ extern char** strsplitsubstr(const char* str, const char* delimiter)
 	}
 
 	size_t substr_count = strcountsubstr(str, delimiter);
+	size_t str_len = strlen(str);
+	size_t index = 0;
+
+	*numsubstr = substr_count;
 
 	if(substr_count < 1)
 	{
 		return NULL;
 	}
 
-	size_t delimiter_len = strlen(delimiter);
-	size_t str_len = strlen(str);
+	char* ptr = (char*)calloc(1, str_len);
+
+	if(ptr == NULL)
+	{
+		return NULL;
+	}
+
+	memcpy(ptr, str, str_len);
 
 	char** buffer = NULL;
 
-	buffer = (char*)calloc(1, sizeof(char)* substr_count);
+	buffer = (char*)calloc(1, sizeof(char) * substr_count + 1);
 
 	if(buffer == NULL)
 	{
 		return NULL;
 	}
 
-	size_t current_index = 0;
-	size_t next_index = 0;
-	size_t current_len = 0;
-	size_t ctr = 0;
+	char* temp_ptr = NULL;
 
-	long long current_pos = 0;
-	long long next_pos = 0;
+	temp_ptr = strtok(ptr, delimiter);
 
-	while(true)
+	while(temp_ptr != NULL)
 	{
-		current_pos = strindexofsubstr(&str[current_index], delimiter);
+		size_t temp_str_len = strlen(temp_ptr);
 
-		if(current_pos < 0)
-		{
-			break;
-		}
+		buffer[index] = (char*)calloc(1, sizeof(char) * (temp_str_len + 1));
 
-		next_index = current_pos + delimiter_len;
-		next_pos = strindexofsubstr(&str[next_index], delimiter);
-
-		if(next_pos < 0)
-		{
-			current_len = str_len - (current_pos + delimiter_len);
-		}
-		else
-		{
-			current_len = str_len - (current_pos + delimiter_len);
-		}
-
-		buffer[ctr] = (char*)calloc(1, sizeof(char)*(current_len + 1));
-
-		if(buffer[ctr] == NULL)
+		if(buffer[index] == NULL)
 		{
 			return NULL;
 		}
 
-		memcpy(buffer[ctr], &str[current_pos + delimiter_len], current_len);
+		memcpy(buffer[index], temp_ptr, temp_str_len);
 
-		current_index = current_pos + delimiter_len;
-		ctr++;
+		temp_ptr = strtok(NULL, delimiter);
+		index++;
 	}
 
-	return NULL;
+	return buffer;
 }
 
-extern char** strsplitchar(const char* str, const char delimiter)
+extern char** strsplitchar(const char* str, const char delimiter, size_t *numsubstr)
 {
 	char temp_delimiter[2] = {delimiter, 0};
 
-	return strsplitsubstr(str, temp_delimiter);
+	return strsplitsubstr(str, temp_delimiter, numsubstr);
 }
 
 extern char* strjoinwithsubstr(const char** strlist, const char* delimiter)
@@ -651,4 +640,22 @@ extern char* strjoinwithchar(const char** strlist, const char delimiter)
 	char temp_delimiter[2] = { delimiter, 0 };
 
 	return strjoinwithsubstr(strlist, temp_delimiter);
+}
+
+void strfreelist(char** strlist, size_t numsubstr)
+{
+	size_t index = numsubstr;
+	
+	while(index > 0)
+	{
+		if(strlist[index - 1] != NULL)
+		{
+			printf("%s\n", strlist[index - 1]);
+			free(strlist[index - 1]);
+		}
+
+		index--;
+	}
+
+	free(strlist);
 }

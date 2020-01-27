@@ -76,9 +76,17 @@ extern char* strrepcharfirst(char* str, const char oldchar, const char newchar);
 extern char* strrepcharall(char* str, const char oldchar, const char newchar);
 extern char* strrepcharat(char* str, const char newchar, size_t pos);
 
-extern char** strsplitsubstr(const char* str, const char* delimiter);
-extern char** strsplitchar(const char* str, const char delimiter);
+extern char** strsplitsubstr(const char* str, const char* delimiter, size_t *numsubstr);
+extern char** strsplitchar(const char* str, const char delimiter, size_t *numsubstr);
 extern char* strjoinwithsubstr(const char **strlist, const char* delimiter);
 extern char* strjoinwithchar(const char** strlist, const char delimiter);
+extern void strfreelist(char** strlist, size_t numsubstr);
+
+typedef struct string
+{
+    char* Buffer;
+    size_t BufferSize;
+    size_t StringLength;
+}string;
 
 #endif

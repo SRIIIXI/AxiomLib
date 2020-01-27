@@ -38,9 +38,21 @@ int main(int argc, char *argv[])
 {
 	char* ptr = "abcdefxxx66xxx77xxx88xxx";
 
-	//ptr = strrepsubstrall(ptr, "xxx", "123");
+    size_t numsubstr = 0;
+    char** strlist = strsplitsubstr(ptr, "xxx", &numsubstr);
+    size_t index = numsubstr;
 
-    char** strlist = strsplitsubstr(ptr, "xxx");
+    while(index > 0)
+    {
+        if(strlist[index -1] != NULL)
+        {
+            printf("%s\n", strlist[index -1]);
+        }
+
+        index--;
+    }
+
+    strfreelist(strlist, numsubstr);
 
     return 0;
 }
