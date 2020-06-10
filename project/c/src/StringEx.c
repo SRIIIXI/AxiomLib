@@ -650,7 +650,7 @@ void strfreelist(char** strlist, size_t numsubstr)
 	{
 		if(strlist[index - 1] != NULL)
 		{
-			printf("%s\n", strlist[index - 1]);
+			char* ptr =  strlist[index - 1];
 			free(strlist[index - 1]);
 		}
 
