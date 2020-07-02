@@ -31,61 +31,34 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stddef.h>
 #include <stdbool.h>
+#include "StringEx.h"
 
-typedef struct string
-{
-    char* Buffer;
-    size_t BufferSize;
-    size_t StringLength;
-}string;
+extern void* str_list_allocate(void* lptr);
+extern void* str_list_allocate_from_string(void* lptr, const char* str, const char* delimiter);
+extern void str_list_clear(void* lptr);
 
-typedef struct string_node
-{
-    string* NodeData;
-    struct string_node* Next;
-    struct string_node* Previous;
-}string_node;
+extern void str_list_add_to_head(void* lptr, char* data);
+extern void str_list_add_to_tail(void* lptr, char* data);
+extern void str_list_insert(void* lptr, char* data, size_t pos);
 
-typedef struct string_list
-{
-    size_t Count;
-    string_node* Head;
-    string_node* Tail;
-    string_node* IteratorPosition;
-}string_list;
+extern void str_list_remove_from_head(void* lptr);
+extern void str_list_remove_from_tail(void* lptr);
+extern void str_list_remove(void* lptr, const char* node);
+extern void str_list_remove_at(void* lptr, size_t pos);
+extern void str_list_remove_value(void* lptr, char* data);
 
-extern string_list* strlist_allocate(string_list* lptr);
-extern void strlist_clear(string_list* lptr);
+extern size_t str_list_item_count(void* lptr);
+extern size_t str_list_index_of_value(void* lptr, char* data);
+extern char* str_list_get_at(void* lptr, size_t atpos);
 
-extern string_list* strlist_allocate_from_splitsubstr(const char* str, const char* delimiter, size_t* numsubstr);
-extern string_list* strlist_allocate_from_strsplitchar(const char* str, const char delimiter, size_t* numsubstr);
-extern char* strlist_joinwithsubstr(const string_list* strlist, const char* delimiter);
-extern char* strlist_joinwithchar(const string_list* strlist, const char delimiter);
-extern void  strlist_freelist(string_list* strlist, size_t numsubstr);
+extern char* str_list_get_first(void* lptr);
+extern char* str_list_get_next(void* lptr);
+extern char* str_list_get_last(void* lptr);
+extern char* str_list_get_previous(void* lptr);
 
-extern string_node* strlist_add_to_head(string_list* lptr, char* str, size_t sz);
-extern string_node* strlist_add_to_tail(string_list* lptr, char* str, size_t sz);
-extern string_node* strlist_insert(string_list* lptr, char* str, size_t sz, int pos);
-
-extern void strlist_remove_from_head(string_list* lptr);
-extern void strlist_remove_from_tail(string_list* lptr);
-extern void strlist_remove(string_list* lptr, const string_node* node);
-extern void strlist_remove_at(string_list* lptr, int pos);
-extern void strlist_remove_value(string_list* lptr, char* str, size_t sz);
-
-extern size_t strlist_item_count(string_list* lptr);
-extern size_t strlist_index_of(string_list* lptr, const string_node* node);
-extern size_t strlist_index_of_value(string_list* lptr, char* str, size_t sz);
-extern string_node* strlist_get_at(string_list* lptr, int atpos);
-
-extern string_node* strlist_get_first(string_list* lptr);
-extern string_node* strlist_get_next(string_list* lptr);
-extern string_node* strlist_get_last(string_list* lptr);
-extern string_node* strlist_get_previous(string_list* lptr);
-
-extern string_list* strlist_sort(string_list* lptr);
-extern string_list* strlist_merge(string_list* lptrFirst, string_list* lptrSecond);
-extern string_list* strlist_join(string_list* lptrFirst, string_list* lptrSecond);
+extern void str_list_sort(void* lptr);
+extern void str_list_merge(void* lptrFirst, void* lptrSecond);
+extern void str_list_join(void* lptrFirst, void* lptrSecond);
 
 
 #endif

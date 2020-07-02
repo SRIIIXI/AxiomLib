@@ -179,7 +179,7 @@ namespace CoreLib
 		bool found = false;
 
 	#if defined(WIN32) || defined (_WIN32) || defined (_WIN64) || defined (WIN64)
-		for (ctr = 0; ctr < 15; ctr++)
+        for (ctr = 0; ctr < 6; ctr++)
 		{
 			if (signalNumbers[ctr] == signum)
 			{

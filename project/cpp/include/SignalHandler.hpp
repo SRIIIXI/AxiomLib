@@ -7,6 +7,7 @@ namespace CoreLib
 	{
 	public:
 		SignalCallback() {}
+        virtual ~SignalCallback() {}
 		virtual void Suspend() = 0;
 		virtual void Resume() = 0;
 		virtual void Shutdown() = 0;

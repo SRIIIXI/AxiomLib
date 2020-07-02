@@ -44,6 +44,13 @@ void list_clear(List* lptr)
     {
         return;
     }
+    else
+    {
+        while(lptr->Count > 0)
+        {
+            list_remove_from_tail(lptr);
+        }
+    }
 }
 
 Node* list_add_to_head(List* lptr, void* data, size_t sz)
@@ -169,7 +176,12 @@ void list_remove_from_head(List* lptr)
 
     Node* oldhead = lptr->Head;
     lptr->Head = lptr->Head->Next;
-    lptr->Head->Previous = NULL;
+
+    if(lptr->Head != NULL)
+    {
+        lptr->Head->Previous = NULL;
+    }
+
     node_free(oldhead);
     lptr->Count--;
 }
@@ -183,7 +195,12 @@ void list_remove_from_tail(List* lptr)
 
     Node* oldtail = lptr->Tail;
     lptr->Tail = oldtail->Previous;
-    lptr->Tail->Next = NULL;
+
+    if(lptr->Tail != NULL)
+    {
+        lptr->Tail->Next = NULL;
+    }
+
     node_free(oldtail);
     lptr->Count--;
 }
@@ -457,6 +474,11 @@ Node* list_get_next(List* lptr)
         return NULL;
     }
 
+    if(lptr->IteratorPosition->Next == NULL)
+    {
+        return NULL;
+    }
+
     lptr->IteratorPosition = lptr->IteratorPosition->Next;
 
     return lptr->IteratorPosition;
@@ -476,6 +498,11 @@ Node* list_get_last(List* lptr)
 Node* list_get_previous(List* lptr)
 {
     if(lptr == NULL)
+    {
+        return NULL;
+    }
+
+    if(lptr->IteratorPosition->Previous == NULL)
     {
         return NULL;
     }

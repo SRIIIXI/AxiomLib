@@ -29,7 +29,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Base64.h"
 #include <memory.h>
 #include <stdint.h>
-#include <malloc.h>
 #include <stdlib.h>
 
 const char encodingtable[] = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',

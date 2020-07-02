@@ -596,6 +596,7 @@ extern char** strsplitsubstr(const char* str, const char* delimiter, size_t *num
 
 	if(buffer == NULL)
 	{
+        free(ptr);
 		return NULL;
 	}
 

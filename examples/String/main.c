@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "StringEx.h"
-
+#include "StringList.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -36,10 +36,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 int main(int argc, char *argv[])
 {
-	char* ptr = "abcdefxxx66xxx77xxx88xxx";
+    char* str = "abcdefxxx66xxx77xxx88xxx";
 
+    /*
     size_t numsubstr = 0;
-    char** strlist = strsplitsubstr(ptr, "xxx", &numsubstr);
+    char** strlist = strsplitsubstr(str, "xxx", &numsubstr);
     size_t index = numsubstr;
 
     while(index > 0)
@@ -53,6 +54,30 @@ int main(int argc, char *argv[])
     }
 
     strfreelist(strlist, numsubstr);
+    */
+
+    void* lptr = NULL;
+    char* tok = NULL;
+
+    lptr = str_list_allocate_from_string(lptr, str, "xxx");
+
+    tok = str_list_get_first(lptr);
+
+    while(tok != NULL)
+    {
+        printf("%s\n", tok);
+        tok = str_list_get_next(lptr);
+    }
+
+    tok = str_list_get_last(lptr);
+
+    while(tok != NULL)
+    {
+        printf("%s\n", tok);
+        tok = str_list_get_previous(lptr);
+    }
+
+    str_list_clear(lptr);
 
     return 0;
 }
