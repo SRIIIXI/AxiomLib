@@ -1,14 +1,54 @@
-cmake_minimum_required(VERSION 3.5)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+cmake_minimum_required(VERSION 2.8.12)
 
-set(Project project)
-project(${Project})
+project(CoreLib)
 
-add_subdirectory(c)
-add_subdirectory(cpp)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
+include_directories(./include)
 
+set(PROJECT_SOURCE_DIR ./src)
+set(PROJECT_HEADER_DIR ./include)
 
+set(SOURCE
+${SOURCE}
+${PROJECT_SOURCE_DIR}/Base64.c
+${PROJECT_SOURCE_DIR}/Buffer.c
+${PROJECT_SOURCE_DIR}/Node.c
+${PROJECT_SOURCE_DIR}/TreeNode.c
+${PROJECT_SOURCE_DIR}/KeyValue.c
+${PROJECT_SOURCE_DIR}/Tree.c
+${PROJECT_SOURCE_DIR}/List.c
+${PROJECT_SOURCE_DIR}/Map.c
+${PROJECT_SOURCE_DIR}/Queue.c
+${PROJECT_SOURCE_DIR}/Stack.c
+${PROJECT_SOURCE_DIR}/StringEx.c
+${PROJECT_SOURCE_DIR}/StringList.c
+${PROJECT_SOURCE_DIR}/File.c
+${PROJECT_SOURCE_DIR}/Directory.c
+${PROJECT_SOURCE_DIR}/Logger.c
+${PROJECT_SOURCE_DIR}/CoreLib.c
+)
+
+set(HEADERS
+${HEADERS}
+${PROJECT_HEADER_DIR}/Base64.h
+${PROJECT_HEADER_DIR}/Buffer.h
+${PROJECT_HEADER_DIR}/Node.h
+${PROJECT_HEADER_DIR}/TreeNode.h
+${PROJECT_HEADER_DIR}/KeyValue.h
+${PROJECT_HEADER_DIR}/Tree.h
+${PROJECT_HEADER_DIR}/List.h
+${PROJECT_HEADER_DIR}/Map.h
+${PROJECT_HEADER_DIR}/Queue.h
+${PROJECT_HEADER_DIR}/Stack.h
+${PROJECT_HEADER_DIR}/StringEx.h
+${PROJECT_HEADER_DIR}/StringList.h
+${PROJECT_HEADER_DIR}/File.h
+${PROJECT_HEADER_DIR}/Directory.h
+${PROJECT_HEADER_DIR}/Logger.h
+${PROJECT_HEADER_DIR}/CoreLib.h
+)
+
+add_library(${PROJECT_NAME} SHARED ${SOURCE} ${HEADERS})
 

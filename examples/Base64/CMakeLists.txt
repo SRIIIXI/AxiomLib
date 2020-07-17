@@ -4,19 +4,17 @@ project(Base64)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-include_directories(../../project/c/include/ ../../project/cpp/include/)
+include_directories(../../project/include/)
 
 set(SOURCE
 ${SOURCE}
-../../project/c/src/Base64.c
-../../project/cpp/src/Base64.cpp
+../../project/src/Base64.c
 ./main.c
 )
 
 set(HEADERS
 ${HEADERS}
-../../project/c/include/Base64.h
-../../project/cpp/include/Base64.hpp
+../../project/include/Base64.h
 )
 
 add_executable(${PROJECT_NAME}  ${SOURCE} ${HEADERS})

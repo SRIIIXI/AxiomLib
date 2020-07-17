@@ -4,22 +4,22 @@ project(Tree)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-include_directories(../../project/c/include/ ../../project/cpp/include/)
+include_directories(../../project/include/)
 
 set(SOURCE
 ${SOURCE}
-../../project/c/src/Buffer.c
-../../project/c/src/TreeNode.c
-../../project/c/src/Tree.c
-../../project/c/src/StringEx.c
+../../project/src/Buffer.c
+../../project/src/TreeNode.c
+../../project/src/Tree.c
+../../project/src/StringEx.c
 ./main.c
 )
 
 set(HEADERS
 ${HEADERS}
-../../project/c/include/Buffer.h
-../../project/c/include/TreeNode.h
-../../project/c/include/Tree.h
+../../project/include/Buffer.h
+../../project/include/TreeNode.h
+../../project/include/Tree.h
 )
 
 add_executable(${PROJECT_NAME}  ${SOURCE} ${HEADERS})
