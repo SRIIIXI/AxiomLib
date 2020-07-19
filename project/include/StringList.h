@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stddef.h>
 #include <stdbool.h>
-#include "StringEx.h"
+#include <string.h>
 
 extern __attribute__((visibility("default"))) void* str_list_allocate(void* lptr);
 extern __attribute__((visibility("default"))) void* str_list_allocate_from_string(void* lptr, const char* str, const char* delimiter);

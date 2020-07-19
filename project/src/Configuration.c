@@ -1,6 +1,7 @@
-#include "Configuration.hpp"
-#include "StringEx.hpp"
+#include "Configuration.h"
+#include "StringEx.h"
 
+/*
 namespace CoreLib
 {
 	Configuration::Configuration()
@@ -108,3 +109,4 @@ namespace CoreLib
 		_Configuration[str] = list;
 	}
 }
+*/

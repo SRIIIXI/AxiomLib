@@ -50,13 +50,7 @@ Buffer* buffer_allocate(void* data, size_t sz)
     return nd;
 }
 
-void buffer_free(Buffer* ptr)
-{
-    free(ptr->Data);
-    free(ptr);
-}
-
-void buffer_copy(Buffer* dest, Buffer* orig)
+Buffer* buffer_copy(Buffer* dest, Buffer* orig)
 {
     if(orig != NULL)
     {
@@ -69,10 +63,38 @@ void buffer_copy(Buffer* dest, Buffer* orig)
 
             dest->Size = orig->Size;
             dest->Data = (char*)calloc(1, dest->Size);
-
             memcpy(dest->Data, orig->Data, dest->Size);
         }
     }
+
+    return  dest;
+}
+
+Buffer *buffer_append(Buffer* dest, void* data, size_t sz)
+{
+    if(data == NULL || sz < 1)
+    {
+        return NULL;
+    }
+
+    if(dest == NULL)
+    {
+        dest = buffer_allocate(data, sz);
+        return dest;
+    }
+    else
+    {
+
+
+    }
+
+    return dest;
+}
+
+void buffer_free(Buffer* ptr)
+{
+    free(ptr->Data);
+    free(ptr);
 }
 
 bool buffer_is_equal(Buffer* first, Buffer* second)

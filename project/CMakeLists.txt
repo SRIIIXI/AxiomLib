@@ -27,6 +27,12 @@ ${PROJECT_SOURCE_DIR}/StringList.c
 ${PROJECT_SOURCE_DIR}/File.c
 ${PROJECT_SOURCE_DIR}/Directory.c
 ${PROJECT_SOURCE_DIR}/Logger.c
+${PROJECT_SOURCE_DIR}/SignalHandler.c
+${PROJECT_SOURCE_DIR}/Responder.c
+${PROJECT_SOURCE_DIR}/ProcessLock.c
+${PROJECT_SOURCE_DIR}/Configuration.c
+${PROJECT_SOURCE_DIR}/DateTime.c
+${PROJECT_SOURCE_DIR}/Variant.c
 ${PROJECT_SOURCE_DIR}/CoreLib.c
 )
 
@@ -47,6 +53,12 @@ ${PROJECT_HEADER_DIR}/StringList.h
 ${PROJECT_HEADER_DIR}/File.h
 ${PROJECT_HEADER_DIR}/Directory.h
 ${PROJECT_HEADER_DIR}/Logger.h
+${PROJECT_HEADER_DIR}/SignalHandler.h
+${PROJECT_HEADER_DIR}/Responder.h
+${PROJECT_HEADER_DIR}/ProcessLock.h
+${PROJECT_HEADER_DIR}/Configuration.h
+${PROJECT_HEADER_DIR}/DateTime.h
+${PROJECT_HEADER_DIR}/Variant.h
 ${PROJECT_HEADER_DIR}/CoreLib.h
 )
 

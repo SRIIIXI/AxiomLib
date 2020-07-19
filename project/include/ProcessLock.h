@@ -1,10 +1,9 @@
-#ifndef _PROCESS_LOCK
-#define _PROCESS_LOCK
+#ifndef PROCESS_LOCK_C
+#define PROCESS_LOCK_C
 
-#include <string>
+#include <string.h>
 
-namespace CoreLib
-{
+/*
 	class ProcessLock
 	{
 	public:
@@ -18,6 +17,6 @@ namespace CoreLib
 		void GetTempDir(std::string &dirName);
 		int _LockFile;
 		std::string _LockFileName;
-	};
-}
+*/
+
 #endif

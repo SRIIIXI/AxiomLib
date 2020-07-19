@@ -1,12 +1,11 @@
-#ifndef _CONFIGURATION
-#define _CONFIGURATION
+#ifndef CONFIGURATION_C
+#define CONFIGURATION_C
 
-#include <string>
-#include <fstream>
-#include <map>
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
 
-namespace CoreLib
-{
+/*
 	class Configuration
 	{
 	public:
@@ -22,5 +21,6 @@ namespace CoreLib
 		std::map<std::string, std::map<std::string, std::string>> _Configuration;
 		std::string _ConfigFileName;
 	};
-}
+*/
+
 #endif

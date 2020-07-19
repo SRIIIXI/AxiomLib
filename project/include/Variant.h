@@ -1,13 +1,32 @@
-#ifndef _VARIANT
-#define _VARIANT
+#ifndef VARIANT_C
+#define VARIANT_C
 
-#include "VariantType.hpp"
-#include <string>
-#include <ctime>
-#include <chrono>
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
 
-namespace CoreLib
+typedef enum VariantType
 {
+    Void = 0,
+    Char = 1,
+    UnsignedChar = 2,
+    String = 3,
+    Boolean = 4,
+    Number = 5,
+    UnsignedNumber = 6,
+    Decimal = 7,
+    DateTimeStamp = 8,
+    Raw = 9
+}VariantType;
+
+typedef struct Variant
+{
+    VariantType DataType;
+    unsigned char RawBuffer[256];
+    size_t DataSize;
+}Variant;
+
+/*
 	class Variant
 	{
 	public:
@@ -52,6 +71,7 @@ namespace CoreLib
 		unsigned char _RawBuffer[256];
 		size_t _DataSize;
 	};
-}
+*/
+
 #endif
 

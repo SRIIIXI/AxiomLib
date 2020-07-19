@@ -35,23 +35,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <time.h>
 #include <stdint.h>
+#include <unistd.h>
 
-#if defined(_WIN32) || defined(WIN32)
-#include <Windows.h>
-#include <process.h>
-#define getcwd(s, i) _getcwd(s, i)
-#define getpid() _getpid()
-#define END_OF_LINE "\r\n"
-#else
 #define END_OF_LINE "\n"
-#endif
-
 #define MAX_LOGGERS 512
 
-char log_level_names[5][16] = {"Information", "Error", "Warning", "Critical", "Panic"};
+static char log_level_names[5][16] = {"Information", "Error", "Warning", "Critical", "Panic"};
 
 void normalize_function_name(char* func_name);
 
+#pragma pack(1)
 typedef struct Logger
 {
     size_t LogFileSizeMB;
@@ -99,7 +92,7 @@ size_t	logger_allocate(size_t flszmb, const char* mname, const char* dirpath)
     {
         strcat(loggers[index]->FileName, dirpath);
 
-        if(dirpath[strlen(dirpath) - 1] != '\\' || dirpath[strlen(dirpath) - 1] != '/')
+        if(dirpath[strlen(dirpath) - 1] != '/')
         {
             strcat(loggers[index]->FileName, "/");
         }
@@ -122,7 +115,7 @@ size_t	logger_allocate(size_t flszmb, const char* mname, const char* dirpath)
 
     if(mname != NULL)
     {
-        if(strcountchar(mname, '/') > 0 || strcountchar(mname, '\\'))
+        if(strcountchar(mname, '/') > 0)
         {
             char* base_name = file_get_basename(mname);
             strcat(loggers[index]->FileName, base_name);
@@ -199,7 +192,7 @@ void logger_stop_logging(size_t loggerid)
     {
         return;
     }
-    
+
     if(loggers[loggerid]->IsOpen)
     {
         fflush(loggers[loggerid]->FileHandle);
@@ -226,23 +219,23 @@ void logger_write(size_t loggerid, const char* logentry, LogLevel llevel, const 
     }
 
     // Check the file size
-    size_t sz = ftell(loggers[loggerid]->FileHandle);
+    size_t sz = (size_t)ftell(loggers[loggerid]->FileHandle);
 
     // If it exceeds the set size
     if(sz*1024*1024 >= loggers[loggerid]->LogFileSizeMB)
     {
         // Stop logging
-        logger_stop_logging(loggers[loggerid]);
+        logger_stop_logging(loggerid);
 
         // Rename the file
         char old_log_filename[1025] = {0};
         strcat(old_log_filename, loggers[loggerid]->FileName);
         strcat(old_log_filename, ".old");
 
-        int rc = rename(loggers[loggerid]->FileName, old_log_filename);
+        rename(loggers[loggerid]->FileName, old_log_filename);
 
         // Reopen the log file with original name
-        logger_start_logging(loggers[loggerid]);
+        logger_start_logging(loggerid);
     }
 
     normalize_function_name((char*)func);

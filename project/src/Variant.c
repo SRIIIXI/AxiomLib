@@ -1,6 +1,7 @@
-#include "Variant.hpp"
+#include "Variant.h"
 #include <memory.h>
 
+/*
 namespace CoreLib
 {
 	Variant::Variant()
@@ -369,3 +370,4 @@ namespace CoreLib
 		return '\0';
 	}
 }
+*/

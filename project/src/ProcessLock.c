@@ -1,24 +1,14 @@
-#include "ProcessLock.hpp"
-#include "StringEx.hpp"
+#include "ProcessLock.h"
+#include "StringEx.h"
+
 #include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
+#include <stdio.h>
+#include <string.h>
 
-#if defined(_WIN32) || defined(WIN32) || defined (_WIN64) || defined (WIN64)
-    #include <Windows.h>
-    #include <process.h>
-    #include <TlHelp32.h>
-    #define getpid() _getpid()
-#else
-    #include <fcntl.h>
-    #include <unistd.h>
-    #include <errno.h>
-    #include <stdio.h>
-    #include <string.h>
-#endif
-
-#include <vector>
-
-namespace CoreLib
-{
+/*
 	ProcessLock::ProcessLock()
 	{
 		_LockFile = 0;
@@ -89,53 +79,6 @@ namespace CoreLib
 		#endif
 	}
 
-	#if defined(_WIN32) || defined(WIN32)
-	void ProcessLock::GetProcessName(std::string &processName)
-	{
-		int ownpid = getpid();
-
-		HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-		if (hSnapshot)
-		{
-			PROCESSENTRY32 pe32;
-			pe32.dwSize = sizeof(PROCESSENTRY32);
-			memset((void*)&pe32.szExeFile[0], 0, sizeof(pe32.szExeFile));
-			if (Process32First(hSnapshot, &pe32))
-			{
-				do
-				{
-					if (pe32.th32ProcessID == ownpid)
-					{
-						processName = pe32.szExeFile;
-					}
-				} while (Process32Next(hSnapshot, &pe32));
-			}
-			CloseHandle(hSnapshot);
-		}
-	}
-
-	void ProcessLock::GetCurrentUserName(std::string &uName)
-	{
-		char buffer[256] = { 0 };
-		unsigned long sz = 255;
-		GetUserNameA((char*)&buffer[0], &sz);
-		uName = buffer;
-	}
-
-	void ProcessLock::GetTempDir(std::string &dirName)
-	{
-		dirName = getenv("TEMP");
-
-		for (size_t idx = 0; dirName[idx] != '\0'; idx++)
-		{
-			if (dirName[idx] == '\\')
-			{
-				dirName[idx] = '/';
-			}
-		}
-	}
-
-	# else
 
 	void ProcessLock::GetProcessName(std::string &processName)
 	{
@@ -215,5 +158,4 @@ namespace CoreLib
 	{
 		dirName = "/tmp";
 	}
-	#endif
-}
+*/

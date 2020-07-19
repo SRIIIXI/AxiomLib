@@ -67,7 +67,10 @@ char* file_get_parent_directory(const char* filename)
 	int len = (int)strlen(parent_dir);
 
 	if(len < 2)
+    {
+        free(parent_dir);
         return NULL;
+    }
 
 	int ctr = len - 1;
 

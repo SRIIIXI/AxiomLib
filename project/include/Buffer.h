@@ -41,8 +41,9 @@ typedef struct Buffer
 
 extern __attribute__((visibility("default"))) Buffer* buffer_allocate(void* data, size_t sz);
 
+extern __attribute__((visibility("default"))) Buffer* buffer_copy(Buffer* dest, Buffer* orig);
+extern __attribute__((visibility("default"))) Buffer* buffer_append(Buffer* dest, void* data, size_t sz);
 extern __attribute__((visibility("default"))) void buffer_free(Buffer* ptr);
-extern __attribute__((visibility("default"))) void buffer_copy(Buffer* dest, Buffer* orig);
 
 extern __attribute__((visibility("default"))) bool buffer_is_equal(Buffer* first, Buffer* second);
 extern __attribute__((visibility("default"))) bool buffer_is_greater(Buffer* first, Buffer* second);

@@ -1,9 +1,10 @@
-#ifndef _DATE_TIME
-#define _DATE_TIME
+#ifndef DATE_TIME_C
+#define DATE_TIME_C
 
-#include <string>
+#include <string.h>
 #include <time.h>
 
+/*
 namespace CoreLib
 {
 	class DateTime
@@ -54,8 +55,10 @@ namespace CoreLib
 		void SsetSecond(int val);
 
 	private:
-		struct tm timeinfo;;
+        struct tm timeinfo;
 	};
 }
+*/
+
 #endif
 

@@ -1,8 +1,9 @@
-#include "DateTime.hpp"
-#include "StringEx.hpp"
+#include "DateTime.h"
+#include "StringEx.h"
 #include <memory.h>
 #include <time.h>
 
+/*
 namespace CoreLib
 {
 	DateTime::DateTime()
@@ -539,3 +540,4 @@ namespace CoreLib
 		timeinfo.tm_sec = val;
 	}
 }
+*/
