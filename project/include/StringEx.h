@@ -69,6 +69,7 @@ extern __attribute__((visibility("default"))) char* strrepcharfirst(char* str, c
 extern __attribute__((visibility("default"))) char* strrepcharall(char* str, const char oldchar, const char newchar);
 extern __attribute__((visibility("default"))) char* strrepcharat(char* str, const char newchar, size_t pos);
 
+extern __attribute__((visibility("default"))) void strsplitkeyvalue(const char* str, const char* delimiter, char **key, char **value);
 extern __attribute__((visibility("default"))) char** strsplitsubstr(const char* str, const char* delimiter, size_t *numsubstr);
 extern __attribute__((visibility("default"))) char** strsplitchar(const char* str, const char delimiter, size_t *numsubstr);
 extern __attribute__((visibility("default"))) char* strjoinwithsubstr(const char **strlist, const char* delimiter);

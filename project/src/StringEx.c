@@ -47,19 +47,16 @@ char* strfromwstr(const wchar_t* wstr)
     size_t wlen = 0;
     char* str = NULL;
 
-    if (wstr != NULL)
+    for (wlen = 0; wstr[wlen] != '\0'; wlen++) {}
+
+    str = (char*)calloc(1, wlen+1);
+
+    if (str != NULL)
     {
-        for (wlen = 0; wstr[wlen] != '\0'; wlen++) {}
-
-        str = (char*)calloc(1, wlen+1);
-
-		if (str != NULL)
-		{
-			for (size_t idx = 0; idx < wlen; idx++)
-			{
-                str[idx] = (char)wstr[idx];
-			}
-		}
+        for (size_t idx = 0; idx < wlen; idx++)
+        {
+            str[idx] = (char)wstr[idx];
+        }
     }
 
     return str;
@@ -75,8 +72,8 @@ char* strfromint(size_t num)
 	}
 
 	int sign = 1;
-	size_t remainder = 1;
-	size_t dividend = num;
+    size_t remainder = 1;
+    size_t dividend = num;
 	size_t ctr = 0;
 
 	if (num < 1)
@@ -85,7 +82,7 @@ char* strfromint(size_t num)
         dividend = dividend*(size_t)(-1);
 	}
 
-	while (dividend && ctr < 32)
+    while (dividend && ctr < 32)
 	{
 		remainder = dividend % 10;
 		dividend = dividend / 10;
@@ -557,6 +554,34 @@ char* strrepcharat(char* str, const char newchar, size_t pos)
     }
 
     return NULL;
+}
+
+void strsplitkeyvalue(const char* str, const char* delimiter, char **key, char **value)
+{
+    if(str == NULL || delimiter == NULL)
+    {
+        return;
+    }
+
+    long pos = (size_t)strindexofsubstr(str, delimiter);
+
+    if(pos < 0)
+    {
+        return;
+    }
+
+    size_t val_start = ((size_t)pos + strlen(delimiter));
+    size_t val_end = strlen(str);
+
+    if(pos > 0)
+    {
+        *key = (char*)calloc(1, (size_t)(pos + 1));
+        strcpy(*key, &str[pos]);
+    }
+
+    *value = (char*)calloc(1, val_end - val_start + 1);
+    strcpy(*value, &str[val_start]);
+
 }
 
 extern char** strsplitsubstr(const char* str, const char* delimiter, size_t *numsubstr)

@@ -67,7 +67,14 @@ size_t	logger_allocate_default()
 size_t	logger_allocate(size_t flszmb, const char* mname, const char* dirpath)
 {
     size_t index = 0;
-    while(loggers[index] != NULL) { index++; }
+    while(index < MAX_LOGGERS)
+    {
+        if(loggers[index] == NULL)
+        {
+            break;
+        }
+        index++;
+    }
 
     loggers[index] = (Logger*)calloc(1, sizeof(Logger));
 
@@ -135,12 +142,12 @@ size_t	logger_allocate(size_t flszmb, const char* mname, const char* dirpath)
 
     strcat(loggers[index]->FileName, ".log");
 
-    return index;
+    return (index+1);
 }
 
 void logger_release(size_t loggerid)
 {
-    if(loggerid > MAX_LOGGERS)
+    if(loggerid-1 > MAX_LOGGERS-2)
     {
         return;
     }
@@ -161,7 +168,7 @@ void logger_release(size_t loggerid)
 
 void logger_start_logging(size_t loggerid)
 {
-    if(loggerid > MAX_LOGGERS)
+    if(loggerid-1 > MAX_LOGGERS-2)
     {
         return;
     }
@@ -183,7 +190,7 @@ void logger_start_logging(size_t loggerid)
 
 void logger_stop_logging(size_t loggerid)
 {
-    if(loggerid > MAX_LOGGERS)
+    if(loggerid-1 > MAX_LOGGERS-2)
     {
         return;
     }
@@ -203,7 +210,7 @@ void logger_stop_logging(size_t loggerid)
 
 void logger_write(size_t loggerid, const char* logentry, LogLevel llevel, const char* func, const char* file, int line)
 {
-    if(loggerid > MAX_LOGGERS)
+    if(loggerid-1 > MAX_LOGGERS-2)
     {
         return;
     }
@@ -282,7 +289,7 @@ size_t logger_get_instance()
         {
             if(loggers[index]->PID == getpid())
             {
-                return index;
+                return (index+1);
             }
         }
     }

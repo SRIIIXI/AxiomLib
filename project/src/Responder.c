@@ -296,30 +296,32 @@ bool responder_receive_string(void* ptr, char** iostr, const char* delimeter)
     }
 
     char*	data = NULL;
-    void*   stringlist = NULL;
+    char*   current_line = NULL;
+    char*   next_line = NULL;
 
     if(responder_ptr->prefetched_buffer_size > 0)
 	{
         if(strstr((char*)responder_ptr->prefetched_buffer, delimeter) !=0 )
 		{
-            str_list_allocate_from_string(stringlist, (const char*)responder_ptr->prefetched_buffer, delimeter);
+            strsplitkeyvalue((const char*)responder_ptr->prefetched_buffer, delimeter, &current_line, &next_line);
+
             responder_ptr->prefetched_buffer = NULL;
             free(responder_ptr->prefetched_buffer);
             responder_ptr->prefetched_buffer_size = 0;
 
-            if(str_list_item_count(stringlist) > 0)
+            if(current_line != NULL)
             {
-                *iostr = (char*)calloc(1, strlen(str_list_get_first(stringlist)));
-                strcpy(*iostr, str_list_get_first(stringlist));
-                str_list_remove_at(stringlist, 0);
+                *iostr = (char*)calloc(1, strlen(current_line));
+                strcpy(*iostr, current_line);
+                free(current_line);
+            }
 
-                if(str_list_item_count(stringlist) > 0)
-                {
-                    responder_ptr->prefetched_buffer_size = strlen(str_list_get_first(stringlist));
-                    responder_ptr->prefetched_buffer = (unsigned char*)calloc(1, (sizeof (unsigned char)*responder_ptr->prefetched_buffer_size) + 1);
-                    strcpy((char*)responder_ptr->prefetched_buffer, str_list_get_first(stringlist));
-                    str_list_clear(stringlist);
-                }
+            if(next_line != NULL)
+            {
+                responder_ptr->prefetched_buffer_size = strlen(next_line);
+                responder_ptr->prefetched_buffer = (unsigned char*)calloc(1, (sizeof (unsigned char)*responder_ptr->prefetched_buffer_size) + 1);
+                strcpy((char*)responder_ptr->prefetched_buffer, next_line);
+                free(next_line);
             }
 
 			return true;
@@ -357,25 +359,26 @@ bool responder_receive_string(void* ptr, char** iostr, const char* delimeter)
 
         if(strstr(data, delimeter) != 0)
 		{
-            str_list_allocate_from_string(stringlist, data, delimeter);
+            strsplitkeyvalue((const char*)responder_ptr->prefetched_buffer, delimeter, &current_line, &next_line);
 
-            if(str_list_item_count(stringlist) > 1)
+            if(next_line != NULL)
             {
-                responder_ptr->prefetched_buffer_size = strlen(str_list_get_last(stringlist));
+                responder_ptr->prefetched_buffer_size = strlen(next_line);
             }
             
             if(responder_ptr->prefetched_buffer_size > 0)
             {
                 responder_ptr->prefetched_buffer = (unsigned char*)calloc(1, sizeof (unsigned char));
-                memcpy(responder_ptr->prefetched_buffer, str_list_get_last(stringlist), responder_ptr->prefetched_buffer_size);
+                memcpy(responder_ptr->prefetched_buffer, next_line, responder_ptr->prefetched_buffer_size);
+                free(next_line);
             }
 
-            *iostr = (char*)realloc(*iostr, strlen(*iostr) + strlen(str_list_get_first(stringlist)));
-            strcat(*iostr, str_list_get_first(stringlist));
-
+            *iostr = (char*)realloc(*iostr, strlen(*iostr) + strlen(current_line));
+            strcat(*iostr, current_line);
+            free(current_line);
             free(data);
-            str_list_clear(stringlist);
-			return true;
+
+            return true;
 		}
 	}
 	return true;
