@@ -218,6 +218,7 @@ bool responder_close_socket(void* ptr)
     close(responder_ptr->socket);
 
     responder_ptr->connected = false;
+    free(responder_ptr);
 	return false;
 }
 
