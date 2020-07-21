@@ -411,7 +411,7 @@ size_t str_list_item_count(void* lptr)
     return -1;
 }
 
-size_t str_list_index_of_value(void* lptr, char* data)
+long long str_list_index_of_value(void* lptr, char* data)
 {
     if(lptr == NULL)
     {
@@ -422,7 +422,7 @@ size_t str_list_index_of_value(void* lptr, char* data)
 
     ptr = str_list_get_first(lptr);
 
-    size_t idx = 0;
+    long long idx = 0;
 
     if(strcmp(ptr, data) == 0)
     {

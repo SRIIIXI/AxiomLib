@@ -37,16 +37,16 @@ typedef struct Map
     Tree data;
 }Map;
 
-extern __attribute__((visibility("default"))) void map_allocate(Map* mptr);
-extern __attribute__((visibility("default"))) void map_clear(Map* mptr);
+extern __attribute__((visibility("default"))) void map_allocate(void* mptr);
+extern __attribute__((visibility("default"))) void map_clear(void* mptr);
 
-extern __attribute__((visibility("default"))) void map_insert(Map* mptr, Buffer* key, const Buffer* data);
-extern __attribute__((visibility("default"))) void map_remove(Map* mptr, const Buffer* key);
+extern __attribute__((visibility("default"))) void map_insert(void* mptr, void* key, const void* data);
+extern __attribute__((visibility("default"))) void map_remove(void* mptr, const void* key);
 
 extern __attribute__((visibility("default"))) size_t map_item_count();
 
-extern __attribute__((visibility("default"))) Buffer* map_get_key(Map* mptr, const Buffer* data);
-extern __attribute__((visibility("default"))) Buffer* map_get_value(Map* mptr, const Buffer* key);
+extern __attribute__((visibility("default"))) void* map_get_key(void* mptr, const void* data);
+extern __attribute__((visibility("default"))) void* map_get_value(void* mptr, const void* key);
 
 
 

@@ -32,22 +32,22 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory.h>
 #include <stdlib.h>
 
-void map_allocate(Map* mptr)
+void map_allocate(void *mptr)
 {
 
 }
 
-void map_clear(Map* mptr)
+void map_clear(void *mptr)
 {
 
 }
 
-void map_insert(Map* mptr, Buffer* key, const Buffer* data)
+void map_insert(void *mptr, void *key, const void *data)
 {
 
 }
 
-void map_remove(Map* mptr, const Buffer* key)
+void map_remove(void *mptr, const void *key)
 {
 
 }
@@ -57,12 +57,12 @@ size_t map_item_count()
 	return 0;
 }
 
-Buffer* map_get_key(Map* mptr, const Buffer* data)
+void *map_get_key(void *mptr, const void *data)
 {
 	return NULL;
 }
 
-Buffer* map_get_value(Map* mptr, const Buffer* key)
+void *map_get_value(void *mptr, const void *key)
 {
 	return NULL;
 }

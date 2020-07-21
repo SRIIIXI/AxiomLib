@@ -222,7 +222,7 @@ bool responder_close_socket(void* ptr)
 	return false;
 }
 
-bool responder_receive_buffer(void* ptr, char** iobuffer, size_t len)
+bool responder_receive_buffer(void* ptr, char** iobuffer, size_t len, bool alloc_buffer)
 {
     struct responder* responder_ptr = (struct responder*)ptr;
 
@@ -236,7 +236,10 @@ bool responder_receive_buffer(void* ptr, char** iobuffer, size_t len)
 
     // If there are pre-fetched bytes left, we have to copy that first and release memory
 
-    *iobuffer = (char*)calloc(1, len);
+    if(alloc_buffer)
+    {
+        *iobuffer = (char*)calloc(1, len);
+    }
 
     if(responder_ptr->prefetched_buffer_size > 0)
     {
@@ -267,7 +270,16 @@ bool responder_receive_buffer(void* ptr, char** iobuffer, size_t len)
         {
             responder_ptr->error_code = SOCKET_ERROR;
             free(buffer);
-            iobuffer = 0;
+
+            if(alloc_buffer)
+            {
+                free(*iobuffer);
+            }
+            else
+            {
+                memset(*iobuffer, 0, len);
+            }
+
             len	= 0;
             responder_ptr->connected = false;
             return false;
@@ -342,7 +354,7 @@ bool responder_receive_string(void* ptr, char** iostr, const char* delimeter)
 	{
         char* buffer = NULL;
 
-        if(!responder_receive_buffer(ptr, &buffer, 1024))
+        if(!responder_receive_buffer(ptr, &buffer, 1024, true))
         {
             if(*iostr)
             {

@@ -11,7 +11,7 @@ extern __attribute__((visibility("default"))) bool responder_connect_socket(void
 extern __attribute__((visibility("default"))) bool responder_close_socket(void* ptr);
 extern __attribute__((visibility("default"))) bool responder_send_buffer(void* ptr, const char* data, size_t len);
 extern __attribute__((visibility("default"))) bool responder_send_string(void* ptr, const char* str);
-extern __attribute__((visibility("default"))) bool responder_receive_buffer(void* ptr, char** iobuffer, size_t len);
+extern __attribute__((visibility("default"))) bool responder_receive_buffer(void* ptr, char** iobuffer, size_t len, bool alloc_buffer);
 extern __attribute__((visibility("default"))) bool responder_receive_string(void* ptr, char** iostr, const char* delimeter);
 extern __attribute__((visibility("default"))) size_t  responder_read_size(void* ptr);
 extern __attribute__((visibility("default"))) bool responder_is_connected(void* ptr);

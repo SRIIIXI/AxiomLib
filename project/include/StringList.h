@@ -48,7 +48,7 @@ extern __attribute__((visibility("default"))) void str_list_remove_at(void* lptr
 extern __attribute__((visibility("default"))) void str_list_remove_value(void* lptr, char* data);
 
 extern __attribute__((visibility("default"))) size_t str_list_item_count(void* lptr);
-extern __attribute__((visibility("default"))) size_t str_list_index_of_value(void* lptr, char* data);
+extern __attribute__((visibility("default"))) long long str_list_index_of_value(void* lptr, char* data);
 extern __attribute__((visibility("default"))) char* str_list_get_at(void* lptr, size_t atpos);
 
 extern __attribute__((visibility("default"))) char* str_list_get_first(void* lptr);
