@@ -98,15 +98,15 @@ bool is_ip4_address(char* str)
 }
 
 
-bool responder_create_socket(void** ptr, const char* servername, int serverport)
+void* responder_create_socket(void* ptr, const char* servername, int serverport)
 {
     struct responder* responder_ptr =   (struct responder*)calloc(1, sizeof (struct responder));
 
-    *ptr = responder_ptr;
+    ptr = responder_ptr;
 
     if(!responder_ptr)
     {
-        return  false;
+        return  NULL;
     }
 
     strncpy(responder_ptr->server_name, servername, 32);
@@ -131,7 +131,8 @@ bool responder_create_socket(void** ptr, const char* servername, int serverport)
             if (pHE == 0)
             {
                 nRemoteAddr = INADDR_NONE;
-                return false;
+                free(ptr);
+                return NULL;
             }
             nRemoteAddr = *((u_long*)pHE->h_addr_list[0]);
             responder_ptr->server_address.sin_addr.s_addr = nRemoteAddr;
@@ -147,26 +148,27 @@ bool responder_create_socket(void** ptr, const char* servername, int serverport)
 
     if(responder_ptr->socket == INVALID_SOCKET)
     {
-        return false;
+        free(ptr);
+        return NULL;
     }
 
-    return true;
+    return ptr;
 }
 
-bool responder_assign_socket(void** ptr, int inSocket)
+void* responder_assign_socket(void* ptr, int inSocket)
 {
     struct responder* responder_ptr =   (struct responder*)calloc(1, sizeof (struct responder));
 
-    *ptr = responder_ptr;
+    ptr = responder_ptr;
 
     if(!responder_ptr)
     {
-        return  false;
+        return  NULL;
     }
 
     responder_ptr->socket = inSocket;
     responder_ptr->connected = true;
-    return true;
+    return ptr;
 }
 
 bool responder_connect_socket(void* ptr)

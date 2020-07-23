@@ -81,7 +81,7 @@ void* str_list_allocate_from_string(void* lptr, const char* str, const char* del
         return NULL;
     }
 
-    char* ptr = (char*)calloc(1, str_len);
+    char* ptr = (char*)calloc(1, str_len+1);
 
     if(ptr == NULL)
     {
@@ -108,6 +108,11 @@ void* str_list_allocate_from_string(void* lptr, const char* str, const char* del
         temp_ptr = strtok(NULL, delimiter);
     }
 
+    if(ptr)
+    {
+        free(ptr);
+    }
+
     return lptr;
 }
 
@@ -124,6 +129,8 @@ void str_list_clear(void* lptr)
         {
             str_list_remove_from_tail(lptr);
         }
+
+        free(lptr);
     }
 }
 

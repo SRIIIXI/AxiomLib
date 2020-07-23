@@ -5,8 +5,8 @@
 #include <stdint.h>
 #include <string.h>
 
-extern __attribute__((visibility("default"))) bool responder_create_socket(void** ptr, const char* servername, int serverport);
-extern __attribute__((visibility("default"))) bool responder_assign_socket(void** ptr, int inSocket);
+extern __attribute__((visibility("default"))) void* responder_create_socket(void* ptr, const char* servername, int serverport);
+extern __attribute__((visibility("default"))) void* responder_assign_socket(void* ptr, int inSocket);
 extern __attribute__((visibility("default"))) bool responder_connect_socket(void* ptr);
 extern __attribute__((visibility("default"))) bool responder_close_socket(void* ptr);
 extern __attribute__((visibility("default"))) bool responder_send_buffer(void* ptr, const char* data, size_t len);

@@ -48,8 +48,11 @@ extern __attribute__((visibility("default"))) void    logger_stop_logging(size_t
 extern __attribute__((visibility("default"))) void    logger_write(size_t loggerid, const char* logentry, LogLevel llevel, const char* func, const char* file, int line);
 extern __attribute__((visibility("default"))) size_t  logger_get_instance();
 
-#define WriteLog(id, str, level) logger_write(id, str, level, __PRETTY_FUNCTION__, __FILE__, __LINE__);
-#define WriteLogNormal(id, str) logger_write(id, str, LOG_INFO, __PRETTY_FUNCTION__, __FILE__, __LINE__);
+#define WriteLog(id, str, level) \
+    logger_write(id, str, level, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+
+#define WriteLogNormal(id, str) \
+    logger_write(id, str, LOG_INFO, __PRETTY_FUNCTION__, __FILE__, __LINE__);
 
 #endif
 
