@@ -37,5 +37,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 int main(int argc, char *argv[])
 {
+    char string_original[] = "A quick brown fox jumped over the lazy dog @ 1234567890 #";
+
+    char* string_encoded = NULL;
+    char* string_decoded = NULL;
+    unsigned long olen = 0;
+
+    string_encoded = base64_encode(&string_original[0], strlen(string_original), string_encoded, &olen);
+
+    string_decoded = base64_decode(string_encoded, strlen(string_encoded), string_decoded, &olen);
+
+    free(string_encoded);
+    free(string_decoded);
+
     return 0;
 }

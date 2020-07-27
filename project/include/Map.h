@@ -37,7 +37,7 @@ typedef struct Map
     Tree data;
 }Map;
 
-extern __attribute__((visibility("default"))) void map_allocate(void* mptr);
+extern __attribute__((visibility("default"))) void* map_allocate(void* mptr);
 extern __attribute__((visibility("default"))) void map_clear(void* mptr);
 
 extern __attribute__((visibility("default"))) void map_insert(void* mptr, void* key, const void* data);
