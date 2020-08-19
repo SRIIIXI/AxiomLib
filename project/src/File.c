@@ -26,17 +26,16 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 #include "File.h"
 
 #define DIRECTORY_SEPARATOR '/'
-#include <dirent.h>
-#include <unistd.h>
 #include <sys/stat.h>
 
 #include <stdlib.h>
 #include <memory.h>
 #include <stdio.h>
+#include <dirent.h>
+#include <unistd.h>
 
 bool file_is_exists(const char* filename)
 {

@@ -3,17 +3,20 @@
 #include "StringList.h"
 
 #include <memory.h>
+#include <fcntl.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
-#include <fcntl.h>
 #include <unistd.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <errno.h>
-
+#define SOCKET int
 #define INVALID_SOCKET (-1)
+
 #define SOCKET_ERROR	 (-1)
 #define LPSOCKADDR sockaddr*
 
@@ -21,7 +24,7 @@
 typedef struct responder
 {
     bool			connected;
-    int 			socket;
+    SOCKET 			socket;
     struct sockaddr_in		server_address;
     char			server_name[33];
     int				server_port;
@@ -124,25 +127,20 @@ void* responder_create_socket(void* ptr, const char* servername, int serverport)
 
     if(!ip)
     {
-        nRemoteAddr = inet_addr(responder_ptr->server_name);
-        if (nRemoteAddr == INADDR_NONE)
+        struct hostent* pHE = gethostbyname(responder_ptr->server_name);
+        if (pHE == 0)
         {
-            struct hostent* pHE = gethostbyname(responder_ptr->server_name);
-            if (pHE == 0)
-            {
-                nRemoteAddr = INADDR_NONE;
-                free(ptr);
-                return NULL;
-            }
-            nRemoteAddr = *((u_long*)pHE->h_addr_list[0]);
-            responder_ptr->server_address.sin_addr.s_addr = nRemoteAddr;
+            nRemoteAddr = INADDR_NONE;
+            free(ptr);
+            return NULL;
         }
+        nRemoteAddr = *((u_long*)pHE->h_addr_list[0]);
+        responder_ptr->server_address.sin_addr.s_addr = nRemoteAddr;
     }
     else
     {
          inet_pton (AF_INET, responder_ptr->server_name, &responder_ptr->server_address.sin_addr);
     }
-
 
     responder_ptr->socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
@@ -240,7 +238,7 @@ bool responder_receive_buffer(void* ptr, char** iobuffer, size_t len, bool alloc
 
     if(alloc_buffer)
     {
-        *iobuffer = (char*)calloc(1, len);
+        *iobuffer = (char*)calloc(1, len + 1);
     }
 
     if(responder_ptr->prefetched_buffer_size > 0)
@@ -263,15 +261,21 @@ bool responder_receive_buffer(void* ptr, char** iobuffer, size_t len, bool alloc
         char*	buffer = 0;
         ssize_t	bytesread = 0;
         buffer = (char*)calloc(1, bytesleft + 1);
-        memset(buffer, 0, bytesleft+1);
 
-        bytesread = recv(responder_ptr->socket, buffer, bytesleft, 0);
+        if (buffer)
+        {
+            bytesread = (ssize_t)recv(responder_ptr->socket, buffer, (int)bytesleft, 0);
+        }
 
         // Error or link down
-        if(bytesread < 1)
+        if(bytesread < 1 || buffer == NULL)
         {
             responder_ptr->error_code = SOCKET_ERROR;
-            free(buffer);
+
+            if (buffer)
+            {
+                free(buffer);
+            }
 
             if(alloc_buffer)
             {

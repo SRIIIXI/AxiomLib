@@ -30,12 +30,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Directory.h"
 
 #define DIRECTORY_SEPARATOR '/'
-#include <dirent.h>
-#include <unistd.h>
+
 #include <sys/stat.h>
 
 #include <stdlib.h>
 #include <memory.h>
+#include <dirent.h>
+#include <unistd.h>
 
 char* dir_get_parent_directory(const char* dirname)
 {
@@ -94,4 +95,3 @@ bool dir_create_directory(const char* dirname)
 {
 	return mkdir(dirname, S_IRWXU);
 }
-

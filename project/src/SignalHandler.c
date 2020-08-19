@@ -2,8 +2,9 @@
 #include "Logger.h"
 #include <string.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <signal.h>
+
+#include <sys/wait.h>
 
 // + BSD specific starts
 #ifndef SIGSTKFLT
@@ -17,7 +18,6 @@ static const char *signal_names[] = {"SIGHUP", "SIGINT", "SIGQUIT", "SIGILL", "S
 static char signal_name_string[16]={0};
 
 static signal_callback callback_ptr = NULL;
-
 void signal_handler_internal(int signum, siginfo_t *siginfo, void *context);
 
 bool signals_is_shutdownsignal(const int signum)
@@ -63,13 +63,11 @@ void signals_register_callback(signal_callback callback_func)
 
 void signals_initialize_handlers()
 {
-    struct sigaction act;
-
     for(int signum = 1; signum < 32; signum++)
     {
         signals_get_name(signum);
-
-        memset (&act, '\0', sizeof(act));
+        struct sigaction act;
+        memset(&act, '\0', sizeof(act));
         act.sa_flags = SA_SIGINFO;
         act.sa_sigaction = &signal_handler_internal;
         sigaction(signum, &act, NULL);

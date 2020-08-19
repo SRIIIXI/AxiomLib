@@ -62,5 +62,14 @@ ${PROJECT_HEADER_DIR}/Variant.h
 ${PROJECT_HEADER_DIR}/CoreLib.h
 )
 
-add_library(${PROJECT_NAME} SHARED ${SOURCE} ${HEADERS})
+add_library(core SHARED ${SOURCE} ${HEADERS})
+
+install(TARGETS core DESTINATION local/lib)
+install(FILES ${HEADERS} DESTINATION local/include/CoreLib)
+
+set(CPACK_GENERATOR "DEB")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Subrato Roy")
+
+include(CPack)
+
 

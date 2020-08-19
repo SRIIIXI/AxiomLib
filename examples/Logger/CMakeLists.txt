@@ -12,6 +12,7 @@ ${SOURCE}
 ../../project/src/Directory.c
 ../../project/src/Logger.c
 ../../project/src/StringEx.c
+../../project/src/StringList.c
 ./main.c
 )
 
@@ -21,6 +22,7 @@ ${HEADERS}
 ../../project/include/Directory.h
 ../../project/include/Logger.h
 ../../project/include/StringEx.h
+../../project/include/StringList.h
 )
 
 add_executable(${PROJECT_NAME}  ${SOURCE} ${HEADERS})

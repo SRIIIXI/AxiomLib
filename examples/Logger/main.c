@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 int main(int argc, char *argv[])
 {
-    size_t loggerid = logger_allocate(1, argv[0], NULL);
+    size_t loggerid = logger_allocate(1, NULL);
 
     logger_start_logging(loggerid);
 

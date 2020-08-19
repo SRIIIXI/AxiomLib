@@ -62,7 +62,10 @@ extern bool str_node_is_less(StringNode* first, StringNode* second);
 
 void * str_list_allocate(void* lptr)
 {
-    lptr = (StringList*)calloc(1, sizeof(StringList));
+    StringList*  ptr = (StringList*)calloc(1, sizeof(StringList));
+
+    lptr = ptr;
+
     return lptr;
 }
 
@@ -78,7 +81,21 @@ void* str_list_allocate_from_string(void* lptr, const char* str, const char* del
 
     if(substr_count < 1)
     {
-        return NULL;
+        if (str_len < 1)
+        {
+            return NULL;
+        }
+        else
+        {
+            lptr = (StringList*)calloc(1, sizeof(StringList));
+            if (lptr == NULL)
+            {
+                return NULL;
+            }
+
+            str_list_add_to_tail(lptr, str);
+            return lptr;
+        }
     }
 
     char* ptr = (char*)calloc(1, str_len+1);
@@ -336,14 +353,16 @@ void str_list_remove_at(void* lptr, size_t pos)
         return;
     }
 
-    if(pos == ((StringList*)lptr)->Count -1)
-    {
-        str_list_remove_from_tail(lptr);
-    }
-
     if(pos == 0)
     {
         str_list_remove_from_head(lptr);
+        return;
+    }    
+    
+    if(pos == ((StringList*)lptr)->Count -1)
+    {
+        str_list_remove_from_tail(lptr);
+        return;
     }
 
     size_t idx = 1;
@@ -365,7 +384,7 @@ void str_list_remove_at(void* lptr, size_t pos)
     }
 }
 
-size_t str_list_index_of(void *lptr, const char* node)
+long long str_list_index_of(void *lptr, const char* node)
 {
     if(lptr == NULL)
     {
@@ -374,29 +393,56 @@ size_t str_list_index_of(void *lptr, const char* node)
 
     char* ptr = NULL;
 
-    ptr = str_list_get_first(lptr);
+    long long idx = 0;
 
-    size_t idx = 0;
-
-    if(strcmp(ptr, node) == 0)
+    if (((StringList*)lptr)->Head == NULL)
     {
-        return idx;
+        return -1;
     }
 
-    while(true)
+    StringNode* curptr = ((StringList*)lptr)->Head;
+
+    while (curptr)
     {
-        if(ptr == NULL)
-        {
-            break;
-        }
-
-        ptr = str_list_get_next(lptr);
-        idx++;
-
-        if(strcmp(ptr, node) == 0)
+        if (strcmp(curptr->NodeData, node) == 0)
         {
             return idx;
         }
+
+        curptr = curptr->Next;
+        idx++;
+    }
+
+    return -1;
+}
+
+long long str_list_index_of_like(void* lptr, const char* node)
+{
+    if (lptr == NULL)
+    {
+        return -1;
+    }
+
+    char* ptr = NULL;
+
+    long long idx = 0;
+
+    if (((StringList*)lptr)->Head == NULL)
+    {
+        return -1;
+    }
+
+    StringNode* curptr = ((StringList*)lptr)->Head;
+
+    while (curptr)
+    {
+        if (strstr(curptr->NodeData, node))
+        {
+            return idx;
+        }
+
+        curptr = curptr->Next;
+        idx++;
     }
 
     return -1;
@@ -413,43 +459,6 @@ size_t str_list_item_count(void* lptr)
     if(lptr != NULL)
     {
         return ((StringList*)lptr)->Count;
-    }
-
-    return -1;
-}
-
-long long str_list_index_of_value(void* lptr, char* data)
-{
-    if(lptr == NULL)
-    {
-        return -1;
-    }
-
-    char* ptr = NULL;
-
-    ptr = str_list_get_first(lptr);
-
-    long long idx = 0;
-
-    if(strcmp(ptr, data) == 0)
-    {
-        return idx;
-    }
-
-    while(true)
-    {
-        if(ptr == NULL)
-        {
-            break;
-        }
-
-        ptr = str_list_get_next(lptr);
-        idx++;
-
-        if(strcmp(ptr, data) == 0)
-        {
-            return idx;
-        }
     }
 
     return -1;
@@ -490,6 +499,12 @@ char* str_list_get_first(void* lptr)
     }
 
     ((StringList*)lptr)->IteratorPosition = ((StringList*)lptr)->Head;
+
+    if (((StringList*)lptr)->IteratorPosition == NULL)
+    {
+        return NULL;
+    }
+
     return ((StringList*)lptr)->IteratorPosition->NodeData;
 }
 
@@ -506,6 +521,12 @@ char* str_list_get_next(void* lptr)
     }
 
     ((StringList*)lptr)->IteratorPosition = ((StringList*)lptr)->IteratorPosition->Next;
+
+    if (((StringList*)lptr)->IteratorPosition == NULL)
+    {
+        return NULL;
+    }
+
     return ((StringList*)lptr)->IteratorPosition->NodeData;
 }
 
@@ -517,6 +538,12 @@ char* str_list_get_last(void* lptr)
     }
 
     ((StringList*)lptr)->IteratorPosition = ((StringList*)lptr)->Tail;
+
+    if (((StringList*)lptr)->IteratorPosition == NULL)
+    {
+        return NULL;
+    }
+
     return ((StringList*)lptr)->IteratorPosition->NodeData;
 }
 
@@ -533,6 +560,12 @@ char* str_list_get_previous(void* lptr)
     }
 
     ((StringList*)lptr)->IteratorPosition = ((StringList*)lptr)->IteratorPosition->Previous;
+
+    if (((StringList*)lptr)->IteratorPosition == NULL)
+    {
+        return NULL;
+    }
+
     return ((StringList*)lptr)->IteratorPosition->NodeData;
 }
 
