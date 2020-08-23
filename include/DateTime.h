@@ -26,8 +26,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef DATE_TIME_C
-#define DATE_TIME_C
+#ifndef DATE_TIME
+#define DATE_TIME
 
 #include <string.h>
 #include <time.h>
@@ -35,6 +35,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+
+extern __attribute__((visibility("default"))) char* date_time_get_default_string(char* ptr);
 
 /*
 namespace CoreLib

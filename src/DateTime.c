@@ -30,6 +30,31 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "StringEx.h"
 #include <memory.h>
 #include <time.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+char* date_time_get_default_string(char* ptr)
+{
+    if(!ptr)
+    {
+        return  NULL;
+    }
+
+    char buffer[33] = {0};
+
+    time_t t ;
+    struct tm *tmp ;
+    time(&t);
+    tmp = localtime(&t);
+
+    sprintf(buffer, "%04d%02d%02d%02d%02d%02d",
+             (tmp->tm_year+1900), (tmp->tm_mon+1),tmp->tm_mday,
+             tmp->tm_hour, tmp->tm_min, tmp->tm_sec);
+
+    strcpy(ptr, buffer);
+
+    return ptr;
+}
 
 /*
 namespace CoreLib

@@ -1,33 +1,17 @@
 /*
-BSD 2-Clause License
 
-Copyright (c) 2017, Subrato Roy (subratoroy@hotmail.com)
+Copyright (c) 2020, CIMCON Automation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
+modification, is allowed only with prior permission from CIMCON Automation
 
-* Redistributions of source code must retain the above copyright notice, this
-  list of conditions and the following disclaimer.
-
-* Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation
-  and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "ProcessLock.h"
 #include "StringEx.h"
+#include "StringList.h"
+#include "Directory.h"
 
 #include <stdlib.h>
 #include <fcntl.h>
@@ -36,154 +20,118 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <string.h>
 
-/*
-	ProcessLock::ProcessLock()
-	{
-		_LockFile = 0;
-	}
+char* process_lock_get_current_process_name(char* ptr)
+{
+    if(ptr == NULL)
+    {
+        return NULL;
+    }
 
-	bool ProcessLock::LockProcess(std::string &lockfileame)
-	{
-		GetLockFileName(_LockFileName);
-		if (_LockFile != 0 && _LockFile != -1)
-		{
-			//File is already open
-			return false;
-		}
+    char buffer[1025] = {0};
+    pid_t proc_id = getpid();
+    void* cmd_args = NULL;
+    void* dir_tokens = NULL;
 
-		#if !defined(_WIN32) || !defined(WIN32)
-		_LockFile = open(_LockFileName.c_str(), O_CREAT | O_RDWR, 0666);
-		if (_LockFile != -1)
-		{
-			off_t sz = 0;
-			int rc = lockf(_LockFile, F_TLOCK, sz);
-			if (rc == -1)
-			{
-				close(_LockFile);
-				_LockFile = 0;
-				if (EAGAIN == errno || EACCES == errno)
-				{
-				}
-				else
-				{
-				}
-				return false;
-			}
+    sprintf(buffer, "/proc/%d/cmdline", proc_id);
 
-			// Okay! We got a lock
-			lockfileame = _LockFileName;
-			return true;
-		}
-		else
-		{
-			_LockFile = 0;
-			return false;
-		}
-		#endif
+    FILE* fp = fopen(buffer, "r");
 
-		return true;
-	}
+    if(fp)
+    {
+        memset(buffer, 0, 1025);
 
-	void ProcessLock::GetLockFileName(std::string &lockfileame)
-	{
-		std::string procname, uname, tmpdir;
-		GetProcessName(procname);
-		GetCurrentUserName(uname);
-		GetTempDir(tmpdir);
+        if(fgets(buffer, 1024, fp))
+        {
+            cmd_args = str_list_allocate_from_string(cmd_args, buffer, " ");
 
-		lockfileame = tmpdir;
+            if(cmd_args && str_list_item_count(cmd_args) > 0)
+            {
+                str_list_allocate_from_string(dir_tokens, str_list_get_first(cmd_args), "/");
 
-		lockfileame += "/";
-		lockfileame += procname;
-		lockfileame += ".";
-		lockfileame += uname;
-		lockfileame += ".lock";
-	}
+                if(dir_tokens && str_list_item_count(dir_tokens) > 0)
+                {
+                    strcpy(ptr, str_list_get_last(dir_tokens));
+                }
+            }
+            else
+            {
+                dir_tokens = str_list_allocate_from_string(dir_tokens, buffer, "/");
 
-	ProcessLock::~ProcessLock()
-	{
-		#if !defined(_WIN32) || !defined(WIN32)
-		close(_LockFile);
-		#endif
-	}
+                if(dir_tokens && str_list_item_count(dir_tokens) > 0)
+                {
+                    strcpy(ptr, str_list_get_last(dir_tokens));
+                }
+            }
+        }
 
+        fclose(fp);
+    }
 
-	void ProcessLock::GetProcessName(std::string &processName)
-	{
-		FILE *pipein_fp;
-		char readbuf[80] = { 0 };
+    if(cmd_args)
+    {
+        str_list_clear(cmd_args);
+    }
 
-		int ownpid = getpid();
+    if(dir_tokens)
+    {
+        str_list_clear(dir_tokens);
+    }
 
-		char cmdbuffer[256] = { 0 };
-		sprintf(cmdbuffer, "ps aux | tr -s ' ' | cut -d ' ' -f2,11 | grep %d", ownpid);
+    return ptr;
+}
 
-		// Create one way pipe line with call to popen()
-		if ((pipein_fp = popen(cmdbuffer, "r")) == NULL)
-		{
-			return;
-		}
+char* process_lock_get_current_user_name()
+{
+    return getenv("USER");
+}
 
+char* process_lock_get_lock_filename()
+{
+    char* lock_filename = (char*)calloc(1, 1025);
+    char process_name[64] = {0};
 
-		bool found = false;
+    char temp[33] = {0};
 
-		// Processing loop
-		while (true)
-		{
-			memset((void*)&readbuf, 0, sizeof(readbuf));
-			char *ptr = fgets(readbuf, 80, pipein_fp);
-			if (ptr == NULL)
-			{
-				break;
-			}
+    strcat(lock_filename, dir_get_temp_directory(temp));
+    strcat(lock_filename, "/");
+    strcat(lock_filename, process_lock_get_current_process_name(process_name));
+    strcat(lock_filename, ".");
+    strcat(lock_filename, process_lock_get_current_user_name());
+    strcat(lock_filename, ".lock");
 
-			for (int idx = 0; idx < 80; idx++)
-			{
-				if (readbuf[idx] == '\r' || readbuf[idx] == '\n')
-				{
-					readbuf[idx] = 0;
-				}
-			}
+    return  lock_filename;
+}
 
-			if (strlen(readbuf) < 1)
-			{
-				continue;
-			}
+bool process_lock_lock(const char* lock_filename)
+{
+    int lock_file = 0;
 
-			// Check for zombie processes
-			if (strstr(readbuf, "<defunct>") != NULL)
-			{
-				continue;
-			}
+    if (lock_file != 0 && lock_file != -1)
+    {
+        //File is already open
+        return false;
+    }
 
-			std::vector<std::string> strlist;
+    lock_file = open(lock_filename, O_CREAT | O_RDWR, 0666);
+    if (lock_file != -1)
+    {
+        off_t sz = 0;
+        int rc = lockf(lock_file, F_TLOCK, sz);
+        if (rc == -1)
+        {
+            close(lock_file);
+            lock_file = 0;
+            return false;
+        }
 
-			std::string tempreadbuf(readbuf);
+        // Okay! We got a lock
+        return true;
+    }
+    else
+    {
+        lock_file = 0;
+        return false;
+    }
 
-			strsplit(tempreadbuf, strlist, ' ');
-
-			if (strlist.size() < 2)
-			{
-				continue;
-			}
-
-			processName = strlist[1];
-			strremove(processName, '.');
-			strremove(processName, '&');
-			strremove(processName, '/');
-
-		}
-		// Close the pipes
-		pclose(pipein_fp);
-	}
-
-	void ProcessLock::GetCurrentUserName(std::string &uName)
-	{
-		uName = getenv("USER");
-	}
-
-	void ProcessLock::GetTempDir(std::string &dirName)
-	{
-		dirName = "/tmp";
-	}
-*/
+    return true;
+}

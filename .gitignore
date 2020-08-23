@@ -30,6 +30,7 @@
 .idea
 .kdev4/
 .project
+.directory
 .pydevproject
 /CMakeLists.txt.user
 /CMakeLists.txt.user.*
@@ -145,3 +146,4 @@ CMakeFiles/
 build/
 Debug/
 packages/
+.directory/
