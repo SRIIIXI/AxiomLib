@@ -48,18 +48,18 @@ extern LIBRARY_EXPORT void str_list_free(string_list_t* lptr);
 
 extern LIBRARY_EXPORT void str_list_add_to_head(string_list_t* lptr, char* data);
 extern LIBRARY_EXPORT void str_list_add_to_tail(string_list_t* lptr, char* data);
-extern LIBRARY_EXPORT void str_list_insert(string_list_t* lptr, char* data, size_t pos);
+extern LIBRARY_EXPORT void str_list_insert(string_list_t* lptr, char* data, long pos);
 
 extern LIBRARY_EXPORT void str_list_remove_from_head(string_list_t* lptr);
 extern LIBRARY_EXPORT void str_list_remove_from_tail(string_list_t* lptr);
 extern LIBRARY_EXPORT void str_list_remove(string_list_t* lptr, const char* node);
-extern LIBRARY_EXPORT void str_list_remove_at(string_list_t* lptr, size_t pos);
+extern LIBRARY_EXPORT void str_list_remove_at(string_list_t* lptr, long pos);
 extern LIBRARY_EXPORT void str_list_remove_value(string_list_t* lptr, char* data);
 
-extern LIBRARY_EXPORT long long str_list_item_count(string_list_t* lptr);
-extern LIBRARY_EXPORT long long str_list_index_of(string_list_t* lptr, const char* data);
-extern LIBRARY_EXPORT long long str_list_index_of_like(string_list_t* lptr, const char* data);
-extern LIBRARY_EXPORT char* str_list_get_at(string_list_t* lptr, size_t atpos);
+extern LIBRARY_EXPORT long str_list_item_count(string_list_t* lptr);
+extern LIBRARY_EXPORT long str_list_index_of(string_list_t* lptr, const char* data);
+extern LIBRARY_EXPORT long str_list_index_of_like(string_list_t* lptr, const char* data);
+extern LIBRARY_EXPORT char* str_list_get_at(string_list_t* lptr, long atpos);
 
 extern LIBRARY_EXPORT char* str_list_get_first(string_list_t* lptr);
 extern LIBRARY_EXPORT char* str_list_get_next(string_list_t* lptr);

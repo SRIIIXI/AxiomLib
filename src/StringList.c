@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 typedef struct node_t
 {
-    void* data;
+    char* data;
     size_t size;
     struct node_t* next;
     struct node_t* previous;
@@ -195,7 +195,7 @@ void str_list_add_to_tail(string_list_t* lptr, char* data)
     ((StringList*)lptr)->Count++;
 }
 
-void str_list_insert(string_list_t* lptr, char* data, size_t pos)
+void str_list_insert(string_list_t* lptr, char* data, long pos)
 {
     if (lptr == NULL)
     {
@@ -329,14 +329,14 @@ void str_list_remove(string_list_t* lptr, const char* node)
     }
 }
 
-void str_list_remove_at(string_list_t* lptr, size_t pos)
+void str_list_remove_at(string_list_t* lptr, long pos)
 {
     if(lptr == NULL || pos < 0)
     {
         return;
     }
 
-    if(pos > ((StringList*)lptr)->Count -1)
+    if(pos > lptr->count -1)
     {
         return;
     }
@@ -372,7 +372,7 @@ void str_list_remove_at(string_list_t* lptr, size_t pos)
     }
 }
 
-long long str_list_index_of(string_list_t* lptr, const char* node)
+long str_list_index_of(string_list_t* lptr, const char* node)
 {
     if(lptr == NULL)
     {
@@ -404,7 +404,7 @@ long long str_list_index_of(string_list_t* lptr, const char* node)
     return -1;
 }
 
-long long str_list_index_of_like(string_list_t* lptr, const char* node)
+long str_list_index_of_like(string_list_t* lptr, const char* node)
 {
     if (lptr == NULL)
     {
@@ -442,24 +442,24 @@ void str_list_remove_value(string_list_t* lptr, char* data)
     str_list_remove_at(lptr, index);
 }
 
-long long str_list_item_count(string_list_t* lptr)
+long str_list_item_count(string_list_t* lptr)
 {
     if(lptr != NULL)
     {
-        return ((StringList*)lptr)->Count;
+        return lptr->count;
     }
 
     return -1;
 }
 
-char* str_list_get_at(string_list_t* lptr, size_t atpos)
+char* str_list_get_at(string_list_t* lptr, long atpos)
 {
     if(lptr == NULL)
     {
         return NULL;
     }
 
-    if(atpos > (((StringList*)lptr)->Count - 1) || atpos < 0)
+    if(atpos > lptr->count - 1 || atpos < 0)
     {
         return NULL;
     }
@@ -486,14 +486,14 @@ char* str_list_get_first(string_list_t* lptr)
         return NULL;
     }
 
-    ((StringList*)lptr)->IteratorPosition = ((StringList*)lptr)->Head;
+    lptr->iterator = lptr->head;
 
-    if (((StringList*)lptr)->IteratorPosition == NULL)
+    if (lptr->iterator == NULL)
     {
         return NULL;
     }
 
-    return ((StringList*)lptr)->IteratorPosition->NodeData;
+    return lptr->iterator->data;
 }
 
 char* str_list_get_next(string_list_t* lptr)
@@ -503,19 +503,19 @@ char* str_list_get_next(string_list_t* lptr)
         return NULL;
     }
 
-    if(((StringList*)lptr)->IteratorPosition->Next == NULL)
+    if(lptr->iterator->next == NULL)
     {
         return NULL;
     }
 
-    ((StringList*)lptr)->IteratorPosition = ((StringList*)lptr)->IteratorPosition->Next;
+    lptr->iterator = lptr->iterator->next;
 
-    if (((StringList*)lptr)->IteratorPosition == NULL)
+    if (lptr->iterator == NULL)
     {
         return NULL;
     }
 
-    return ((StringList*)lptr)->IteratorPosition->NodeData;
+    return lptr->iterator->data;
 }
 
 char* str_list_get_last(string_list_t* lptr)
@@ -525,14 +525,14 @@ char* str_list_get_last(string_list_t* lptr)
         return NULL;
     }
 
-    ((StringList*)lptr)->IteratorPosition = ((StringList*)lptr)->Tail;
+    lptr->iterator = lptr->tail;
 
-    if (((StringList*)lptr)->IteratorPosition == NULL)
+    if (lptr->iterator == NULL)
     {
         return NULL;
     }
 
-    return ((StringList*)lptr)->IteratorPosition->NodeData;
+    return lptr->iterator->data;
 }
 
 char* str_list_get_previous(string_list_t* lptr)
@@ -542,19 +542,19 @@ char* str_list_get_previous(string_list_t* lptr)
         return NULL;
     }
 
-    if(((StringList*)lptr)->IteratorPosition->Previous == NULL)
+    if(lptr->iterator->previous == NULL)
     {
         return NULL;
     }
 
-    ((StringList*)lptr)->IteratorPosition = ((StringList*)lptr)->IteratorPosition->Previous;
+    lptr->iterator = lptr->iterator->previous;
 
-    if (((StringList*)lptr)->IteratorPosition == NULL)
+    if(lptr->iterator == NULL)
     {
         return NULL;
     }
 
-    return ((StringList*)lptr)->IteratorPosition->NodeData;
+    return lptr->iterator->data;
 }
 
 void str_list_sort(string_list_t* lptr)
@@ -596,115 +596,3 @@ void str_list_join(string_list_t* lptrFirst, string_list_t* lptrSecond)
 
     return;
 }
-
-/*----------------------------------------------------------------*/
-
-StringNode* str_node_allocate(char* data)
-{
-    size_t sz = strlen(data);
-
-    StringNode* nd = (StringNode*)calloc(1, sizeof(StringNode));
-
-    if (nd != NULL)
-    {
-        nd->NodeData = (char*)calloc(1, sz+1);
-
-        if(nd->NodeData != NULL)
-        {
-            nd->Length = sz;
-            memcpy(nd->NodeData, data, sz);
-            nd->Next = NULL;
-            nd->Previous = NULL;
-        }
-    }
-
-    return nd;
-}
-
-void str_node_free(StringNode* ptr)
-{
-    free(ptr->NodeData);
-    free(ptr);
-}
-
-void str_node_copy(StringNode* dest, StringNode* orig)
-{
-    if(dest != NULL && orig != NULL)
-    {
-        if(dest->NodeData != NULL && orig->NodeData != NULL)
-        {
-            if(dest->NodeData != NULL && orig->NodeData != NULL)
-            {
-                free(dest->NodeData);
-                size_t sz = strlen(orig->NodeData);
-                dest->NodeData = (char*)calloc(1, sz+1);
-                dest->Length = sz;
-                memcpy(dest->NodeData, orig->NodeData, sz);
-            }
-        }
-    }
-}
-
-bool str_node_is_equal(StringNode* first, StringNode* second)
-{
-    if(first != NULL && second != NULL)
-    {
-        if(first->NodeData != NULL && second->NodeData != NULL)
-        {
-            if(first->Length != second->Length)
-            {
-                return false;
-            }
-
-            if(strcmp(first->NodeData, second->NodeData) == 0)
-            {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-bool str_node_is_greater(StringNode* first, StringNode* second)
-{
-    if(first != NULL && second != NULL)
-    {
-        if(first->NodeData != NULL && second->NodeData != NULL)
-        {
-            if(first->Length < second->Length)
-            {
-                return false;
-            }
-
-            if(strcmp(first->NodeData, second->NodeData) > 0)
-            {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-bool str_node_is_less(StringNode* first, StringNode* second)
-{
-    if(first != NULL && second != NULL)
-    {
-        if(first->NodeData != NULL && second->NodeData != NULL)
-        {
-            if(first->Length > second->Length)
-            {
-                return false;
-            }
-
-            if(strcmp(first->NodeData, second->NodeData) < 0)
-            {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
