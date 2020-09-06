@@ -36,14 +36,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "KeyValue.h"
 #include "List.h"
 #include "Logger.h"
-#include "Map.h"
-#include "Node.h"
 #include "Queue.h"
 #include "Stack.h"
 #include "StringEx.h"
 #include "StringList.h"
-#include "Tree.h"
-#include "TreeNode.h"
 
 #ifdef __cplusplus
 extern "C" {

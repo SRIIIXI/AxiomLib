@@ -26,12 +26,11 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef SIGNAL_HANDLER_C
-#define SIGNAL_HANDLER_C
+#ifndef ENVIRONMENT_C
+#define ENVIRONMENT_C
 
-#include <stdint.h>
+#include <string.h>
 #include <stdbool.h>
-#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,24 +38,10 @@ extern "C" {
 
 #define LIBRARY_EXPORT __attribute__((visibility("default")))
 
-typedef enum SignalType
-{
-    Suspend=0,
-    Resume=1,
-    Shutdown=2,
-    Alarm=3,
-    Reset=4,
-    ChildExit=5,
-    Userdefined1=6,
-    Userdefined2=7
-}SignalType;
-
-typedef void(*signal_callback)(SignalType stype);
-
-extern LIBRARY_EXPORT void signals_initialize_handlers();
-extern LIBRARY_EXPORT void signals_register_callback(signal_callback callback_func);
-extern LIBRARY_EXPORT bool signals_is_shutdownsignal(const int signum);
-extern LIBRARY_EXPORT void signals_get_name(const int signum);
+extern LIBRARY_EXPORT char*   env_get_current_process_name(char* ptr);
+extern LIBRARY_EXPORT char*   env_get_current_user_name();
+extern LIBRARY_EXPORT char*   env_get_lock_filename();
+extern LIBRARY_EXPORT bool    env_lock_process(const char* lock_filename);
 
 #ifdef __cplusplus
 }

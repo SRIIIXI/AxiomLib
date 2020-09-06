@@ -37,6 +37,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
+#define LIBRARY_EXPORT __attribute__((visibility("default")))
+
 /*
 	class Configuration
 	{

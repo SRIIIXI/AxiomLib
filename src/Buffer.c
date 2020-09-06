@@ -32,9 +32,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory.h>
 #include <stdlib.h>
 
-Buffer* buffer_allocate(void* data, size_t sz)
+typedef struct buffer_t
 {
-    Buffer* nd = (Buffer*)calloc(1, sizeof(Buffer));
+    void* Data;
+    size_t Size;
+    size_t Memory;
+}buffer_t;
+
+buffer_t* buffer_allocate(void* data, size_t sz)
+{
+    buffer_t* nd = (buffer_t*)calloc(1, sizeof(buffer_t));
 
     if(nd != NULL)
     {
@@ -50,9 +57,9 @@ Buffer* buffer_allocate(void* data, size_t sz)
     return nd;
 }
 
-Buffer* buffer_copy(Buffer* dest, Buffer* orig)
+buffer_t* buffer_copy(buffer_t* dest, buffer_t* orig)
 {
-    if(orig != NULL)
+    if(orig != NULL && dest != NULL)
     {
         if(orig->Data != NULL)
         {
@@ -70,7 +77,7 @@ Buffer* buffer_copy(Buffer* dest, Buffer* orig)
     return  dest;
 }
 
-Buffer *buffer_append(Buffer* dest, void* data, size_t sz)
+buffer_t *buffer_append(buffer_t* dest, void* data, size_t sz)
 {
     if(data == NULL || sz < 1)
     {
@@ -91,13 +98,13 @@ Buffer *buffer_append(Buffer* dest, void* data, size_t sz)
     return dest;
 }
 
-void buffer_free(Buffer* ptr)
+void buffer_free(buffer_t* ptr)
 {
     free(ptr->Data);
     free(ptr);
 }
 
-bool buffer_is_equal(Buffer* first, Buffer* second)
+bool buffer_is_equal(buffer_t* first, buffer_t* second)
 {
     if(first != NULL && second != NULL)
     {
@@ -118,7 +125,7 @@ bool buffer_is_equal(Buffer* first, Buffer* second)
     return false;
 }
 
-bool buffer_is_greater(Buffer* first, Buffer* second)
+bool buffer_is_greater(buffer_t* first, buffer_t* second)
 {
     if(first != NULL && second != NULL)
     {
@@ -139,7 +146,7 @@ bool buffer_is_greater(Buffer* first, Buffer* second)
     return false;
 }
 
-bool buffer_is_less(Buffer* first, Buffer* second)
+bool buffer_is_less(buffer_t* first, buffer_t* second)
 {
     if(first != NULL && second != NULL)
     {
@@ -160,3 +167,43 @@ bool buffer_is_less(Buffer* first, Buffer* second)
     return false;
 }
 
+bool buffer_is_null(buffer_t* ptr)
+{
+    if(ptr == NULL)
+    {
+        return true;
+    }
+    else
+    {
+        if(ptr->Data == NULL)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    return false;
+}
+
+const void *data(buffer_t* ptr)
+{
+    if(ptr == NULL)
+    {
+        return NULL;
+    }
+
+    return ptr->Data;
+}
+
+size_t size(buffer_t* ptr)
+{
+    if(ptr == NULL)
+    {
+        return 0;
+    }
+
+    return ptr->Size;
+}

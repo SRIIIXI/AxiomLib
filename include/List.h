@@ -29,48 +29,48 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef LIST_C
 #define LIST_C
 
-#include "Node.h"
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct List
-{
-    size_t Count;
-    Node* Head;
-    Node* Tail;
-    Node* IteratorPosition;
-}List;
+#define LIBRARY_EXPORT __attribute__((visibility("default")))
 
-extern __attribute__((visibility("default"))) List* list_allocate(List* lptr);
-extern __attribute__((visibility("default"))) void list_clear(List* lptr);
+typedef struct list_t list_t;
 
-extern __attribute__((visibility("default"))) Node* list_add_to_head(List* lptr, void* data, size_t sz);
-extern __attribute__((visibility("default"))) Node* list_add_to_tail(List* lptr, void* data, size_t sz);
-extern __attribute__((visibility("default"))) Node* list_insert(List* lptr, void* data, size_t sz, int pos);
+extern LIBRARY_EXPORT list_t* list_allocate(list_t* lptr);
+extern LIBRARY_EXPORT void list_clear(list_t* lptr);
+extern LIBRARY_EXPORT void list_free(list_t* lptr);
 
-extern __attribute__((visibility("default"))) void list_remove_from_head(List* lptr);
-extern __attribute__((visibility("default"))) void list_remove_from_tail(List* lptr);
-extern __attribute__((visibility("default"))) void list_remove(List* lptr, const Node* node);
-extern __attribute__((visibility("default"))) void list_remove_at(List* lptr, int pos);
-extern __attribute__((visibility("default"))) void list_remove_value(List* lptr, void* data, size_t sz);
+extern LIBRARY_EXPORT void list_lock_iterator(list_t* lptr);
+extern LIBRARY_EXPORT void list_unlock_iterator(list_t* lptr);
 
-extern __attribute__((visibility("default"))) size_t list_item_count(List* lptr);
-extern __attribute__((visibility("default"))) size_t list_index_of(List* lptr, const Node* node);
-extern __attribute__((visibility("default"))) size_t list_index_of_value(List* lptr, void* data, size_t sz);
-extern __attribute__((visibility("default"))) Node* list_get_at(List* lptr, int atpos);
+extern LIBRARY_EXPORT void list_add_to_head(list_t* lptr, void* data, size_t sz);
+extern LIBRARY_EXPORT void list_add_to_tail(list_t* lptr, void* data, size_t sz);
+extern LIBRARY_EXPORT void list_insert(list_t* lptr, void* data, size_t sz, long pos);
 
-extern __attribute__((visibility("default"))) Node* list_get_first(List* lptr);
-extern __attribute__((visibility("default"))) Node* list_get_next(List* lptr);
-extern __attribute__((visibility("default"))) Node* list_get_last(List* lptr);
-extern __attribute__((visibility("default"))) Node* list_get_previous(List* lptr);
+extern LIBRARY_EXPORT void list_remove_from_head(list_t* lptr);
+extern LIBRARY_EXPORT void list_remove_from_tail(list_t* lptr);
+extern LIBRARY_EXPORT void list_remove(list_t* lptr, const void* node);
+extern LIBRARY_EXPORT void list_remove_at(list_t* lptr, long pos);
+extern LIBRARY_EXPORT void list_remove_value(list_t* lptr, void* data, size_t sz);
 
-extern __attribute__((visibility("default"))) List* list_sort(List* lptr);
-extern __attribute__((visibility("default"))) List* list_merge(List* lptrFirst, List* lptrSecond);
-extern __attribute__((visibility("default"))) List* list_join(List* lptrFirst, List* lptrSecond);
+extern LIBRARY_EXPORT long list_item_count(list_t* lptr);
+extern LIBRARY_EXPORT long list_index_of(list_t* lptr, const void* node);
+extern LIBRARY_EXPORT long list_index_of_value(list_t* lptr, void* data, size_t sz);
+extern LIBRARY_EXPORT void* list_get_at(list_t* lptr, long atpos);
+
+extern LIBRARY_EXPORT void* list_get_first(list_t* lptr);
+extern LIBRARY_EXPORT void* list_get_next(list_t* lptr);
+extern LIBRARY_EXPORT void* list_get_last(list_t* lptr);
+extern LIBRARY_EXPORT void* list_get_previous(list_t* lptr);
+
+extern LIBRARY_EXPORT list_t* list_sort(list_t* lptr);
+extern LIBRARY_EXPORT list_t* list_merge(list_t* lptrFirst, list_t* lptrSecond);
+extern LIBRARY_EXPORT list_t* list_join(list_t* lptrFirst, list_t* lptrSecond);
 
 #ifdef __cplusplus
 }

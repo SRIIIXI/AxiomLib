@@ -29,26 +29,25 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef STACK_C
 #define STACK_C
 
-#include "Node.h"
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct Stack
-{
-    size_t Count;
-    Node* Data;
-    Node* Head;
-    Node* Tail;
-}Stack;
+#define LIBRARY_EXPORT __attribute__((visibility("default")))
 
-extern __attribute__((visibility("default"))) Stack* stack_allocate(Stack* sptr);
-extern __attribute__((visibility("default"))) void stack_clear(Stack* sptr);
+typedef struct stack_t stack_t;
 
-extern __attribute__((visibility("default"))) Node* stack_push(Stack* sptr, void* data, size_t sz);
-extern __attribute__((visibility("default"))) Node* stack_pop(Stack* sptr);
-extern __attribute__((visibility("default"))) size_t stack_item_count(Stack* sptr);
+extern LIBRARY_EXPORT stack_t* stack_allocate(stack_t* sptr);
+extern LIBRARY_EXPORT void stack_clear(stack_t* sptr);
+extern LIBRARY_EXPORT void stack_free(stack_t* sptr);
+
+extern LIBRARY_EXPORT void stack_push(stack_t* sptr, void* data, size_t sz);
+extern LIBRARY_EXPORT void* stack_pop(stack_t* sptr);
+extern LIBRARY_EXPORT long stack_item_count(stack_t* sptr);
 
 #ifdef __cplusplus
 }

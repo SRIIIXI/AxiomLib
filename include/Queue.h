@@ -29,26 +29,25 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef QUEUE_C
 #define QUEUE_C
 
-#include "Node.h"
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct Queue
-{
-    size_t Count;
-    Node* Data;
-    Node* Head;
-    Node* Tail;
-}Queue;
+#define LIBRARY_EXPORT __attribute__((visibility("default")))
 
-extern __attribute__((visibility("default"))) Queue* queue_allocate(Queue *qptr);
-extern __attribute__((visibility("default"))) void queue_clear(Queue* qptr);
+typedef struct queue_t queue_t;
 
-extern __attribute__((visibility("default"))) Node* queue_enqueue(Queue* qptr, void* data, size_t sz);
-extern __attribute__((visibility("default"))) Node* queue_denqueue(Queue* qptr);
-extern __attribute__((visibility("default"))) size_t queue_item_count(Queue* qptr);
+extern LIBRARY_EXPORT queue_t* queue_allocate(queue_t *qptr);
+extern LIBRARY_EXPORT void queue_clear(queue_t* qptr);
+extern LIBRARY_EXPORT void queue_free(queue_t* qptr);
+
+extern LIBRARY_EXPORT void queue_enqueue(queue_t* qptr, void* data, size_t sz);
+extern LIBRARY_EXPORT void* queue_denqueue(queue_t* qptr);
+extern LIBRARY_EXPORT long queue_item_count(queue_t* qptr);
 
 #ifdef __cplusplus
 }

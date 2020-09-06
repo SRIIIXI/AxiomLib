@@ -31,68 +31,128 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <memory.h>
 #include <stdlib.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <memory.h>
+#include <pthread.h>
+#include <limits.h>
 
-Stack *stack_allocate(Stack* sptr)
+typedef struct node_t
 {
-    sptr = (Stack*)calloc(1, sizeof(Stack));
+    void* data;
+    struct node_t* next;
+}node_t;
+
+typedef struct stack_t
+{
+    long count;
+    node_t* head;
+    node_t* tail;
+    pthread_mutex_t mutex;
+}stack_t;
+
+stack_t *stack_allocate(stack_t* sptr)
+{
+    sptr = (stack_t*)calloc(1, sizeof(stack_t));
+    sptr->count = 0;
+    sptr->head = sptr->tail = NULL;
+    pthread_mutex_init(&sptr->mutex, NULL);
     return sptr;
 }
 
-void stack_clear(Stack* sptr)
+void stack_clear(stack_t* sptr)
 {
     if(sptr == NULL)
     {
         return;
     }
+    else
+    {
+        pthread_mutex_lock(&sptr->mutex);
+
+        while(sptr->count > 0)
+        {
+            node_t* oldtail = sptr->tail;
+            sptr->tail->next = NULL;
+            sptr->count--;
+            free(oldtail);
+        }
+
+        pthread_mutex_unlock(&sptr->mutex);
+    }
 }
 
-Node* stack_push(Stack* sptr, void* data, size_t sz)
+void stack_free(stack_t* sptr)
+{
+    if(sptr == NULL)
+    {
+        return;
+    }
+    else
+    {
+        pthread_mutex_lock(&sptr->mutex);
+
+        while(sptr->count > 0)
+        {
+            node_t* oldtail = sptr->tail;
+            sptr->tail->next = NULL;
+            sptr->count--;
+            free(oldtail);
+        }
+
+        pthread_mutex_unlock(&sptr->mutex);
+        pthread_mutex_destroy(&sptr->mutex);
+
+        free(sptr);
+    }
+}
+
+void stack_push(stack_t* sptr, void* data, size_t sz)
 {
     if(sptr == NULL)
     {
         sptr = stack_allocate(sptr);
     }
 
-    Node* ptr = node_allocate(data, sz);
+    node_t* ptr = (node_t*)calloc(1, sizeof(node_t));
+    ptr->data = calloc(1, sz);
+    memcpy(ptr->data, data, sz);
 
-    if(sptr->Count == 0)
+    if(sptr->count == 0)
     {
-        sptr->Data = sptr->Head = sptr->Tail = ptr;
+        sptr->head = sptr->tail = ptr;
     }
     else
     {
-        sptr->Tail->Next = ptr;
-        ptr->Previous = sptr->Tail;
-        sptr->Tail = ptr;
+        sptr->tail->next = ptr;
+        sptr->tail = ptr;
     }
 
-    sptr->Count++;
-
-    return ptr;
+    sptr->count++;
 }
 
-Node *stack_pop(Stack* sptr)
+void* stack_pop(stack_t* sptr)
 {
     if(sptr == NULL)
     {
         return NULL;
     }
 
-    Node* oldtail = sptr->Tail;
-    sptr->Tail = oldtail->Previous;
-    sptr->Tail->Next = NULL;
-    sptr->Count--;
+    node_t* oldtail = sptr->tail;
+    void* ptr = oldtail->data;
+    sptr->tail->next = NULL;
+    free(oldtail);
+    sptr->count--;
 
-    //nodeFree(oldtail);
-    return oldtail;
+    return ptr;
 }
 
-size_t stack_item_count(Stack *sptr)
+long stack_item_count(stack_t *sptr)
 {
     if(sptr != NULL)
     {
-        return sptr->Count;
+        return sptr->count;
     }
 
-    return -1;
+    return 0;
 }

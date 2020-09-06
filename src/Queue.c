@@ -31,67 +31,165 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <memory.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include <limits.h>
 
-Queue *queue_allocate(Queue* qptr)
+typedef struct node_t
 {
-    qptr = (Queue*)calloc(1, sizeof(Queue));
+    char* data;
+    struct node_t* next;
+}node_t;
+
+typedef struct queue_t
+{
+    long count;
+    node_t* head;
+    node_t* tail;
+    pthread_mutex_t mutex;
+}queue_t;
+
+queue_t *queue_allocate(queue_t* qptr)
+{
+    qptr = (queue_t*)calloc(1, sizeof(queue_t));
+    qptr->count = 0;
+    qptr->head = qptr->tail = NULL;
+    pthread_mutex_init(&qptr->mutex, NULL);
     return qptr;
 }
 
-void queue_clear(Queue *qptr)
+void queue_clear(queue_t *qptr)
 {
     if(qptr == NULL)
     {
         return;
     }
+    else
+    {
+        pthread_mutex_lock(&qptr->mutex);
+
+        while(qptr->count > 0)
+        {
+            void* ptr = NULL;
+
+            node_t* second_last = qptr->head;
+            while (second_last->next->next != NULL)
+            {
+                second_last = second_last->next;
+            }
+
+            ptr = second_last->next->data;
+            free(second_last->next);
+
+            qptr->count--;
+            free(ptr);
+        }
+
+        pthread_mutex_unlock(&qptr->mutex);
+    }
 }
 
-Node* queue_enqueue(Queue *qptr, void* data, size_t sz)
+void queue_free(queue_t* qptr)
 {
     if(qptr == NULL)
     {
-        qptr = queue_allocate(qptr);
-    }
-
-    Node* ptr = node_allocate(data, sz);
-
-    if(qptr->Count == 0)
-    {
-        qptr->Data = qptr->Head = qptr->Tail = ptr;
+        return;
     }
     else
     {
-        qptr->Head->Previous = ptr;
-        ptr->Next = qptr->Head;
-        qptr->Head = ptr;
+        pthread_mutex_lock(&qptr->mutex);
+
+        while(qptr->count > 0)
+        {
+            void* ptr = NULL;
+
+            node_t* second_last = qptr->head;
+            while (second_last->next->next != NULL)
+            {
+                second_last = second_last->next;
+            }
+
+            ptr = second_last->next->data;
+            free(second_last->next);
+
+            qptr->count--;
+
+            free(ptr);
+        }
+
+        pthread_mutex_unlock(&qptr->mutex);
+        pthread_mutex_destroy(&qptr->mutex);
+
+        free(qptr);
     }
-
-    qptr->Count++;
-
-    return ptr;
 }
 
-Node* queue_denqueue(Queue *qptr)
+void queue_enqueue(queue_t *qptr, void* data, size_t sz)
+{
+    if(qptr == NULL)
+    {
+        return;
+    }
+
+    pthread_mutex_lock(&qptr->mutex);
+
+    node_t* ptr = (node_t*)calloc(1, sizeof(node_t));
+    ptr->data = calloc(1, sz);
+    memcpy(ptr->data, data, sz);
+
+    if(qptr->count == 0)
+    {
+        qptr->head = qptr->tail = ptr;
+    }
+    else
+    {
+        ptr->next = qptr->head;
+        qptr->head = ptr;
+    }
+
+    qptr->count++;
+
+    pthread_mutex_unlock(&qptr->mutex);
+}
+
+void* queue_denqueue(queue_t *qptr)
 {
     if(qptr == NULL)
     {
         return NULL;
     }
+    else
+    {
+        if(qptr->head == NULL)
+        {
+            return NULL;
+        }
+    }
 
-    Node* oldtail = qptr->Tail;
-    qptr->Tail = oldtail->Previous;
-    qptr->Tail->Next = NULL;
-    qptr->Count--;
+    pthread_mutex_lock(&qptr->mutex);
 
-    //nodeFree(oldtail);
-    return oldtail;
+    void* ptr = NULL;
+
+    node_t* second_last = qptr->head;
+    while (second_last->next->next != NULL)
+    {
+        second_last = second_last->next;
+    }
+
+    ptr = second_last->next->data;
+    free(second_last->next);
+
+    qptr->count--;
+
+    pthread_mutex_unlock(&qptr->mutex);
+
+    return ptr;
 }
 
-size_t queue_item_count(Queue *qptr)
+long queue_item_count(queue_t *qptr)
 {
     if(qptr != NULL)
     {
-        return qptr->Count;
+        return qptr->count;
     }
 
     return -1;

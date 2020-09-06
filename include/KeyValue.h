@@ -37,16 +37,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
+#define LIBRARY_EXPORT __attribute__((visibility("default")))
+
 typedef struct KeyValue
 {
-    Buffer*	Key;
-    Buffer*	Value;
+    buffer_t*	Key;
+    buffer_t*	Value;
 }KeyValue;
 
-extern __attribute__((visibility("default"))) void keyvalue_copy(KeyValue* dest, KeyValue* orig);
-extern __attribute__((visibility("default"))) bool keyvalue_is_equal(KeyValue* first, KeyValue* second);
-extern __attribute__((visibility("default"))) bool keyvalue_is_greater(KeyValue* first, KeyValue* second);
-extern __attribute__((visibility("default"))) bool keyvalue_is_less(KeyValue* first, KeyValue* second);
+extern LIBRARY_EXPORT void keyvalue_copy(KeyValue* dest, KeyValue* orig);
+extern LIBRARY_EXPORT bool keyvalue_is_equal(KeyValue* first, KeyValue* second);
+extern LIBRARY_EXPORT bool keyvalue_is_greater(KeyValue* first, KeyValue* second);
+extern LIBRARY_EXPORT bool keyvalue_is_less(KeyValue* first, KeyValue* second);
 
 #ifdef __cplusplus
 }

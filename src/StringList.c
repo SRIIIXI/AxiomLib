@@ -1,11 +1,29 @@
 /*
+BSD 2-Clause License
 
-Copyright (c) 2020, CIMCON Automation
+Copyright (c) 2017, Subrato Roy (subratoroy@hotmail.com)
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
-modification, is allowed only with prior permission from CIMCON Automation
+modification, are permitted provided that the following conditions are met:
 
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "StringList.h"
@@ -14,44 +32,37 @@ modification, is allowed only with prior permission from CIMCON Automation
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <pthread.h>
+#include <limits.h>
 
-typedef struct StringNode
+typedef struct node_t
 {
-    char* NodeData;
-    size_t Length;
-    struct StringNode* Next;
-    struct StringNode* Previous;
-}StringNode;
+    void* data;
+    size_t size;
+    struct node_t* next;
+    struct node_t* previous;
+}node_t;
 
-typedef struct StringList
+typedef struct string_list_t
 {
-    size_t Count;
-    StringNode* Head;
-    StringNode* Tail;
-    StringNode* IteratorPosition;
-}StringList;
+    long count;
+    node_t* head;
+    node_t* tail;
+    node_t* iterator;
+    pthread_mutex_t mutex;
+}string_list_t;
 
-extern StringNode* str_node_allocate(char* dataz);
-
-extern void str_node_free(StringNode* ptr);
-extern void str_node_copy(StringNode* dest, StringNode* orig);
-
-extern bool str_node_is_equal(StringNode* first, StringNode* second);
-extern bool str_node_is_greater(StringNode* first, StringNode* second);
-extern bool str_node_is_less(StringNode* first, StringNode* second);
-
-/*----------------------------------------------------------------*/
-
-void * str_list_allocate(void* lptr)
+string_list_t* str_list_allocate(string_list_t* lptr)
 {
-    StringList*  ptr = (StringList*)calloc(1, sizeof(StringList));
-
-    lptr = ptr;
-
+    lptr = (string_list_t*)calloc(1, sizeof(string_list_t));
+    lptr->count = 0;
+    lptr->head = lptr->tail = NULL;
+    lptr->iterator = NULL;
+    pthread_mutex_init(&lptr->mutex, NULL);
     return lptr;
 }
 
-void* str_list_allocate_from_string(void* lptr, const char* str, const char* delimiter)
+string_list_t* str_list_allocate_from_string(string_list_t* lptr, const char* str, const char* delimiter)
 {
     if(str == NULL || delimiter == NULL)
     {
@@ -75,7 +86,7 @@ void* str_list_allocate_from_string(void* lptr, const char* str, const char* del
 
     memcpy(ptr, str, str_len);
 
-    lptr = (StringList*)calloc(1, sizeof(StringList));
+    lptr = (string_list_t*)calloc(1, sizeof(string_list_t));
 
     if(lptr == NULL)
     {
@@ -102,7 +113,7 @@ void* str_list_allocate_from_string(void* lptr, const char* str, const char* del
 }
 
 
-void str_list_clear(void* lptr)
+void str_list_clear(string_list_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -110,7 +121,7 @@ void str_list_clear(void* lptr)
     }
     else
     {
-        while(((StringList*)lptr)->Count > 0)
+        while(lptr->count > 0)
         {
             str_list_remove_from_tail(lptr);
         }
@@ -119,7 +130,24 @@ void str_list_clear(void* lptr)
     }
 }
 
-void str_list_add_to_head(void* lptr, char* data)
+void str_list_free(string_list_t* lptr)
+{
+    if(lptr == NULL)
+    {
+        return;
+    }
+    else
+    {
+        while(lptr->count > 0)
+        {
+            str_list_remove_from_tail(lptr);
+        }
+
+        free(lptr);
+    }
+}
+
+void str_list_add_to_head(string_list_t* lptr, char* data)
 {
     if(lptr == NULL)
     {
@@ -142,7 +170,7 @@ void str_list_add_to_head(void* lptr, char* data)
     ((StringList*)lptr)->Count++;
 }
 
-void str_list_add_to_tail(void* lptr, char* data)
+void str_list_add_to_tail(string_list_t* lptr, char* data)
 {
     if(lptr == NULL)
     {
@@ -167,19 +195,11 @@ void str_list_add_to_tail(void* lptr, char* data)
     ((StringList*)lptr)->Count++;
 }
 
-void str_list_insert(void* lptr, char* data, size_t pos)
+void str_list_insert(string_list_t* lptr, char* data, size_t pos)
 {
     if (lptr == NULL)
     {
-        if (pos == 0)
-        {
-            lptr = str_list_allocate(lptr);
-        }
-
-        if (pos > 0)
-        {
-            return;
-        }
+        return;
     }
     else
     {
@@ -231,7 +251,7 @@ void str_list_insert(void* lptr, char* data, size_t pos)
     }
 }
 
-void str_list_remove_from_head(void* lptr)
+void str_list_remove_from_head(string_list_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -250,7 +270,7 @@ void str_list_remove_from_head(void* lptr)
     ((StringList*)lptr)->Count--;
 }
 
-void str_list_remove_from_tail(void* lptr)
+void str_list_remove_from_tail(string_list_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -269,7 +289,7 @@ void str_list_remove_from_tail(void* lptr)
     ((StringList*)lptr)->Count--;
 }
 
-void str_list_remove(void* lptr, const char* node)
+void str_list_remove(string_list_t* lptr, const char* node)
 {
     if(lptr == NULL || node == NULL)
     {
@@ -309,7 +329,7 @@ void str_list_remove(void* lptr, const char* node)
     }
 }
 
-void str_list_remove_at(void* lptr, size_t pos)
+void str_list_remove_at(string_list_t* lptr, size_t pos)
 {
     if(lptr == NULL || pos < 0)
     {
@@ -352,7 +372,7 @@ void str_list_remove_at(void* lptr, size_t pos)
     }
 }
 
-long long str_list_index_of(void *lptr, const char* node)
+long long str_list_index_of(string_list_t* lptr, const char* node)
 {
     if(lptr == NULL)
     {
@@ -384,7 +404,7 @@ long long str_list_index_of(void *lptr, const char* node)
     return -1;
 }
 
-long long str_list_index_of_like(void* lptr, const char* node)
+long long str_list_index_of_like(string_list_t* lptr, const char* node)
 {
     if (lptr == NULL)
     {
@@ -416,13 +436,13 @@ long long str_list_index_of_like(void* lptr, const char* node)
     return -1;
 }
 
-void str_list_remove_value(void* lptr, char* data)
+void str_list_remove_value(string_list_t* lptr, char* data)
 {  
     size_t index = str_list_index_of(lptr, data);
     str_list_remove_at(lptr, index);
 }
 
-size_t str_list_item_count(void* lptr)
+long long str_list_item_count(string_list_t* lptr)
 {
     if(lptr != NULL)
     {
@@ -432,7 +452,7 @@ size_t str_list_item_count(void* lptr)
     return -1;
 }
 
-char* str_list_get_at(void* lptr, size_t atpos)
+char* str_list_get_at(string_list_t* lptr, size_t atpos)
 {
     if(lptr == NULL)
     {
@@ -459,7 +479,7 @@ char* str_list_get_at(void* lptr, size_t atpos)
     return ptr;
 }
 
-char* str_list_get_first(void* lptr)
+char* str_list_get_first(string_list_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -476,7 +496,7 @@ char* str_list_get_first(void* lptr)
     return ((StringList*)lptr)->IteratorPosition->NodeData;
 }
 
-char* str_list_get_next(void* lptr)
+char* str_list_get_next(string_list_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -498,7 +518,7 @@ char* str_list_get_next(void* lptr)
     return ((StringList*)lptr)->IteratorPosition->NodeData;
 }
 
-char* str_list_get_last(void* lptr)
+char* str_list_get_last(string_list_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -515,7 +535,7 @@ char* str_list_get_last(void* lptr)
     return ((StringList*)lptr)->IteratorPosition->NodeData;
 }
 
-char* str_list_get_previous(void* lptr)
+char* str_list_get_previous(string_list_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -537,7 +557,7 @@ char* str_list_get_previous(void* lptr)
     return ((StringList*)lptr)->IteratorPosition->NodeData;
 }
 
-void str_list_sort(void* lptr)
+void str_list_sort(string_list_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -547,7 +567,7 @@ void str_list_sort(void* lptr)
     return;
 }
 
-void str_list_merge(void* lptrFirst, void* lptrSecond)
+void str_list_merge(string_list_t* lptrFirst, string_list_t* lptrSecond)
 {
     if(lptrFirst == NULL)
     {
@@ -562,7 +582,7 @@ void str_list_merge(void* lptrFirst, void* lptrSecond)
     return;
 }
 
-void str_list_join(void* lptrFirst, void* lptrSecond)
+void str_list_join(string_list_t* lptrFirst, string_list_t* lptrSecond)
 {
     if(lptrFirst == NULL)
     {

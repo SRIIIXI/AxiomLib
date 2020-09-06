@@ -1,14 +1,32 @@
 /*
+BSD 2-Clause License
 
-Copyright (c) 2020, CIMCON Automation
+Copyright (c) 2017, Subrato Roy (subratoroy@hotmail.com)
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
-modification, is allowed only with prior permission from CIMCON Automation
+modification, are permitted provided that the following conditions are met:
 
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "ProcessLock.h"
+#include "Environment.h"
 #include "StringEx.h"
 #include "StringList.h"
 #include "Directory.h"
@@ -20,7 +38,7 @@ modification, is allowed only with prior permission from CIMCON Automation
 #include <stdio.h>
 #include <string.h>
 
-char* process_lock_get_current_process_name(char* ptr)
+char* env_get_current_process_name(char* ptr)
 {
     if(ptr == NULL)
     {
@@ -80,12 +98,12 @@ char* process_lock_get_current_process_name(char* ptr)
     return ptr;
 }
 
-char* process_lock_get_current_user_name()
+char* env_get_current_user_name()
 {
     return getenv("USER");
 }
 
-char* process_lock_get_lock_filename()
+char* env_get_lock_filename()
 {
     char* lock_filename = (char*)calloc(1, 1025);
     char process_name[64] = {0};
@@ -94,15 +112,15 @@ char* process_lock_get_lock_filename()
 
     strcat(lock_filename, dir_get_temp_directory(temp));
     strcat(lock_filename, "/");
-    strcat(lock_filename, process_lock_get_current_process_name(process_name));
+    strcat(lock_filename, env_get_current_process_name(process_name));
     strcat(lock_filename, ".");
-    strcat(lock_filename, process_lock_get_current_user_name());
+    strcat(lock_filename, env_get_current_user_name());
     strcat(lock_filename, ".lock");
 
     return  lock_filename;
 }
 
-bool process_lock_lock(const char* lock_filename)
+bool env_lock_process(const char* lock_filename)
 {
     int lock_file = 0;
 

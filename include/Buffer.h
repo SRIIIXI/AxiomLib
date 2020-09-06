@@ -36,22 +36,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
-typedef struct Buffer
-{
-    void* Data;
-    size_t Size;
-    size_t Memory;
-}Buffer;
+#define LIBRARY_EXPORT __attribute__((visibility("default")))
 
-extern __attribute__((visibility("default"))) Buffer* buffer_allocate(void* data, size_t sz);
+typedef struct buffer_t buffer_t;
 
-extern __attribute__((visibility("default"))) Buffer* buffer_copy(Buffer* dest, Buffer* orig);
-extern __attribute__((visibility("default"))) Buffer* buffer_append(Buffer* dest, void* data, size_t sz);
-extern __attribute__((visibility("default"))) void buffer_free(Buffer* ptr);
+extern LIBRARY_EXPORT buffer_t* buffer_allocate(void* data, size_t sz);
 
-extern __attribute__((visibility("default"))) bool buffer_is_equal(Buffer* first, Buffer* second);
-extern __attribute__((visibility("default"))) bool buffer_is_greater(Buffer* first, Buffer* second);
-extern __attribute__((visibility("default"))) bool buffer_is_less(Buffer* first, Buffer* second);
+extern LIBRARY_EXPORT buffer_t* buffer_copy(buffer_t* dest, buffer_t* orig);
+extern LIBRARY_EXPORT buffer_t* buffer_append(buffer_t* dest, void* data, size_t sz);
+extern LIBRARY_EXPORT void buffer_free(buffer_t* ptr);
+
+extern LIBRARY_EXPORT bool buffer_is_equal(buffer_t* first, buffer_t* second);
+extern LIBRARY_EXPORT bool buffer_is_greater(buffer_t* first, buffer_t* second);
+extern LIBRARY_EXPORT bool buffer_is_less(buffer_t* first, buffer_t* second);
+extern LIBRARY_EXPORT bool buffer_is_null(buffer_t* ptr);
+
+extern LIBRARY_EXPORT const void* data(buffer_t* ptr);
+extern LIBRARY_EXPORT size_t size(buffer_t* ptr);
 
 #ifdef __cplusplus
 }

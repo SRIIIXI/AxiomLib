@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
+#define LIBRARY_EXPORT __attribute__((visibility("default")))
 
 extern __attribute__((visibility("default"))) char* date_time_get_default_string(char* ptr);
 

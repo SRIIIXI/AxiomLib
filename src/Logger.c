@@ -1,11 +1,29 @@
 /*
+BSD 2-Clause License
 
-Copyright (c) 2020, CIMCON Automation
+Copyright (c) 2017, Subrato Roy (subratoroy@hotmail.com)
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
-modification, is allowed only with prior permission from CIMCON Automation
+modification, are permitted provided that the following conditions are met:
 
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "Logger.h"
@@ -13,7 +31,7 @@ modification, is allowed only with prior permission from CIMCON Automation
 #include "File.h"
 #include "StringEx.h"
 #include "StringList.h"
-#include "ProcessLock.h"
+#include "Environment.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -80,7 +98,7 @@ void*	logger_allocate(size_t flszmb, const char* dirpath)
         else
         {
             char wd_path[1025] = { 0 };
-            int wd_len = 1024;
+            size_t wd_len = 1024;
             getcwd(wd_path, wd_len);
             char* parent_dir = dir_get_parent_directory(wd_path);
             strcat(logger_ptr->FileName, parent_dir);
@@ -95,7 +113,7 @@ void*	logger_allocate(size_t flszmb, const char* dirpath)
     }
 
     char temp[1024] = {0};
-    process_lock_get_current_process_name(&temp[0]);
+    env_get_current_process_name(&temp[0]);
     strcat(logger_ptr->FileName, temp);
     strcat(logger_ptr->FileName, ".log");
 
@@ -164,8 +182,6 @@ bool logger_write(void* loggerptr, const char* logentry, LogLevel llevel, const 
             return false;
         }
     }
-
-    normalize_function_name((char*)func);
 
     time_t t ;
     struct tm *tmp ;

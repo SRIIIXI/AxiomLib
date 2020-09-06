@@ -27,18 +27,42 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "List.h"
+#include "Buffer.h"
 
 #include <string.h>
 #include <memory.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include <limits.h>
 
-List * list_allocate(List* lptr)
+typedef struct node_t
 {
-    lptr = (List*)calloc(1, sizeof(List));
+    void* data;
+    size_t size;
+    struct node_t* next;
+    struct node_t* previous;
+}node_t;
+
+typedef struct list_t
+{
+    long count;
+    node_t* head;
+    node_t* tail;
+    node_t* iterator;
+    pthread_mutex_t mutex;
+}list_t;
+
+list_t * list_allocate(list_t* lptr)
+{
+    lptr = (list_t*)calloc(1, sizeof(list_t));
+    lptr->count = 0;
+    lptr->head = lptr->tail = NULL;
+    lptr->iterator = NULL;
+    pthread_mutex_init(&lptr->mutex, NULL);
     return lptr;
 }
 
-void list_clear(List* lptr)
+void list_clear(list_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -46,257 +70,333 @@ void list_clear(List* lptr)
     }
     else
     {
-        while(lptr->Count > 0)
+        pthread_mutex_lock(&lptr->mutex);
+
+        while(lptr->count > 0)
         {
-            list_remove_from_tail(lptr);
+            node_t* oldtail = lptr->tail;
+            lptr->tail = oldtail->previous;
+
+            if(lptr->tail != NULL)
+            {
+                lptr->tail->next = NULL;
+            }
+
+            free(oldtail->data);
+            free(oldtail);
+
+            lptr->count--;
         }
+
+        pthread_mutex_unlock(&lptr->mutex);
     }
 }
 
-Node* list_add_to_head(List* lptr, void* data, size_t sz)
+void list_free(list_t* lptr)
 {
     if(lptr == NULL)
     {
-        lptr = list_allocate(lptr);
-    }
-
-    Node* ptr = node_allocate(data, sz);
-
-    if(lptr->Count == 0)
-    {
-        lptr->IteratorPosition = lptr->Head = lptr->Tail = ptr;
+        return;
     }
     else
     {
-        lptr->Head->Previous = ptr;
-        ptr->Next = lptr->Head;
-        lptr->Head = ptr;
+        pthread_mutex_lock(&lptr->mutex);
+
+        while(lptr->count > 0)
+        {
+            node_t* oldtail = lptr->tail;
+            lptr->tail = oldtail->previous;
+
+            if(lptr->tail != NULL)
+            {
+                lptr->tail->next = NULL;
+            }
+
+            free(oldtail->data);
+            free(oldtail);
+
+            lptr->count--;
+        }
+
+        pthread_mutex_unlock(&lptr->mutex);
+        pthread_mutex_destroy(&lptr->mutex);
+        free(lptr);
     }
-
-    lptr->Count++;
-
-    return ptr;
 }
 
-Node* list_add_to_tail(List* lptr, void* data, size_t sz)
+void list_lock_iterator(list_t* lptr)
 {
     if(lptr == NULL)
     {
-        lptr = list_allocate(lptr);
+        return;
     }
 
-    Node* ptr = node_allocate(data, sz);
-
-    if(lptr->Count == 0)
-    {
-        lptr->IteratorPosition = lptr->Head = lptr->Tail = ptr;
-    }
-    else
-    {
-        lptr->Tail->Next = ptr;
-        ptr->Previous = lptr->Tail;
-        lptr->Tail = ptr;
-    }
-
-    lptr->Count++;
-
-    return ptr;
+    pthread_mutex_lock(&lptr->mutex);
 }
 
-Node* list_insert(List* lptr, void* data, size_t sz, int pos)
+void list_unlock_iterator(list_t* lptr)
+{
+    if(lptr == NULL)
+    {
+        return;
+    }
+
+    pthread_mutex_unlock(&lptr->mutex);
+}
+
+void list_add_to_head(list_t* lptr, void* data, size_t sz)
+{
+    list_insert(lptr, data, sz, 0);
+}
+
+void list_add_to_tail(list_t* lptr, void* data, size_t sz)
+{
+    list_insert(lptr, data, sz, LONG_MAX);
+}
+
+void list_insert(list_t* lptr, void* data, size_t sz, long pos)
 {
 	if (lptr == NULL)
 	{
-		if (pos == 0)
-		{
-			lptr = list_allocate(lptr);
-		}
-
-		if (pos > 0)
-		{
-			return NULL;
-		}
+        return;
 	}
 	else
 	{
-		if (pos > lptr->Count || pos < 0)
+        if (pos > lptr->count || pos < 0)
 		{
-			return NULL;
+            return;
 		}
 	}
+
+    pthread_mutex_lock(&lptr->mutex);
+
+    node_t* ptr = NULL;
+
+    ptr = (node_t*)calloc(1, sizeof(node_t));
+    ptr->data = calloc(1, sz);
+    memcpy(ptr->data, data, sz);
+    ptr->size = sz;
 
     if(pos == 0)
     {
-        return list_add_to_head(lptr, data, sz);
+        if(lptr->count == 0)
+        {
+            lptr->iterator = lptr->head = lptr->tail = ptr;
+        }
+        else
+        {
+            lptr->head->previous = ptr;
+            ptr->next = lptr->head;
+            lptr->head = ptr;
+        }
+
+        lptr->count++;
+        pthread_mutex_unlock(&lptr->mutex);
+        return;
+    }
+
+    if (pos >= lptr->count)
+    {
+        if(lptr->count == 0)
+        {
+            lptr->iterator = lptr->head = lptr->tail = ptr;
+        }
+        else
+        {
+            lptr->tail->next = ptr;
+            ptr->previous = lptr->tail;
+            lptr->tail = ptr;
+        }
+
+        lptr->count++;
+        pthread_mutex_unlock(&lptr->mutex);
+        return;
     }
 
     int idx = 1;
+    for(node_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next, idx++)
+    {
+        if(pos == idx)
+        {
+            node_t* prev = curptr->previous;
+            node_t* next = curptr->next;
 
-    Node* ptr = NULL;	
-	
-	if (lptr != NULL)
-	{
-		if (pos == lptr->Count)
-		{
-			return list_add_to_tail(lptr, data, sz);
-		}
+            prev->next = ptr;
+            ptr->previous = prev;
 
-		for(Node* curptr = lptr->Head ; curptr->Next != NULL; curptr = curptr->Next, idx++)
-		{
-			if(pos == idx)
-			{
-				ptr = node_allocate(data, sz);
+            next->previous = ptr;
+            ptr->next = next;
 
-				Node* prev = curptr->Previous;
-				Node* next = curptr->Next;
+            lptr->count++;
+            break;
+        }
 
-				prev->Next = ptr;
-				ptr->Previous = prev;
+        idx++;
+    }
 
-				next->Previous = ptr;
-				ptr->Next = next;
-
-				lptr->Count++;
-				break;
-			}
-
-			idx++;
-		}	
-	}
-
-    return ptr;
+    pthread_mutex_unlock(&lptr->mutex);
 }
 
-void list_remove_from_head(List* lptr)
+void list_remove_from_head(list_t* lptr)
 {
-    if(lptr == NULL)
-    {
-        return;
-    }
-
-    Node* oldhead = lptr->Head;
-    lptr->Head = lptr->Head->Next;
-
-    if(lptr->Head != NULL)
-    {
-        lptr->Head->Previous = NULL;
-    }
-
-    node_free(oldhead);
-    lptr->Count--;
+    list_remove_at(lptr, 0);
 }
 
-void list_remove_from_tail(List* lptr)
+void list_remove_from_tail(list_t* lptr)
 {
-    if(lptr == NULL)
-    {
-        return;
-    }
-
-    Node* oldtail = lptr->Tail;
-    lptr->Tail = oldtail->Previous;
-
-    if(lptr->Tail != NULL)
-    {
-        lptr->Tail->Next = NULL;
-    }
-
-    node_free(oldtail);
-    lptr->Count--;
+    list_remove_at(lptr, LONG_MAX);
 }
 
-void list_remove(List* lptr, const Node* node)
+void list_remove(list_t* lptr, const void *node)
 {
     if(lptr == NULL || node == NULL)
     {
         return;
     }
 
-    for(Node* curptr = lptr->Head ; curptr->Next != NULL; curptr = curptr->Next)
+    pthread_mutex_lock(&lptr->mutex);
+
+    for(node_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next)
     {
-        if(node == curptr)
+        if(node == curptr->data)
         {
-            if(curptr->Next == NULL)
+            if(curptr->next == NULL)
             {
-				list_remove_from_tail(lptr);
+                node_t* oldtail = lptr->tail;
+                lptr->tail = oldtail->previous;
+
+                if(lptr->tail != NULL)
+                {
+                    lptr->tail->next = NULL;
+                }
+
+                free(oldtail->data);
+                free(oldtail);
+
+                lptr->count--;
             }
 
-            if(curptr->Previous == NULL)
+            if(curptr->previous == NULL)
             {
-				list_remove_from_head(lptr);
+                node_t* oldhead = lptr->head;
+                lptr->head = lptr->head->next;
+
+                if(lptr->head != NULL)
+                {
+                    lptr->head->previous = NULL;
+                }
+
+                free(oldhead->data);
+                free(oldhead);
+
+                lptr->count--;
             }
 
-            Node* prev = curptr->Previous;
-            Node* next = curptr->Next;
+            node_t* prev = curptr->previous;
+            node_t* next = curptr->next;
 
 			if (prev != NULL)
 			{
-				prev->Next = next;
+                prev->next = next;
 			}
 
-            next->Previous = prev;
+            next->previous = prev;
 
-            node_free(curptr);
+            free(curptr->data);
+            free(curptr);
 
-            lptr->Count--;
+            lptr->count--;
             break;
         }
     }
+
+    pthread_mutex_unlock(&lptr->mutex);
 }
 
-void list_remove_at(List* lptr, int pos)
+void list_remove_at(list_t* lptr, long pos)
 {
     if(lptr == NULL || pos < 0)
     {
         return;
     }
 
-    if(pos > lptr->Count -1)
+    if(pos > lptr->count -1)
     {
         return;
     }
 
-    if(pos == lptr->Count -1)
-    {
-		list_remove_from_tail(lptr);
-    }
+    pthread_mutex_lock(&lptr->mutex);
 
-    if(pos == 0)
+    if(pos >= lptr->count -1)
     {
-		list_remove_from_head(lptr);
-    }
+        node_t* oldtail = lptr->tail;
+        lptr->tail = oldtail->previous;
 
-    int idx = 1;
-    for(Node* curptr = lptr->Head ; curptr->Next != NULL; curptr = curptr->Next, idx++)
-    {
-        if(idx == pos)
+        if(lptr->tail != NULL)
         {
-            Node* prev = curptr->Previous;
-            Node* next = curptr->Next;
+            lptr->tail->next = NULL;
+        }
 
-            prev->Next = next;
-            next->Previous = prev;
+        free(oldtail->data);
+        free(oldtail);
 
-            node_free(curptr);
+        lptr->count--;
+    }
+    else
+    {
+        if(pos == 0)
+        {
+            node_t* oldhead = lptr->head;
+            lptr->head = lptr->head->next;
 
-            lptr->Count--;
-            break;
+            if(lptr->head != NULL)
+            {
+                lptr->head->previous = NULL;
+            }
+
+            free(oldhead->data);
+            free(oldhead);
+
+            lptr->count--;
+        }
+        else
+        {
+            int idx = 1;
+            for(node_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next, idx++)
+            {
+                if(idx == pos)
+                {
+                    node_t* prev = curptr->previous;
+                    node_t* next = curptr->next;
+
+                    prev->next = next;
+                    next->previous = prev;
+
+                    free(curptr->data);
+                    free(curptr);
+
+                    lptr->count--;
+                    break;
+                }
+            }
         }
     }
+
+    pthread_mutex_unlock(&lptr->mutex);
 }
 
-void list_remove_value(List* lptr, void* data, size_t sz)
+void list_remove_value(list_t* lptr, void* data, size_t sz)
 {
     if(lptr == NULL)
     {
         return;
     }
 
-    Node* ptr = NULL;
+    pthread_mutex_lock(&lptr->mutex);
 
-    Node* node = node_allocate(data, sz);
+    node_t* ptr = NULL;
 
-    ptr = list_get_first(lptr);
+    ptr = lptr->head;
 
     int idx = 0;
 
@@ -307,63 +407,90 @@ void list_remove_value(List* lptr, void* data, size_t sz)
             break;
         }
 
-        if(node_is_equal(ptr, node))
+        if(memcmp(ptr->data, data, ptr->size) == 0 && ptr->size == sz)
         {
-            if(idx == lptr->Count - 1)
+            if(idx >= lptr->count - 1)
             {
-				list_remove_from_tail(lptr);
+                node_t* oldtail = lptr->tail;
+                lptr->tail = oldtail->previous;
+
+                if(lptr->tail != NULL)
+                {
+                    lptr->tail->next = NULL;
+                }
+
+                free(oldtail->data);
+                free(oldtail);
+
+                lptr->count--;
                 break;
             }
 
             if(idx == 0)
             {
-				list_remove_from_head(lptr);
+                node_t* oldhead = lptr->head;
+                lptr->head = lptr->head->next;
+
+                if(lptr->head != NULL)
+                {
+                    lptr->head->previous = NULL;
+                }
+
+                free(oldhead->data);
+                free(oldhead);
+
+                lptr->count--;
                 break;
             }
 
-            Node* prev = ptr->Previous;
-            Node* next = ptr->Next;
+            node_t* prev = ptr->previous;
+            node_t* next = ptr->next;
 
-            prev->Next = next;
-            next->Previous = prev;
+            prev->next = next;
+            next->previous = prev;
 
-            node_free(ptr);
-            lptr->Count--;
+            free(ptr->data);
+            free(ptr);
+
+            lptr->count--;
             break;
         }
 
-        ptr = list_get_next(lptr);
+        ptr = ptr->next;
         idx++;
     }
 
-    node_free(node);
+    pthread_mutex_unlock(&lptr->mutex);
+
     return;
 }
 
-size_t list_item_count(List* lptr)
+long list_item_count(list_t* lptr)
 {
     if(lptr != NULL)
     {
-        return lptr->Count;
+        return lptr->count;
     }
 
-    return -1;
+    return 0;
 }
 
-size_t list_index_of(List *lptr, const Node* node)
+long list_index_of(list_t *lptr, const void *node)
 {
     if(lptr == NULL)
     {
         return -1;
     }
 
-    Node* ptr = NULL;
+    pthread_mutex_lock(&lptr->mutex);
 
-    ptr = list_get_first(lptr);
+    node_t* ptr = NULL;
 
-	size_t idx = 0;
+    ptr = lptr->head;
 
-    if(ptr == node)
+    long idx = 0;
+
+    if(ptr->data == node)
     {
         return idx;
     }
@@ -375,36 +502,38 @@ size_t list_index_of(List *lptr, const Node* node)
             break;
         }
 
-        ptr = list_get_next(lptr);
+        ptr = ptr->next;
         idx++;
 
-        if(ptr == node)
+        if(ptr->data == node)
         {
+            pthread_mutex_unlock(&lptr->mutex);
             return idx;
         }
     }
 
+    pthread_mutex_unlock(&lptr->mutex);
     return -1;
 }
 
-size_t list_index_of_value(List* lptr, void* data, size_t sz)
+long list_index_of_value(list_t* lptr, void* data, size_t sz)
 {
     if(lptr == NULL)
     {
         return -1;
     }
 
-    Node* ptr = NULL;
+    pthread_mutex_lock(&lptr->mutex);
 
-    Node* node = node_allocate(data, sz);
+    node_t* ptr = NULL;
 
-    ptr = list_get_first(lptr);
+    ptr = lptr->head;
 
-	size_t idx = 0;
+    long idx = 0;
 
-    if(node_is_equal(ptr, node))
+    if(memcmp(ptr->data, data, ptr->size) == 0 && ptr->size == sz)
     {
-        node_free(node);
+        pthread_mutex_unlock(&lptr->mutex);
         return idx;
     }
 
@@ -415,104 +544,106 @@ size_t list_index_of_value(List* lptr, void* data, size_t sz)
             break;
         }
 
-        ptr = list_get_next(lptr);
+        ptr = ptr->next;
         idx++;
 
-        if(node_is_equal(ptr, node))
+        if(memcmp(ptr->data, data, ptr->size) == 0)
         {
-			node_free(node);
+            pthread_mutex_unlock(&lptr->mutex);
             return idx;
         }
     }
 
-	node_free(node);
+    pthread_mutex_unlock(&lptr->mutex);
     return -1;
 }
 
-Node* list_get_at(List* lptr, int atpos)
+void *list_get_at(list_t* lptr, long atpos)
 {
     if(lptr == NULL)
     {
         return NULL;
     }
 
-    if(atpos > (lptr->Count - 1) || atpos < 0)
+    if(atpos > (lptr->count - 1) || atpos < 0)
     {
         return NULL;
     }
 
-    Node* ptr = NULL;
+    pthread_mutex_lock(&lptr->mutex);
+    node_t* ptr = NULL;
 
-    ptr = list_get_first(lptr);
+    ptr = lptr->head;
 
     if(atpos > 0)
     {
         for(int idx = 0; idx < atpos; idx++)
         {
-            ptr = list_get_next(lptr);
+            ptr = ptr->next;
         }
     }
 
-    return ptr;
+    pthread_mutex_lock(&lptr->mutex);
+    return ptr->data;
 }
 
-Node* list_get_first(List* lptr)
+void* list_get_first(list_t* lptr)
 {
     if(lptr == NULL)
     {
         return NULL;
     }
 
-    lptr->IteratorPosition = lptr->Head;
-    return lptr->IteratorPosition;
+    lptr->iterator = lptr->head;
+    return lptr->iterator->data;
 }
 
-Node* list_get_next(List* lptr)
+void* list_get_next(list_t* lptr)
 {
     if(lptr == NULL)
     {
         return NULL;
     }
 
-    if(lptr->IteratorPosition->Next == NULL)
+    if(lptr->iterator->next == NULL)
     {
         return NULL;
     }
 
-    lptr->IteratorPosition = lptr->IteratorPosition->Next;
+    lptr->iterator = lptr->iterator->next;
 
-    return lptr->IteratorPosition;
+    return lptr->iterator->data;
 }
 
-Node* list_get_last(List* lptr)
+void* list_get_last(list_t* lptr)
 {
     if(lptr == NULL)
     {
         return NULL;
     }
 
-    lptr->IteratorPosition = lptr->Tail;
-    return lptr->IteratorPosition;
+    lptr->iterator = lptr->tail;
+    return lptr->iterator->data;
 }
 
-Node* list_get_previous(List* lptr)
+void* list_get_previous(list_t* lptr)
 {
     if(lptr == NULL)
     {
         return NULL;
     }
 
-    if(lptr->IteratorPosition->Previous == NULL)
+    if(lptr->iterator->previous == NULL)
     {
         return NULL;
     }
 
-    lptr->IteratorPosition = lptr->IteratorPosition->Previous;
+    lptr->iterator = lptr->iterator->previous;
 
-    return lptr->IteratorPosition;
+    return lptr->iterator->data;
 }
 
-List * list_sort(List* lptr)
+list_t* list_sort(list_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -522,7 +653,7 @@ List * list_sort(List* lptr)
     return NULL;
 }
 
-List* list_merge(List* lptrFirst, List* lptrSecond)
+list_t* list_merge(list_t* lptrFirst, list_t* lptrSecond)
 {
     if(lptrFirst == NULL)
     {
@@ -537,7 +668,7 @@ List* list_merge(List* lptrFirst, List* lptrSecond)
     return NULL;
 }
 
-List* list_join(List* lptrFirst, List* lptrSecond)
+list_t* list_join(list_t* lptrFirst, list_t* lptrSecond)
 {
     if(lptrFirst == NULL)
     {
