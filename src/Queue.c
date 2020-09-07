@@ -48,6 +48,8 @@ typedef struct queue_t
     pthread_mutex_t mutex;
 }queue_t;
 
+void* queue_internal_remove_tail(queue_t* qptr);
+
 queue_t *queue_allocate(queue_t* qptr)
 {
     qptr = (queue_t*)calloc(1, sizeof(queue_t));
@@ -69,18 +71,7 @@ void queue_clear(queue_t *qptr)
 
         while(qptr->count > 0)
         {
-            void* ptr = NULL;
-
-            node_t* second_last = qptr->head;
-            while (second_last->next->next != NULL)
-            {
-                second_last = second_last->next;
-            }
-
-            ptr = second_last->next->data;
-            free(second_last->next);
-
-            qptr->count--;
+            void* ptr = queue_internal_remove_tail(qptr);
             free(ptr);
         }
 
@@ -100,19 +91,7 @@ void queue_free(queue_t* qptr)
 
         while(qptr->count > 0)
         {
-            void* ptr = NULL;
-
-            node_t* second_last = qptr->head;
-            while (second_last->next->next != NULL)
-            {
-                second_last = second_last->next;
-            }
-
-            ptr = second_last->next->data;
-            free(second_last->next);
-
-            qptr->count--;
-
+            void* ptr = queue_internal_remove_tail(qptr);
             free(ptr);
         }
 
@@ -167,18 +146,7 @@ void* queue_denqueue(queue_t *qptr)
 
     pthread_mutex_lock(&qptr->mutex);
 
-    void* ptr = NULL;
-
-    node_t* second_last = qptr->head;
-    while (second_last->next->next != NULL)
-    {
-        second_last = second_last->next;
-    }
-
-    ptr = second_last->next->data;
-    free(second_last->next);
-
-    qptr->count--;
+    void* ptr = queue_internal_remove_tail(qptr);
 
     pthread_mutex_unlock(&qptr->mutex);
 
@@ -193,4 +161,22 @@ long queue_item_count(queue_t *qptr)
     }
 
     return -1;
+}
+
+void* queue_internal_remove_tail(queue_t* qptr)
+{
+    void* ptr = NULL;
+
+    node_t* second_last = qptr->head;
+    while (second_last->next->next != NULL)
+    {
+        second_last = second_last->next;
+    }
+
+    ptr = second_last->next->data;
+    free(second_last->next);
+
+    qptr->count--;
+
+    return ptr;
 }

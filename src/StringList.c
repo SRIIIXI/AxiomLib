@@ -52,6 +52,8 @@ typedef struct string_list_t
     pthread_mutex_t mutex;
 }string_list_t;
 
+node_t* str_list_internal_create_node(char* data);
+
 string_list_t* str_list_allocate(string_list_t* lptr)
 {
     lptr = (string_list_t*)calloc(1, sizeof(string_list_t));
@@ -69,7 +71,7 @@ string_list_t* str_list_allocate_from_string(string_list_t* lptr, const char* st
         return NULL;
     }
 
-    size_t substr_count = strcountsubstr((char*)str, delimiter);
+    size_t substr_count = strcountsubstr(str, delimiter);
     size_t str_len = strlen(str);
 
     if(substr_count < 1 || str_len < 1)
@@ -151,48 +153,46 @@ void str_list_add_to_head(string_list_t* lptr, char* data)
 {
     if(lptr == NULL)
     {
-        lptr = str_list_allocate(lptr);
+        return;
     }
 
-    StringNode* ptr = str_node_allocate(data);
+    node_t* ptr = str_list_internal_create_node(data);
 
-    if(((StringList*)lptr)->Count == 0)
+    if(lptr->count == 0)
     {
-        ((StringList*)lptr)->IteratorPosition = ((StringList*)lptr)->Head = ((StringList*)lptr)->Tail = ptr;
+        lptr->iterator = lptr->head = lptr->tail = ptr;
     }
     else
     {
-        ((StringList*)lptr)->Head->Previous = ptr;
-        ptr->Next = ((StringList*)lptr)->Head;
-        ((StringList*)lptr)->Head = ptr;
+        lptr->head->previous = ptr;
+        ptr->next = lptr->head;
+        lptr->head = ptr;
     }
 
-    ((StringList*)lptr)->Count++;
+    lptr->count++;
 }
 
 void str_list_add_to_tail(string_list_t* lptr, char* data)
 {
     if(lptr == NULL)
     {
-        lptr = str_list_allocate(lptr);
+        return;
     }
 
-    StringNode* ptr = str_node_allocate(data);
-    ptr->Next = NULL;
-    ptr->Previous = NULL;
+    node_t* ptr = str_list_internal_create_node(data);
 
-    if(((StringList*)lptr)->Count == 0)
+    if(lptr->count == 0)
     {
-        ((StringList*)lptr)->IteratorPosition = ((StringList*)lptr)->Head = ((StringList*)lptr)->Tail = ptr;
+        lptr->iterator = lptr->head = lptr->tail = ptr;
     }
     else
     {
-        ((StringList*)lptr)->Tail->Next = ptr;
-        ptr->Previous = ((StringList*)lptr)->Tail;
-        ((StringList*)lptr)->Tail = ptr;
+        lptr->tail->next = ptr;
+        ptr->previous = lptr->tail;
+        lptr->tail = ptr;
     }
 
-    ((StringList*)lptr)->Count++;
+    lptr->count++;
 }
 
 void str_list_insert(string_list_t* lptr, char* data, long pos)
@@ -201,53 +201,42 @@ void str_list_insert(string_list_t* lptr, char* data, long pos)
     {
         return;
     }
-    else
-    {
-        if (pos > ((StringList*)lptr)->Count || pos < 0)
-        {
-            return;
-        }
-    }
 
-    if(pos == 0)
+    if(pos <= 0)
     {
         str_list_add_to_head(lptr, data);
-        return ;
+        return;
     }
 
-    StringNode* ptr = NULL;
-
-    if (lptr != NULL)
+    if (pos >= lptr->count - 1)
     {
-        if (pos == ((StringList*)lptr)->Count)
+        str_list_add_to_tail(lptr, data);
+        return;
+    }
+
+    long idx = 1;
+
+    for(node_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next)
+    {
+        if(pos == idx)
         {
-            str_list_add_to_tail(lptr, data);
-            return ;
+            node_t* ptr = NULL;
+            ptr = str_list_internal_create_node(data);
+
+            node_t* prev = curptr->previous;
+            node_t* next = curptr->next;
+
+            prev->next = ptr;
+            ptr->previous = prev;
+
+            next->previous = ptr;
+            ptr->next = next;
+
+            lptr->count++;
+            break;
         }
 
-        size_t idx = 1;
-
-        for(StringNode* curptr = ((StringList*)lptr)->Head ; curptr->Next != NULL; curptr = curptr->Next)
-        {
-            if(pos == idx)
-            {
-                ptr = str_node_allocate(data);
-
-                StringNode* prev = curptr->Previous;
-                StringNode* next = curptr->Next;
-
-                prev->Next = ptr;
-                ptr->Previous = prev;
-
-                next->Previous = ptr;
-                ptr->Next = next;
-
-                ((StringList*)lptr)->Count++;
-                break;
-            }
-
-            idx++;
-        }
+        idx++;
     }
 }
 
@@ -258,16 +247,17 @@ void str_list_remove_from_head(string_list_t* lptr)
         return;
     }
 
-    StringNode* oldhead = ((StringList*)lptr)->Head;
-    ((StringList*)lptr)->Head = ((StringList*)lptr)->Head->Next;
+    node_t* oldhead = lptr->head;
+    lptr->head = lptr->head->next;
 
-    if(((StringList*)lptr)->Head != NULL)
+    if(lptr->head != NULL)
     {
-        ((StringList*)lptr)->Head->Previous = NULL;
+        lptr->head->previous = NULL;
     }
 
-    str_node_free(oldhead);
-    ((StringList*)lptr)->Count--;
+    free(oldhead->data);
+    free(oldhead);
+    lptr->count--;
 }
 
 void str_list_remove_from_tail(string_list_t* lptr)
@@ -277,16 +267,17 @@ void str_list_remove_from_tail(string_list_t* lptr)
         return;
     }
 
-    StringNode* oldtail = ((StringList*)lptr)->Tail;
-    ((StringList*)lptr)->Tail = oldtail->Previous;
+    node_t* oldtail = lptr->tail;
+    lptr->tail = oldtail->previous;
 
-    if(((StringList*)lptr)->Tail != NULL)
+    if(lptr->tail != NULL)
     {
-        ((StringList*)lptr)->Tail->Next = NULL;
+        lptr->tail->next = NULL;
     }
 
-    str_node_free(oldtail);
-    ((StringList*)lptr)->Count--;
+    free(oldtail->data);
+    free(oldtail);
+    lptr->count--;
 }
 
 void str_list_remove(string_list_t* lptr, const char* node)
@@ -296,33 +287,34 @@ void str_list_remove(string_list_t* lptr, const char* node)
         return;
     }
 
-    for(StringNode* curptr = ((StringList*)lptr)->Head ; curptr->Next != NULL; curptr = curptr->Next)
+    for(node_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next)
     {
-        if(strcmp(node, curptr->NodeData) == 0 )
+        if(strcmp(node, curptr->data) == 0 )
         {
-            if(curptr->Next == NULL)
+            if(curptr->next == NULL)
             {
                 str_list_remove_from_tail(lptr);
             }
 
-            if(curptr->Previous == NULL)
+            if(curptr->previous == NULL)
             {
                 str_list_remove_from_head(lptr);
             }
 
-            StringNode* prev = curptr->Previous;
-            StringNode* next = curptr->Next;
+            node_t* prev = curptr->previous;
+            node_t* next = curptr->next;
 
             if (prev != NULL)
             {
-                prev->Next = next;
+                prev->next = next;
             }
 
-            next->Previous = prev;
+            next->previous = prev;
 
-            str_node_free(curptr);
+            free(curptr->data);
+            free(curptr);
 
-            ((StringList*)lptr)->Count--;
+            lptr->count--;
 
             break;
         }
@@ -347,26 +339,27 @@ void str_list_remove_at(string_list_t* lptr, long pos)
         return;
     }    
     
-    if(pos == ((StringList*)lptr)->Count -1)
+    if(pos == lptr->count -1)
     {
         str_list_remove_from_tail(lptr);
         return;
     }
 
-    size_t idx = 1;
-    for(StringNode* curptr = ((StringList*)lptr)->Head ; curptr->Next != NULL; curptr = curptr->Next, idx++)
+    long idx = 1;
+    for(node_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next, idx++)
     {
         if(idx == pos)
         {
-            StringNode* prev = curptr->Previous;
-            StringNode* next = curptr->Next;
+            node_t* prev = curptr->previous;
+            node_t* next = curptr->next;
 
-            prev->Next = next;
-            next->Previous = prev;
+            prev->next = next;
+            next->previous = prev;
 
-            str_node_free(curptr);
+            free(curptr->data);
+            free(curptr);
 
-            ((StringList*)lptr)->Count--;
+            lptr->count--;
             break;
         }
     }
@@ -379,25 +372,23 @@ long str_list_index_of(string_list_t* lptr, const char* node)
         return -1;
     }
 
-    char* ptr = NULL;
-
     long long idx = 0;
 
-    if (((StringList*)lptr)->Head == NULL)
+    if (lptr->head == NULL)
     {
         return -1;
     }
 
-    StringNode* curptr = ((StringList*)lptr)->Head;
+    node_t* curptr = lptr->head;
 
     while (curptr)
     {
-        if (strcmp(curptr->NodeData, node) == 0)
+        if (strcmp(curptr->data, node) == 0)
         {
             return idx;
         }
 
-        curptr = curptr->Next;
+        curptr = curptr->next;
         idx++;
     }
 
@@ -411,25 +402,23 @@ long str_list_index_of_like(string_list_t* lptr, const char* node)
         return -1;
     }
 
-    char* ptr = NULL;
-
     long long idx = 0;
 
-    if (((StringList*)lptr)->Head == NULL)
+    if (lptr->head == NULL)
     {
         return -1;
     }
 
-    StringNode* curptr = ((StringList*)lptr)->Head;
+    node_t* curptr = lptr->head;
 
     while (curptr)
     {
-        if (strstr(curptr->NodeData, node))
+        if (strstr(curptr->data, node))
         {
             return idx;
         }
 
-        curptr = curptr->Next;
+        curptr = curptr->next;
         idx++;
     }
 
@@ -438,7 +427,7 @@ long str_list_index_of_like(string_list_t* lptr, const char* node)
 
 void str_list_remove_value(string_list_t* lptr, char* data)
 {  
-    size_t index = str_list_index_of(lptr, data);
+    long index = str_list_index_of(lptr, data);
     str_list_remove_at(lptr, index);
 }
 
@@ -595,4 +584,14 @@ void str_list_join(string_list_t* lptrFirst, string_list_t* lptrSecond)
     }
 
     return;
+}
+
+node_t* str_list_internal_create_node(char *data)
+{
+    node_t* ptr = (node_t*)calloc(1, sizeof(node_t));
+    ptr->size = strlen(data);
+    ptr->data = (char*)calloc(1, ptr->size+1);
+    strcpy(ptr->data, data);
+    ptr->next = ptr->previous = NULL;
+    return ptr;
 }

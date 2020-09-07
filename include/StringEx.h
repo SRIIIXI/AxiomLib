@@ -49,10 +49,10 @@ extern LIBRARY_EXPORT char* strfromdouble(double num);
 extern LIBRARY_EXPORT char* strreverse(char* ptr);
 extern LIBRARY_EXPORT char* strsegmentreverse(char* str, size_t start, size_t term);
 
-extern LIBRARY_EXPORT long long strindexofsubstr(char* str, const char* substr);
-extern LIBRARY_EXPORT long long strindexofchar(char* str, const char ch);
+extern LIBRARY_EXPORT long strindexofsubstr(const char *str, const char* substr);
+extern LIBRARY_EXPORT long strindexofchar(char* str, const char ch);
 
-extern LIBRARY_EXPORT size_t strcountsubstr(char* str, const char* substr);
+extern LIBRARY_EXPORT size_t strcountsubstr(const char *str, const char* substr);
 extern LIBRARY_EXPORT size_t strcountchar(char* str, const char ch);
 
 extern LIBRARY_EXPORT char* strtolower(char* str);

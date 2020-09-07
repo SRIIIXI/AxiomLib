@@ -52,6 +52,11 @@ typedef struct list_t
     pthread_mutex_t mutex;
 }list_t;
 
+void* list_internal_remove_from_head(list_t* lptr);
+void* list_internal_remove_from_tail(list_t* lptr);
+void list_internal_add_to_head(list_t* lptr, node_t *ptr);
+void list_internal_add_to_tail(list_t* lptr, node_t* ptr);
+
 list_t * list_allocate(list_t* lptr)
 {
     lptr = (list_t*)calloc(1, sizeof(list_t));
@@ -74,18 +79,8 @@ void list_clear(list_t* lptr)
 
         while(lptr->count > 0)
         {
-            node_t* oldtail = lptr->tail;
-            lptr->tail = oldtail->previous;
-
-            if(lptr->tail != NULL)
-            {
-                lptr->tail->next = NULL;
-            }
-
-            free(oldtail->data);
-            free(oldtail);
-
-            lptr->count--;
+            void* ptr = list_internal_remove_from_tail(lptr);
+            free(ptr);
         }
 
         pthread_mutex_unlock(&lptr->mutex);
@@ -104,18 +99,8 @@ void list_free(list_t* lptr)
 
         while(lptr->count > 0)
         {
-            node_t* oldtail = lptr->tail;
-            lptr->tail = oldtail->previous;
-
-            if(lptr->tail != NULL)
-            {
-                lptr->tail->next = NULL;
-            }
-
-            free(oldtail->data);
-            free(oldtail);
-
-            lptr->count--;
+            void* ptr = list_internal_remove_from_tail(lptr);
+            free(ptr);
         }
 
         pthread_mutex_unlock(&lptr->mutex);
@@ -179,36 +164,14 @@ void list_insert(list_t* lptr, void* data, size_t sz, long pos)
 
     if(pos == 0)
     {
-        if(lptr->count == 0)
-        {
-            lptr->iterator = lptr->head = lptr->tail = ptr;
-        }
-        else
-        {
-            lptr->head->previous = ptr;
-            ptr->next = lptr->head;
-            lptr->head = ptr;
-        }
-
-        lptr->count++;
+        list_internal_add_to_head(lptr, ptr);
         pthread_mutex_unlock(&lptr->mutex);
         return;
     }
 
     if (pos >= lptr->count)
     {
-        if(lptr->count == 0)
-        {
-            lptr->iterator = lptr->head = lptr->tail = ptr;
-        }
-        else
-        {
-            lptr->tail->next = ptr;
-            ptr->previous = lptr->tail;
-            lptr->tail = ptr;
-        }
-
-        lptr->count++;
+        list_internal_add_to_tail(lptr, ptr);
         pthread_mutex_unlock(&lptr->mutex);
         return;
     }
@@ -262,34 +225,14 @@ void list_remove(list_t* lptr, const void *node)
         {
             if(curptr->next == NULL)
             {
-                node_t* oldtail = lptr->tail;
-                lptr->tail = oldtail->previous;
-
-                if(lptr->tail != NULL)
-                {
-                    lptr->tail->next = NULL;
-                }
-
-                free(oldtail->data);
-                free(oldtail);
-
-                lptr->count--;
+                void* ptr = list_internal_remove_from_tail(lptr);
+                free(ptr);
             }
 
             if(curptr->previous == NULL)
             {
-                node_t* oldhead = lptr->head;
-                lptr->head = lptr->head->next;
-
-                if(lptr->head != NULL)
-                {
-                    lptr->head->previous = NULL;
-                }
-
-                free(oldhead->data);
-                free(oldhead);
-
-                lptr->count--;
+                void* ptr = list_internal_remove_from_head(lptr);
+                free(ptr);
             }
 
             node_t* prev = curptr->previous;
@@ -329,35 +272,15 @@ void list_remove_at(list_t* lptr, long pos)
 
     if(pos >= lptr->count -1)
     {
-        node_t* oldtail = lptr->tail;
-        lptr->tail = oldtail->previous;
-
-        if(lptr->tail != NULL)
-        {
-            lptr->tail->next = NULL;
-        }
-
-        free(oldtail->data);
-        free(oldtail);
-
-        lptr->count--;
+        void* ptr = list_internal_remove_from_tail(lptr);
+        free(ptr);
     }
     else
     {
         if(pos == 0)
         {
-            node_t* oldhead = lptr->head;
-            lptr->head = lptr->head->next;
-
-            if(lptr->head != NULL)
-            {
-                lptr->head->previous = NULL;
-            }
-
-            free(oldhead->data);
-            free(oldhead);
-
-            lptr->count--;
+            void* ptr = list_internal_remove_from_head(lptr);
+            free(ptr);
         }
         else
         {
@@ -411,35 +334,15 @@ void list_remove_value(list_t* lptr, void* data, size_t sz)
         {
             if(idx >= lptr->count - 1)
             {
-                node_t* oldtail = lptr->tail;
-                lptr->tail = oldtail->previous;
-
-                if(lptr->tail != NULL)
-                {
-                    lptr->tail->next = NULL;
-                }
-
-                free(oldtail->data);
-                free(oldtail);
-
-                lptr->count--;
+                void* ptr = list_internal_remove_from_tail(lptr);
+                free(ptr);
                 break;
             }
 
             if(idx == 0)
             {
-                node_t* oldhead = lptr->head;
-                lptr->head = lptr->head->next;
-
-                if(lptr->head != NULL)
-                {
-                    lptr->head->previous = NULL;
-                }
-
-                free(oldhead->data);
-                free(oldhead);
-
-                lptr->count--;
+                void* ptr = list_internal_remove_from_head(lptr);
+                free(ptr);
                 break;
             }
 
@@ -681,4 +584,72 @@ list_t* list_join(list_t* lptrFirst, list_t* lptrSecond)
     }
 
     return NULL;
+}
+
+void* list_internal_remove_from_head(list_t* lptr)
+{
+    node_t* oldhead = lptr->head;
+    void* ptr = oldhead->data;
+    lptr->head = lptr->head->next;
+
+    if(lptr->head != NULL)
+    {
+        lptr->head->previous = NULL;
+    }
+
+    free(oldhead->data);
+    free(oldhead);
+
+    lptr->count--;
+    return ptr;
+}
+
+void* list_internal_remove_from_tail(list_t* lptr)
+{
+    node_t* oldtail = lptr->tail;
+    void* ptr = oldtail->data;
+
+    lptr->tail = oldtail->previous;
+
+    if(lptr->tail != NULL)
+    {
+        lptr->tail->next = NULL;
+    }
+
+    free(oldtail);
+    lptr->count--;
+
+    return ptr;
+}
+
+void list_internal_add_to_head(list_t* lptr, node_t* ptr)
+{
+    if(lptr->count == 0)
+    {
+        lptr->iterator = lptr->head = lptr->tail = ptr;
+    }
+    else
+    {
+        lptr->head->previous = ptr;
+        ptr->next = lptr->head;
+        lptr->head = ptr;
+    }
+
+    lptr->count++;
+}
+
+void list_internal_add_to_tail(list_t* lptr, node_t* ptr)
+{
+    if(lptr->count == 0)
+    {
+        lptr->iterator = lptr->head = lptr->tail = ptr;
+    }
+    else
+    {
+        lptr->tail->next = ptr;
+        ptr->previous = lptr->tail;
+        lptr->tail = ptr;
+    }
+
+    lptr->count++;
 }

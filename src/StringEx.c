@@ -151,11 +151,11 @@ char* strsegmentreverse(char* str, size_t start, size_t term)
     return str;
 }
 
-long long strindexofsubstr(char* str, const char* substr)
+long strindexofsubstr(const char* str, const char* substr)
 {
-    long long result = -1;
+    long result = -1;
 
-    char* pdest = (char*)strstr( str, substr );
+    char* pdest = (char*)strstr( str, substr);
 
     if(pdest == 0)
     {
@@ -167,7 +167,7 @@ long long strindexofsubstr(char* str, const char* substr)
     return result;
 }
 
-long long strindexofchar(char* str, const char ch)
+long strindexofchar(char* str, const char ch)
 {
     for (int ctr = 0; str[ctr] != '\0'; ctr++)
     {
@@ -180,13 +180,13 @@ long long strindexofchar(char* str, const char ch)
     return -1;
 }
 
-size_t strcountsubstr(char* str, const char* substr)
+size_t strcountsubstr(const char* str, const char* substr)
 {
 	size_t ctr = 0;
 
 	size_t offset = strlen(substr);
 
-	char* ptr = str;
+    const char* ptr = str;
 
 	bool contiue_scan = true;
 
@@ -305,8 +305,8 @@ char* stralltrim(char* str)
 
 char* strremsubstrfirst(char* str, const char* substr)
 {
-    int pos = -1;
-    int offset = strlen(substr);
+    long pos = -1;
+    long offset = strlen(substr);
 
     pos = strindexofsubstr(str, substr);
 
@@ -320,8 +320,8 @@ char* strremsubstrfirst(char* str, const char* substr)
 
 char* strremsubstrall(char* str, const char* substr)
 {
-    int pos = -1;
-    int offset = strlen(substr);
+    long pos = -1;
+    long offset = strlen(substr);
 
     pos = strindexofsubstr(str, substr);
 
@@ -346,7 +346,7 @@ char* strremsubstrat(char* str, size_t pos, size_t len)
 
 char* strremcharfirst(char* str, const char oldchar)
 {
-    int pos = strindexofchar(str, oldchar);
+    long pos = strindexofchar(str, oldchar);
     strcpy(str+pos, str+pos+1);
     str[strlen(str) - 1] = 0;
     return str;
@@ -354,7 +354,7 @@ char* strremcharfirst(char* str, const char oldchar)
 
 char* strremcharall(char* str, const char oldchar)
 {
-    int pos = strindexofchar(str, oldchar);
+    long pos = strindexofchar(str, oldchar);
 
     while(pos >= 0)
     {
@@ -430,7 +430,7 @@ char* strrepsubstrfirst(char* str, const char* oldsubstr, const char* newsubstr)
 
     ctr = pos + oldslen;
 
-    while(str[ctr] != NULL)
+    while(str[ctr] != 0)
     {
         buffer[copy_pos] = str[ctr];
         copy_pos++;
@@ -566,7 +566,7 @@ void strsplitkeyvalue(const char* str, const char* delimiter, char **key, char *
         return;
     }
 
-    long pos = (size_t)strindexofsubstr(str, delimiter);
+    long pos = strindexofsubstr(str, delimiter);
 
     if(pos < 0)
     {

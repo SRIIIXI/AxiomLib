@@ -51,6 +51,8 @@ typedef struct stack_t
     pthread_mutex_t mutex;
 }stack_t;
 
+void* stack_internal_remove_tail(stack_t* sptr);
+
 stack_t *stack_allocate(stack_t* sptr)
 {
     sptr = (stack_t*)calloc(1, sizeof(stack_t));
@@ -72,10 +74,8 @@ void stack_clear(stack_t* sptr)
 
         while(sptr->count > 0)
         {
-            node_t* oldtail = sptr->tail;
-            sptr->tail->next = NULL;
-            sptr->count--;
-            free(oldtail);
+            void* ptr = stack_internal_remove_tail(sptr);
+            free(ptr);
         }
 
         pthread_mutex_unlock(&sptr->mutex);
@@ -94,10 +94,8 @@ void stack_free(stack_t* sptr)
 
         while(sptr->count > 0)
         {
-            node_t* oldtail = sptr->tail;
-            sptr->tail->next = NULL;
-            sptr->count--;
-            free(oldtail);
+            void* ptr = stack_internal_remove_tail(sptr);
+            free(ptr);
         }
 
         pthread_mutex_unlock(&sptr->mutex);
@@ -138,11 +136,7 @@ void* stack_pop(stack_t* sptr)
         return NULL;
     }
 
-    node_t* oldtail = sptr->tail;
-    void* ptr = oldtail->data;
-    sptr->tail->next = NULL;
-    free(oldtail);
-    sptr->count--;
+    void* ptr = stack_internal_remove_tail(sptr);
 
     return ptr;
 }
@@ -155,4 +149,15 @@ long stack_item_count(stack_t *sptr)
     }
 
     return 0;
+}
+
+void* stack_internal_remove_tail(stack_t* sptr)
+{
+    node_t* oldtail = sptr->tail;
+    void* ptr = oldtail->data;
+    sptr->tail->next = NULL;
+    free(oldtail);
+    sptr->count--;
+
+    return ptr;
 }
