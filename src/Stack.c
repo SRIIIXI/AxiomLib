@@ -109,8 +109,10 @@ void stack_push(stack_t* sptr, void* data, size_t sz)
 {
     if(sptr == NULL)
     {
-        sptr = stack_allocate(sptr);
+        return;
     }
+
+    pthread_mutex_lock(&sptr->mutex);
 
     node_t* ptr = (node_t*)calloc(1, sizeof(node_t));
     ptr->data = calloc(1, sz);
@@ -127,6 +129,8 @@ void stack_push(stack_t* sptr, void* data, size_t sz)
     }
 
     sptr->count++;
+
+    pthread_mutex_unlock(&sptr->mutex);
 }
 
 void* stack_pop(stack_t* sptr)
@@ -136,7 +140,11 @@ void* stack_pop(stack_t* sptr)
         return NULL;
     }
 
+    pthread_mutex_lock(&sptr->mutex);
+
     void* ptr = stack_internal_remove_tail(sptr);
+
+    pthread_mutex_unlock(&sptr->mutex);
 
     return ptr;
 }

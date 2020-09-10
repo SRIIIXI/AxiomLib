@@ -145,13 +145,6 @@ void list_insert(list_t* lptr, void* data, size_t sz, long pos)
 	{
         return;
 	}
-	else
-	{
-        if (pos > lptr->count || pos < 0)
-		{
-            return;
-		}
-	}
 
     pthread_mutex_lock(&lptr->mutex);
 
@@ -162,7 +155,7 @@ void list_insert(list_t* lptr, void* data, size_t sz, long pos)
     memcpy(ptr->data, data, sz);
     ptr->size = sz;
 
-    if(pos == 0)
+    if(pos <= 0)
     {
         list_internal_add_to_head(lptr, ptr);
         pthread_mutex_unlock(&lptr->mutex);

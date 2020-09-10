@@ -89,6 +89,10 @@ string_list_t* str_list_allocate_from_string(string_list_t* lptr, const char* st
     memcpy(ptr, str, str_len);
 
     lptr = (string_list_t*)calloc(1, sizeof(string_list_t));
+    lptr->count = 0;
+    lptr->head = lptr->tail = NULL;
+    lptr->iterator = NULL;
+    pthread_mutex_init(&lptr->mutex, NULL);
 
     if(lptr == NULL)
     {
@@ -102,7 +106,12 @@ string_list_t* str_list_allocate_from_string(string_list_t* lptr, const char* st
 
     while(temp_ptr != NULL)
     {
-        str_list_add_to_tail(lptr, temp_ptr);
+        node_t* node_ptr = NULL;
+        node_ptr = str_list_internal_create_node(temp_ptr);
+        lptr->tail->next = node_ptr;
+        node_ptr->previous = lptr->tail;
+        lptr->tail = node_ptr;
+        lptr->count++;
         temp_ptr = strtok(NULL, delimiter);
     }
 
@@ -123,12 +132,14 @@ void str_list_clear(string_list_t* lptr)
     }
     else
     {
-        while(lptr->count > 0)
+       pthread_mutex_lock(&lptr->mutex);
+
+       while(lptr->count > 0)
         {
-            str_list_remove_from_tail(lptr);
+            str_list_remove_at(lptr, lptr->count-1);
         }
 
-        free(lptr);
+       pthread_mutex_unlock(&lptr->mutex);
     }
 }
 
@@ -140,59 +151,22 @@ void str_list_free(string_list_t* lptr)
     }
     else
     {
+        pthread_mutex_lock(&lptr->mutex);
+
         while(lptr->count > 0)
         {
-            str_list_remove_from_tail(lptr);
+            str_list_remove_at(lptr, lptr->count-1);
         }
 
+        pthread_mutex_unlock(&lptr->mutex);
+        pthread_mutex_destroy(&lptr->mutex);
         free(lptr);
     }
 }
 
-void str_list_add_to_head(string_list_t* lptr, char* data)
+void str_list_add(string_list_t* lptr, char* data)
 {
-    if(lptr == NULL)
-    {
-        return;
-    }
-
-    node_t* ptr = str_list_internal_create_node(data);
-
-    if(lptr->count == 0)
-    {
-        lptr->iterator = lptr->head = lptr->tail = ptr;
-    }
-    else
-    {
-        lptr->head->previous = ptr;
-        ptr->next = lptr->head;
-        lptr->head = ptr;
-    }
-
-    lptr->count++;
-}
-
-void str_list_add_to_tail(string_list_t* lptr, char* data)
-{
-    if(lptr == NULL)
-    {
-        return;
-    }
-
-    node_t* ptr = str_list_internal_create_node(data);
-
-    if(lptr->count == 0)
-    {
-        lptr->iterator = lptr->head = lptr->tail = ptr;
-    }
-    else
-    {
-        lptr->tail->next = ptr;
-        ptr->previous = lptr->tail;
-        lptr->tail = ptr;
-    }
-
-    lptr->count++;
+    str_list_insert(lptr, data, LONG_MAX);
 }
 
 void str_list_insert(string_list_t* lptr, char* data, long pos)
@@ -202,15 +176,42 @@ void str_list_insert(string_list_t* lptr, char* data, long pos)
         return;
     }
 
+    pthread_mutex_lock(&lptr->mutex);
+
+    node_t* ptr = NULL;
+    ptr = str_list_internal_create_node(data);
+
     if(pos <= 0)
     {
-        str_list_add_to_head(lptr, data);
+        if(lptr->count == 0)
+        {
+            lptr->iterator = lptr->head = lptr->tail = ptr;
+        }
+        else
+        {
+            lptr->head->previous = ptr;
+            ptr->next = lptr->head;
+            lptr->head = ptr;
+        }
+
+        lptr->count++;
         return;
     }
 
     if (pos >= lptr->count - 1)
     {
-        str_list_add_to_tail(lptr, data);
+        if(lptr->count == 0)
+        {
+            lptr->iterator = lptr->head = lptr->tail = ptr;
+        }
+        else
+        {
+            lptr->tail->next = ptr;
+            ptr->previous = lptr->tail;
+            lptr->tail = ptr;
+        }
+
+        lptr->count++;
         return;
     }
 
@@ -220,8 +221,6 @@ void str_list_insert(string_list_t* lptr, char* data, long pos)
     {
         if(pos == idx)
         {
-            node_t* ptr = NULL;
-            ptr = str_list_internal_create_node(data);
 
             node_t* prev = curptr->previous;
             node_t* next = curptr->next;
@@ -238,46 +237,8 @@ void str_list_insert(string_list_t* lptr, char* data, long pos)
 
         idx++;
     }
-}
 
-void str_list_remove_from_head(string_list_t* lptr)
-{
-    if(lptr == NULL)
-    {
-        return;
-    }
-
-    node_t* oldhead = lptr->head;
-    lptr->head = lptr->head->next;
-
-    if(lptr->head != NULL)
-    {
-        lptr->head->previous = NULL;
-    }
-
-    free(oldhead->data);
-    free(oldhead);
-    lptr->count--;
-}
-
-void str_list_remove_from_tail(string_list_t* lptr)
-{
-    if(lptr == NULL)
-    {
-        return;
-    }
-
-    node_t* oldtail = lptr->tail;
-    lptr->tail = oldtail->previous;
-
-    if(lptr->tail != NULL)
-    {
-        lptr->tail->next = NULL;
-    }
-
-    free(oldtail->data);
-    free(oldtail);
-    lptr->count--;
+    pthread_mutex_unlock(&lptr->mutex);
 }
 
 void str_list_remove(string_list_t* lptr, const char* node)
@@ -287,18 +248,40 @@ void str_list_remove(string_list_t* lptr, const char* node)
         return;
     }
 
+    pthread_mutex_lock(&lptr->mutex);
+
     for(node_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next)
     {
         if(strcmp(node, curptr->data) == 0 )
         {
             if(curptr->next == NULL)
             {
-                str_list_remove_from_tail(lptr);
+                node_t* oldtail = lptr->tail;
+                lptr->tail = oldtail->previous;
+
+                if(lptr->tail != NULL)
+                {
+                    lptr->tail->next = NULL;
+                }
+
+                free(oldtail->data);
+                free(oldtail);
+                lptr->count--;
             }
 
             if(curptr->previous == NULL)
             {
-                str_list_remove_from_head(lptr);
+                node_t* oldhead = lptr->head;
+                lptr->head = lptr->head->next;
+
+                if(lptr->head != NULL)
+                {
+                    lptr->head->previous = NULL;
+                }
+
+                free(oldhead->data);
+                free(oldhead);
+                lptr->count--;
             }
 
             node_t* prev = curptr->previous;
@@ -319,6 +302,8 @@ void str_list_remove(string_list_t* lptr, const char* node)
             break;
         }
     }
+
+    pthread_mutex_unlock(&lptr->mutex);
 }
 
 void str_list_remove_at(string_list_t* lptr, long pos)
@@ -333,39 +318,65 @@ void str_list_remove_at(string_list_t* lptr, long pos)
         return;
     }
 
+    pthread_mutex_lock(&lptr->mutex);
+
     if(pos == 0)
     {
-        str_list_remove_from_head(lptr);
-        return;
-    }    
-    
-    if(pos == lptr->count -1)
-    {
-        str_list_remove_from_tail(lptr);
-        return;
-    }
+        node_t* oldhead = lptr->head;
+        lptr->head = lptr->head->next;
 
-    long idx = 1;
-    for(node_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next, idx++)
-    {
-        if(idx == pos)
+        if(lptr->head != NULL)
         {
-            node_t* prev = curptr->previous;
-            node_t* next = curptr->next;
+            lptr->head->previous = NULL;
+        }
 
-            prev->next = next;
-            next->previous = prev;
+        free(oldhead->data);
+        free(oldhead);
+        lptr->count--;
+    }
+    else
+    {
+        if(pos == lptr->count -1)
+        {
+            node_t* oldtail = lptr->tail;
+            lptr->tail = oldtail->previous;
 
-            free(curptr->data);
-            free(curptr);
+            if(lptr->tail != NULL)
+            {
+                lptr->tail->next = NULL;
+            }
 
+            free(oldtail->data);
+            free(oldtail);
             lptr->count--;
-            break;
+        }
+        else
+        {
+            long idx = 1;
+            for(node_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next, idx++)
+            {
+                if(idx == pos)
+                {
+                    node_t* prev = curptr->previous;
+                    node_t* next = curptr->next;
+
+                    prev->next = next;
+                    next->previous = prev;
+
+                    free(curptr->data);
+                    free(curptr);
+
+                    lptr->count--;
+                    break;
+                }
+            }
         }
     }
+
+    pthread_mutex_unlock(&lptr->mutex);
 }
 
-long str_list_index_of(string_list_t* lptr, const char* node)
+long str_list_index_of(string_list_t* lptr, const char* data)
 {
     if(lptr == NULL)
     {
@@ -383,7 +394,7 @@ long str_list_index_of(string_list_t* lptr, const char* node)
 
     while (curptr)
     {
-        if (strcmp(curptr->data, node) == 0)
+        if (strcmp(curptr->data, data) == 0)
         {
             return idx;
         }
@@ -395,7 +406,7 @@ long str_list_index_of(string_list_t* lptr, const char* node)
     return -1;
 }
 
-long str_list_index_of_like(string_list_t* lptr, const char* node)
+long str_list_index_of_like(string_list_t* lptr, const char* data)
 {
     if (lptr == NULL)
     {
@@ -413,7 +424,7 @@ long str_list_index_of_like(string_list_t* lptr, const char* node)
 
     while (curptr)
     {
-        if (strstr(curptr->data, node))
+        if (strstr(curptr->data, data))
         {
             return idx;
         }
@@ -423,12 +434,6 @@ long str_list_index_of_like(string_list_t* lptr, const char* node)
     }
 
     return -1;
-}
-
-void str_list_remove_value(string_list_t* lptr, char* data)
-{  
-    long index = str_list_index_of(lptr, data);
-    str_list_remove_at(lptr, index);
 }
 
 long str_list_item_count(string_list_t* lptr)

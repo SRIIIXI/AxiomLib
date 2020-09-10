@@ -44,16 +44,16 @@ char* strfromwstr(const wchar_t* wstr)
 		return NULL;
 	}
 
-    size_t wlen = 0;
+    long wlen = 0;
     char* str = NULL;
 
     for (wlen = 0; wstr[wlen] != '\0'; wlen++) {}
 
-    str = (char*)calloc(1, wlen+1);
+    str = (char*)calloc(1, (unsigned long)wlen+1);
 
     if (str != NULL)
     {
-        for (size_t idx = 0; idx < wlen; idx++)
+        for (long idx = 0; idx < wlen; idx++)
         {
             str[idx] = (char)wstr[idx];
         }
@@ -62,9 +62,9 @@ char* strfromwstr(const wchar_t* wstr)
     return str;
 }
 
-char* strfromint(size_t num)
+char* strfromint(long num)
 {
-	char* ptr = (char*)calloc(1, (size_t)32);
+    char* ptr = (char*)calloc(1, (unsigned long)32);
 
 	if (ptr == NULL)
 	{
@@ -72,14 +72,14 @@ char* strfromint(size_t num)
 	}
 
 	int sign = 1;
-    size_t remainder = 1;
-    size_t dividend = num;
-	size_t ctr = 0;
+    long remainder = 1;
+    long dividend = num;
+    long ctr = 0;
 
 	if (num < 1)
 	{
 		sign = -1;
-        dividend = dividend*(size_t)(-1);
+        dividend = dividend*(long)(-1);
 	}
 
     while (dividend && ctr < 32)
@@ -87,7 +87,7 @@ char* strfromint(size_t num)
 		remainder = dividend % 10;
 		dividend = dividend / 10;
 
-        ptr[ctr] = (size_t)(remainder + 48);
+        ptr[ctr] = (char)(remainder + 48);
 		ctr++;
 	}
 
@@ -100,7 +100,7 @@ char* strfromint(size_t num)
 		ctr--;
 	}
 
-	size_t start = 0;
+    long start = 0;
 
 	while (start < ctr)
 	{
@@ -137,7 +137,7 @@ char* strreverse(char* ptr)
 	return ptr;
 }
 
-char* strsegmentreverse(char* str, size_t start, size_t term)
+char* strsegmentreverse(char* str, long start, long term)
 {
 	while (start < term)
 	{
@@ -180,11 +180,11 @@ long strindexofchar(char* str, const char ch)
     return -1;
 }
 
-size_t strcountsubstr(const char* str, const char* substr)
+long strcountsubstr(const char* str, const char* substr)
 {
-	size_t ctr = 0;
+    long ctr = 0;
 
-	size_t offset = strlen(substr);
+    long offset = (long)strlen(substr);
 
     const char* ptr = str;
 
@@ -209,11 +209,11 @@ size_t strcountsubstr(const char* str, const char* substr)
     return ctr;
 }
 
-size_t strcountchar(char* str, const char ch)
+long strcountchar(char* str, const char ch)
 {
-	size_t ctr = 0;
+    long ctr = 0;
 
-	for (int index = 0; str[index] != '\0'; index++)
+    for (long index = 0; str[index] != '\0'; index++)
 	{
 		if (str[index] == ch)
 		{
@@ -226,7 +226,7 @@ size_t strcountchar(char* str, const char ch)
 
 extern char* strtolower(char* str)
 {
-    for (size_t ctr = 0; str[ctr] != '\0'; ctr++)
+    for (long ctr = 0; str[ctr] != '\0'; ctr++)
     {
         if (str[ctr] >= 65 && str[ctr] <= 90)
         {
@@ -239,7 +239,7 @@ extern char* strtolower(char* str)
 
 extern char* strtoupper(char* str)
 {
-    for (size_t ctr = 0; str[ctr] != '\0'; ctr++)
+    for (long ctr = 0; str[ctr] != '\0'; ctr++)
     {
         if (str[ctr] >= 97 && str[ctr] <= 122)
         {
@@ -254,7 +254,7 @@ char* strlefttrim(char* str)
 {
     char *ptr = str;
 
-    int ctr = 0;
+    long ctr = 0;
 
     while (isspace(*ptr))
     {
@@ -279,9 +279,9 @@ char* strlefttrim(char* str)
 
 char* strrighttrim(char* str)
 {
-    size_t len = strlen(str);
+    long len = (long)strlen(str);
 
-    for (int ctr = len - 1; ctr > -1; ctr--)
+    for (long ctr = len - 1; ctr > -1; ctr--)
     {
         if (isspace(str[ctr]))
         {
@@ -306,14 +306,14 @@ char* stralltrim(char* str)
 char* strremsubstrfirst(char* str, const char* substr)
 {
     long pos = -1;
-    long offset = strlen(substr);
+    long offset = (long)strlen(substr);
 
     pos = strindexofsubstr(str, substr);
 
     if(pos >= 0)
     {
         strcpy(str+pos, str+pos+offset);
-        str[strlen(str) - offset] = 0;
+        str[strlen(str) - (unsigned long)offset] = 0;
     }
     return str;
 }
@@ -321,25 +321,25 @@ char* strremsubstrfirst(char* str, const char* substr)
 char* strremsubstrall(char* str, const char* substr)
 {
     long pos = -1;
-    long offset = strlen(substr);
+    long offset = (long)strlen(substr);
 
     pos = strindexofsubstr(str, substr);
 
     while(pos >= 0)
     {
         strcpy(str+pos, str+pos+offset);
-        str[strlen(str) - offset] = 0;
+        str[strlen(str) - (unsigned long)offset] = 0;
         pos = strindexofsubstr(str, substr);
     }
     return str;
 }
 
-char* strremsubstrat(char* str, size_t pos, size_t len)
+char* strremsubstrat(char* str, long pos, long len)
 {
-    if(pos >= 0 && pos <= (strlen(str)-1) )
+    if(pos >= 0 && pos <= (long)(strlen(str)-1) )
     {
         strcpy(str+pos, str+pos+len);
-        str[strlen(str) - len] = 0;
+        str[strlen(str) - (unsigned long)len] = 0;
     }
     return str;
 }
@@ -365,7 +365,7 @@ char* strremcharall(char* str, const char oldchar)
     return str;
 }
 
-char* strremcharat(char* str, size_t pos)
+char* strremcharat(char* str, long pos)
 {
     strcpy(str+pos, str+pos+1);
     str[strlen(str) - 1] = 0;
@@ -381,33 +381,33 @@ char* strrepsubstrfirst(char* str, const char* oldsubstr, const char* newsubstr)
 
     char* buffer = NULL;
 
-    long long pos = strindexofsubstr(str, oldsubstr);
+    long pos = strindexofsubstr(str, oldsubstr);
 
     if(pos < 0)
     {
         return NULL;
     }
 
-    size_t slen = strlen(str);
-    size_t oldslen = strlen(oldsubstr);
-    size_t newslen = strlen(newsubstr);
+    long slen = (long)strlen(str);
+    long oldslen = (long)strlen(oldsubstr);
+    long newslen = (long)strlen(newsubstr);
 
     if(oldslen < 1 || newslen < 1)
     {
         return NULL;
     }
 
-    size_t new_buffer_len = slen + (newslen - oldslen);
+    long new_buffer_len = slen + (newslen - oldslen);
 
-    buffer = (char*)calloc(new_buffer_len + 1, sizeof(char));
+    buffer = (char*)calloc((unsigned long)(new_buffer_len + 1), sizeof(char));
 
     if(buffer == NULL)
     {
         return NULL;
     }
 
-    size_t copy_pos;
-    size_t ctr;
+    long copy_pos;
+    long ctr;
 
     copy_pos = 0;
     ctr = 0;
@@ -449,16 +449,16 @@ char* strrepsubstrall(char* str, const char* oldsubstr, const char* newsubstr)
 		return NULL;
 	}
 
-	size_t slen = strlen(str);
-	size_t oldslen = strlen(oldsubstr);
-	size_t newslen = strlen(newsubstr);
+    long slen = (long)strlen(str);
+    long oldslen = (long)strlen(oldsubstr);
+    long newslen = (long)strlen(newsubstr);
 
 	if(oldslen < 1 || newslen < 1)
 	{
 		return NULL;
 	}
 
-	size_t numsubstr = strcountsubstr(str, oldsubstr);
+    long numsubstr = strcountsubstr(str, oldsubstr);
 
 	if(numsubstr < 1)
 	{
@@ -467,7 +467,7 @@ char* strrepsubstrall(char* str, const char* oldsubstr, const char* newsubstr)
 
 	if(newslen > oldslen)
 	{
-		buffer = (char*)calloc(slen + (newslen - oldslen)*numsubstr + 1, sizeof(char));
+        buffer = (char*)calloc((unsigned long)(slen + (newslen - oldslen)*numsubstr + 1), sizeof(char));
 
 		if(buffer == NULL)
 		{
@@ -479,12 +479,12 @@ char* strrepsubstrall(char* str, const char* oldsubstr, const char* newsubstr)
 		buffer = str;
 	}
 
-	long long pos = strindexofsubstr(str, oldsubstr);
+    long pos = strindexofsubstr(str, oldsubstr);
 
 	while(pos > -1)
 	{
-		size_t idx = 0;
-		size_t ctr = 0;
+        long idx = 0;
+        long ctr = 0;
 
 		for(idx = 0; idx < slen; ++idx)
 		{
@@ -545,11 +545,11 @@ char* strrepcharall(char* str, const char oldchar, const char newchar)
     return NULL;
 }
 
-char* strrepcharat(char* str, const char newchar, size_t pos)
+char* strrepcharat(char* str, const char newchar, long pos)
 {
     if(str != NULL)
     {
-        if(pos < strlen(str))
+        if(pos < (long)strlen(str))
         {
             str[pos] = newchar;
             return str;
@@ -573,30 +573,30 @@ void strsplitkeyvalue(const char* str, const char* delimiter, char **key, char *
         return;
     }
 
-    size_t val_start = ((size_t)pos + strlen(delimiter));
-    size_t val_end = strlen(str);
+    long val_start = pos + (long)strlen(delimiter);
+    long val_end = (long)strlen(str);
 
     if(pos > 0)
     {
-        *key = (char*)calloc(1, (size_t)(pos + 1));
+        *key = (char*)calloc(1, (unsigned long)(pos + 1));
         strcpy(*key, &str[pos]);
     }
 
-    *value = (char*)calloc(1, val_end - val_start + 1);
+    *value = (char*)calloc(1, (unsigned long)(val_end - val_start + 1));
     strcpy(*value, &str[val_start]);
 
 }
 
-extern char** strsplitsubstr(const char* str, const char* delimiter, size_t *numsubstr)
+extern char** strsplitsubstr(const char* str, const char* delimiter, long *numsubstr)
 {
 	if(str == NULL || delimiter == NULL)
 	{
 		return NULL;
 	}
 
-	size_t substr_count = strcountsubstr(str, delimiter);
-	size_t str_len = strlen(str);
-	size_t index = 0;
+    long substr_count = strcountsubstr(str, delimiter);
+    long str_len = (long)strlen(str);
+    long index = 0;
 
 	*numsubstr = substr_count;
 
@@ -605,18 +605,18 @@ extern char** strsplitsubstr(const char* str, const char* delimiter, size_t *num
 		return NULL;
 	}
 
-	char* ptr = (char*)calloc(1, str_len);
+    char* ptr = (char*)calloc(1, (unsigned long)str_len);
 
 	if(ptr == NULL)
 	{
 		return NULL;
 	}
 
-	memcpy(ptr, str, str_len);
+    memcpy(ptr, str, (unsigned long)str_len);
 
 	char** buffer = NULL;
 
-	buffer = (char*)calloc(1, sizeof(char) * substr_count + 1);
+    buffer = (char*)calloc(1, (unsigned long)(sizeof(char) * substr_count + 1));
 
 	if(buffer == NULL)
 	{
@@ -630,16 +630,16 @@ extern char** strsplitsubstr(const char* str, const char* delimiter, size_t *num
 
 	while(temp_ptr != NULL)
 	{
-		size_t temp_str_len = strlen(temp_ptr);
+        long temp_str_len = (long)strlen(temp_ptr);
 
-		buffer[index] = (char*)calloc(1, sizeof(char) * (temp_str_len + 1));
+        buffer[index] = (char*)calloc(1, sizeof(char) * (unsigned long)(temp_str_len + 1));
 
 		if(buffer[index] == NULL)
 		{
 			return NULL;
 		}
 
-		memcpy(buffer[index], temp_ptr, temp_str_len);
+        memcpy(buffer[index], temp_ptr, (unsigned long)temp_str_len);
 
 		temp_ptr = strtok(NULL, delimiter);
 		index++;
@@ -648,7 +648,7 @@ extern char** strsplitsubstr(const char* str, const char* delimiter, size_t *num
 	return buffer;
 }
 
-extern char** strsplitchar(const char* str, const char delimiter, size_t *numsubstr)
+extern char** strsplitchar(const char* str, const char delimiter, long *numsubstr)
 {
 	char temp_delimiter[2] = {delimiter, 0};
 
@@ -667,15 +667,14 @@ extern char* strjoinwithchar(const char** strlist, const char delimiter)
 	return strjoinwithsubstr(strlist, temp_delimiter);
 }
 
-void strfreelist(char** strlist, size_t numsubstr)
+void strfreelist(char** strlist, long numsubstr)
 {
-	size_t index = numsubstr;
+    long index = numsubstr;
 	
 	while(index > 0)
 	{
 		if(strlist[index - 1] != NULL)
 		{
-			char* ptr =  strlist[index - 1];
 			free(strlist[index - 1]);
 		}
 

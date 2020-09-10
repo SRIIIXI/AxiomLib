@@ -46,15 +46,11 @@ extern LIBRARY_EXPORT string_list_t* str_list_allocate_from_string(string_list_t
 extern LIBRARY_EXPORT void str_list_clear(string_list_t* lptr);
 extern LIBRARY_EXPORT void str_list_free(string_list_t* lptr);
 
-extern LIBRARY_EXPORT void str_list_add_to_head(string_list_t* lptr, char* data);
-extern LIBRARY_EXPORT void str_list_add_to_tail(string_list_t* lptr, char* data);
+extern LIBRARY_EXPORT void str_list_add(string_list_t* lptr, char* data);
 extern LIBRARY_EXPORT void str_list_insert(string_list_t* lptr, char* data, long pos);
 
-extern LIBRARY_EXPORT void str_list_remove_from_head(string_list_t* lptr);
-extern LIBRARY_EXPORT void str_list_remove_from_tail(string_list_t* lptr);
-extern LIBRARY_EXPORT void str_list_remove(string_list_t* lptr, const char* node);
+extern LIBRARY_EXPORT void str_list_remove(string_list_t* lptr, const char* data);
 extern LIBRARY_EXPORT void str_list_remove_at(string_list_t* lptr, long pos);
-extern LIBRARY_EXPORT void str_list_remove_value(string_list_t* lptr, char* data);
 
 extern LIBRARY_EXPORT long str_list_item_count(string_list_t* lptr);
 extern LIBRARY_EXPORT long str_list_index_of(string_list_t* lptr, const char* data);

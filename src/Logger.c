@@ -39,6 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <time.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #define END_OF_LINE "\n"
 #define MAX_LOGGERS 512
@@ -53,6 +54,7 @@ typedef struct Logger
     size_t LogFileSizeMB;
     char FileName[1025];
     FILE* FileHandle;
+    pthread_mutex_t mutex;
 }Logger;
 
 void*	logger_allocate_default()
@@ -117,6 +119,7 @@ void*	logger_allocate(size_t flszmb, const char* dirpath)
     strcat(logger_ptr->FileName, temp);
     strcat(logger_ptr->FileName, ".log");
 
+    pthread_mutex_init(&logger_ptr->mutex, NULL);
     return logger_ptr;
 }
 
@@ -129,16 +132,21 @@ void logger_release(void* loggerptr)
         return;
     }
 
+    pthread_mutex_lock(&logger_ptr->mutex);
+
     if(logger_ptr->FileHandle)
     {
         fflush(logger_ptr->FileHandle);
         fclose(logger_ptr->FileHandle);
     }
 
+    pthread_mutex_unlock(&logger_ptr->mutex);
+    pthread_mutex_destroy(&logger_ptr->mutex);
+
     free(logger_ptr);
 }
 
-bool logger_write(void* loggerptr, const char* logentry, LogLevel llevel, const char* func, const char* file, int line)
+bool logger_write(void* loggerptr, const char* logentry, LogLevel llevel, char* func, char* file, int line)
 {
     Logger* logger_ptr = (Logger*)loggerptr;
 
@@ -147,12 +155,15 @@ bool logger_write(void* loggerptr, const char* logentry, LogLevel llevel, const 
         return false;
     }
 
+    pthread_mutex_lock(&logger_ptr->mutex);
+
     if(logger_ptr->FileHandle == NULL)
     {
         logger_ptr->FileHandle = fopen(logger_ptr->FileName, "w");
 
         if(logger_ptr->FileHandle == NULL)
         {
+            pthread_mutex_unlock(&logger_ptr->mutex);
             return false;
         }
     }
@@ -179,6 +190,7 @@ bool logger_write(void* loggerptr, const char* logentry, LogLevel llevel, const 
 
         if(logger_ptr->FileHandle == NULL)
         {
+            pthread_mutex_unlock(&logger_ptr->mutex);
             return false;
         }
     }
@@ -217,10 +229,30 @@ bool logger_write(void* loggerptr, const char* logentry, LogLevel llevel, const 
     // Flush th contents
     fflush(logger_ptr->FileHandle);
 
+    pthread_mutex_unlock(&logger_ptr->mutex);
+
     return true;
 }
 
 void normalize_function_name(char* func_name)
 {
-    
+    int len = (int)strlen(func_name);
+
+    if(len < 2)
+    {
+        return;
+    }
+
+    int ctr = len - 1;
+
+    while(true)
+    {
+        func_name[ctr] = 0;
+        ctr--;
+        if(func_name[ctr] == '(')
+        {
+            func_name[ctr] = 0;
+            break;
+        }
+    }
 }

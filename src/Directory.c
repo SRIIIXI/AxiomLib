@@ -64,7 +64,7 @@ char* dir_get_parent_directory(const char* dirname)
 	{
 		parent_dir[ctr] = 0;
 		ctr--;
-		if(parent_dir[ctr] == '/' || parent_dir[ctr] == '\\')
+        if(parent_dir[ctr] == '/')
 		{
 			break;
 		}
