@@ -88,11 +88,13 @@ char* env_get_current_process_name(char* ptr)
     if(cmd_args)
     {
         str_list_clear(cmd_args);
+        str_list_free(cmd_args);
     }
 
     if(dir_tokens)
     {
         str_list_clear(dir_tokens);
+        str_list_free(dir_tokens);
     }
 
     return ptr;

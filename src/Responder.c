@@ -49,7 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define LPSOCKADDR sockaddr*
 
 #pragma pack(1)
-typedef struct responder
+typedef struct responder_t
 {
     bool			connected;
     SOCKET 			socket;
@@ -59,7 +59,7 @@ typedef struct responder
     size_t			prefetched_buffer_size;
     unsigned char*	prefetched_buffer;
     int             error_code;
-}responder;
+}responder_t;
 
 bool is_ip4_address(char* str);
 
@@ -129,22 +129,18 @@ bool is_ip4_address(char* str)
 }
 
 
-void* responder_create_socket(void* ptr, const char* servername, int serverport)
+responder_t *responder_create_socket(responder_t *ptr, const char* servername, int serverport)
 {
-    struct responder* responder_ptr =   (struct responder*)calloc(1, sizeof (struct responder));
-
-    ptr = responder_ptr;
-
-    if(!responder_ptr)
+    if(!ptr)
     {
         return  NULL;
     }
 
-    strncpy(responder_ptr->server_name, servername, 32);
-    responder_ptr->server_port = serverport;
+    strncpy(ptr->server_name, servername, 32);
+    ptr->server_port = serverport;
 
-    responder_ptr->server_address.sin_family = AF_INET;
-    responder_ptr->server_address.sin_port = htons(serverport);
+    ptr->server_address.sin_family = AF_INET;
+    ptr->server_address.sin_port = htons(serverport);
 
     u_long nRemoteAddr;
 
@@ -155,7 +151,7 @@ void* responder_create_socket(void* ptr, const char* servername, int serverport)
 
     if(!ip)
     {
-        struct hostent* pHE = gethostbyname(responder_ptr->server_name);
+        struct hostent* pHE = gethostbyname(ptr->server_name);
         if (pHE == 0)
         {
             nRemoteAddr = INADDR_NONE;
@@ -163,16 +159,16 @@ void* responder_create_socket(void* ptr, const char* servername, int serverport)
             return NULL;
         }
         nRemoteAddr = *((u_long*)pHE->h_addr_list[0]);
-        responder_ptr->server_address.sin_addr.s_addr = nRemoteAddr;
+        ptr->server_address.sin_addr.s_addr = nRemoteAddr;
     }
     else
     {
-         inet_pton (AF_INET, responder_ptr->server_name, &responder_ptr->server_address.sin_addr);
+         inet_pton (AF_INET, ptr->server_name, &ptr->server_address.sin_addr);
     }
 
-    responder_ptr->socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    ptr->socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-    if(responder_ptr->socket == INVALID_SOCKET)
+    if(ptr->socket == INVALID_SOCKET)
     {
         free(ptr);
         return NULL;
@@ -181,80 +177,70 @@ void* responder_create_socket(void* ptr, const char* servername, int serverport)
     return ptr;
 }
 
-void* responder_assign_socket(void* ptr, int inSocket)
+responder_t *responder_assign_socket(responder_t *ptr, int inSocket)
 {
-    struct responder* responder_ptr =   (struct responder*)calloc(1, sizeof (struct responder));
-
-    ptr = responder_ptr;
-
-    if(!responder_ptr)
+    if(!ptr)
     {
         return  NULL;
     }
 
-    responder_ptr->socket = inSocket;
-    responder_ptr->connected = true;
+    ptr->socket = inSocket;
+    ptr->connected = true;
     return ptr;
 }
 
-bool responder_connect_socket(void* ptr)
+bool responder_connect_socket(responder_t* ptr)
 {
-    struct responder* responder_ptr = (struct responder*)ptr;
-
-    if(!responder_ptr)
+    if(!ptr)
     {
         return  false;
     }
 
-    if(responder_ptr->connected == true)
+    if(ptr->connected == true)
 	{
 		return true;
 	}
 
     int returncode = -1;
 
-    returncode = connect(responder_ptr->socket,(struct sockaddr*)&responder_ptr->server_address, sizeof(struct sockaddr_in));
+    returncode = connect(ptr->socket,(struct sockaddr*)&ptr->server_address, sizeof(struct sockaddr_in));
 
     if(returncode == SOCKET_ERROR)
 	{
-        responder_ptr->error_code = errno;
-        shutdown(responder_ptr->socket, 2);
-        close(responder_ptr->socket);
-        responder_ptr->connected = false;
+        ptr->error_code = errno;
+        shutdown(ptr->socket, 2);
+        close(ptr->socket);
+        ptr->connected = false;
 		return false;
 	}
 
-    responder_ptr->connected = true;
+    ptr->connected = true;
 	return true;
 }
 
-bool responder_close_socket(void* ptr)
+bool responder_close_socket(responder_t* ptr)
 {
-    struct responder* responder_ptr = (struct responder*)ptr;
-
-    if(!responder_ptr)
+    if(!ptr)
     {
         return  false;
     }
 
-    if(responder_ptr->connected == false)
+    if(ptr->connected == false)
     {
         return true;
     }
 
-    shutdown(responder_ptr->socket, 2);
-    close(responder_ptr->socket);
+    shutdown(ptr->socket, 2);
+    close(ptr->socket);
 
-    responder_ptr->connected = false;
+    ptr->connected = false;
 
 	return false;
 }
 
-bool responder_receive_buffer(void* ptr, char** iobuffer, size_t len, bool alloc_buffer)
+bool responder_receive_buffer(responder_t* ptr, char** iobuffer, size_t len, bool alloc_buffer)
 {
-    struct responder* responder_ptr = (struct responder*)ptr;
-
-    if(!responder_ptr)
+    if(!ptr)
     {
         return  false;
     }
@@ -269,14 +255,14 @@ bool responder_receive_buffer(void* ptr, char** iobuffer, size_t len, bool alloc
         *iobuffer = (char*)calloc(1, len + 1);
     }
 
-    if(responder_ptr->prefetched_buffer_size > 0)
+    if(ptr->prefetched_buffer_size > 0)
     {
-        memcpy(*iobuffer, responder_ptr->prefetched_buffer, responder_ptr->prefetched_buffer_size);
-        bytesleft = len - responder_ptr->prefetched_buffer_size;
-        bufferpos = responder_ptr->prefetched_buffer_size;
-        responder_ptr->prefetched_buffer_size = 0;
-        free(responder_ptr->prefetched_buffer);
-        responder_ptr->prefetched_buffer = NULL;
+        memcpy(*iobuffer, ptr->prefetched_buffer, ptr->prefetched_buffer_size);
+        bytesleft = len - ptr->prefetched_buffer_size;
+        bufferpos = ptr->prefetched_buffer_size;
+        ptr->prefetched_buffer_size = 0;
+        free(ptr->prefetched_buffer);
+        ptr->prefetched_buffer = NULL;
 
         if(bytesleft < 1)
         {
@@ -292,13 +278,13 @@ bool responder_receive_buffer(void* ptr, char** iobuffer, size_t len, bool alloc
 
         if (buffer)
         {
-            bytesread = (ssize_t)recv(responder_ptr->socket, buffer, (int)bytesleft, 0);
+            bytesread = (ssize_t)recv(ptr->socket, buffer, (int)bytesleft, 0);
         }
 
         // Error or link down
         if(bytesread < 1 || buffer == NULL)
         {
-            responder_ptr->error_code = SOCKET_ERROR;
+            ptr->error_code = SOCKET_ERROR;
 
             if (buffer)
             {
@@ -315,7 +301,7 @@ bool responder_receive_buffer(void* ptr, char** iobuffer, size_t len, bool alloc
             }
 
             len	= 0;
-            responder_ptr->connected = false;
+            ptr->connected = false;
             return false;
         }
 
@@ -333,11 +319,9 @@ bool responder_receive_buffer(void* ptr, char** iobuffer, size_t len, bool alloc
     }
 }
 
-bool responder_receive_string(void* ptr, char** iostr, const char* delimeter)
+bool responder_receive_string(responder_t* ptr, char** iostr, const char* delimeter)
 {
-    struct responder* responder_ptr = (struct responder*)ptr;
-
-    if(!responder_ptr)
+    if(!ptr)
     {
         return  false;
     }
@@ -346,15 +330,15 @@ bool responder_receive_string(void* ptr, char** iostr, const char* delimeter)
     char*   current_line = NULL;
     char*   next_line = NULL;
 
-    if(responder_ptr->prefetched_buffer_size > 0)
+    if(ptr->prefetched_buffer_size > 0)
 	{
-        if(strstr((char*)responder_ptr->prefetched_buffer, delimeter) !=0 )
+        if(strstr((char*)ptr->prefetched_buffer, delimeter) !=0 )
 		{
-            strsplitkeyvalue((const char*)responder_ptr->prefetched_buffer, delimeter, &current_line, &next_line);
+            strsplitkeyvaluesubstr((const char*)ptr->prefetched_buffer, delimeter, &current_line, &next_line);
 
-            responder_ptr->prefetched_buffer = NULL;
-            free(responder_ptr->prefetched_buffer);
-            responder_ptr->prefetched_buffer_size = 0;
+            ptr->prefetched_buffer = NULL;
+            free(ptr->prefetched_buffer);
+            ptr->prefetched_buffer_size = 0;
 
             if(current_line != NULL)
             {
@@ -365,22 +349,22 @@ bool responder_receive_string(void* ptr, char** iostr, const char* delimeter)
 
             if(next_line != NULL)
             {
-                responder_ptr->prefetched_buffer_size = strlen(next_line);
-                responder_ptr->prefetched_buffer = (unsigned char*)calloc(1, (sizeof (unsigned char)*responder_ptr->prefetched_buffer_size) + 1);
-                strcpy((char*)responder_ptr->prefetched_buffer, next_line);
+                ptr->prefetched_buffer_size = strlen(next_line);
+                ptr->prefetched_buffer = (unsigned char*)calloc(1, (sizeof (unsigned char)*ptr->prefetched_buffer_size) + 1);
+                strcpy((char*)ptr->prefetched_buffer, next_line);
                 free(next_line);
             }
 
 			return true;
 		}
 
-        if(responder_ptr->prefetched_buffer_size > 0)
+        if(ptr->prefetched_buffer_size > 0)
         {
-            data = (char*)calloc(1, responder_ptr->prefetched_buffer_size + 1);
-            strcpy(data, (char*)responder_ptr->prefetched_buffer);
-            responder_ptr->prefetched_buffer_size = 0;
-            free(responder_ptr->prefetched_buffer);
-            responder_ptr->prefetched_buffer = NULL;
+            data = (char*)calloc(1, ptr->prefetched_buffer_size + 1);
+            strcpy(data, (char*)ptr->prefetched_buffer);
+            ptr->prefetched_buffer_size = 0;
+            free(ptr->prefetched_buffer);
+            ptr->prefetched_buffer = NULL;
         }
 	}
 
@@ -395,8 +379,8 @@ bool responder_receive_string(void* ptr, char** iostr, const char* delimeter)
                 free(*iostr);
             }
 
-            responder_ptr->connected = false;
-            responder_ptr->error_code = SOCKET_ERROR;
+            ptr->connected = false;
+            ptr->error_code = SOCKET_ERROR;
             return false;
         }
 
@@ -406,17 +390,17 @@ bool responder_receive_string(void* ptr, char** iostr, const char* delimeter)
 
         if(strstr(data, delimeter) != 0)
 		{
-            strsplitkeyvalue((const char*)responder_ptr->prefetched_buffer, delimeter, &current_line, &next_line);
+            strsplitkeyvaluesubstr((const char*)ptr->prefetched_buffer, delimeter, &current_line, &next_line);
 
             if(next_line != NULL)
             {
-                responder_ptr->prefetched_buffer_size = strlen(next_line);
+                ptr->prefetched_buffer_size = strlen(next_line);
             }
             
-            if(responder_ptr->prefetched_buffer_size > 0)
+            if(ptr->prefetched_buffer_size > 0)
             {
-                responder_ptr->prefetched_buffer = (unsigned char*)calloc(1, sizeof (unsigned char));
-                memcpy(responder_ptr->prefetched_buffer, next_line, responder_ptr->prefetched_buffer_size);
+                ptr->prefetched_buffer = (unsigned char*)calloc(1, sizeof (unsigned char));
+                memcpy(ptr->prefetched_buffer, next_line, ptr->prefetched_buffer_size);
                 free(next_line);
             }
 
@@ -431,9 +415,9 @@ bool responder_receive_string(void* ptr, char** iostr, const char* delimeter)
 	return true;
 }
 
-bool responder_send_buffer(void* ptr, const char* data, size_t len)
+bool responder_send_buffer(responder_t* ptr, const char* data, size_t len)
 {
-    struct responder* responder_ptr = (struct responder*)ptr;
+    struct responder_t* responder_ptr = (struct responder_t*)ptr;
 
     if(!responder_ptr)
     {
@@ -452,11 +436,9 @@ bool responder_send_buffer(void* ptr, const char* data, size_t len)
 	return true;
 }
 
-bool responder_send_string(void* ptr, const char* str)
+bool responder_send_string(responder_t* ptr, const char* str)
 {
-    struct responder* responder_ptr = (struct responder*)ptr;
-
-    if(!responder_ptr)
+    if(!ptr)
     {
         return  false;
     }
@@ -465,7 +447,7 @@ bool responder_send_string(void* ptr, const char* str)
 
     long sentsize =0;
 
-    sentsize = send(responder_ptr->socket, str, len, 0);
+    sentsize = send(ptr->socket, str, len, 0);
 
     if(sentsize == SOCKET_ERROR)
     {
@@ -475,42 +457,36 @@ bool responder_send_string(void* ptr, const char* str)
     return true;
 }
 
-size_t responder_read_size(void* ptr)
+size_t responder_read_size(responder_t *ptr)
 {
-    struct responder* responder_ptr = (struct responder*)ptr;
-
-    if(!responder_ptr)
+    if(!ptr)
     {
         return  false;
     }
 
-    return responder_ptr->prefetched_buffer_size;
+    return ptr->prefetched_buffer_size;
 }
 
-bool responder_is_connected(void* ptr)
+bool responder_is_connected(responder_t* ptr)
 {
-    struct responder* responder_ptr = (struct responder*)ptr;
-
-    if(!responder_ptr)
+    if(!ptr)
     {
         return  false;
     }
 
-    return responder_ptr->connected;
+    return ptr->connected;
 }
 
-int responder_get_socket(void* ptr)
+int responder_get_socket(responder_t *ptr)
 {
-    struct responder* responder_ptr = (struct responder*)ptr;
-
-    if(!responder_ptr)
+    if(!ptr)
     {
         return  false;
     }
 
-    if(responder_ptr->connected)
+    if(ptr->connected)
     {
-        return responder_ptr->socket;
+        return ptr->socket;
     }
 
     return -1;

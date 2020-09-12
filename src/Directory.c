@@ -114,17 +114,16 @@ char* dir_get_log_directory(char *dirname)
         return NULL;
     }
 
-    pid_t parent = getppid();
+    char wd_path[1025] = { 0 };
+    size_t wd_len = 1024;
+    getcwd(wd_path, wd_len);
 
-    if(parent == 0)
+    if(strstr(wd_path, "/root"))
     {
         strcpy(dirname, "/var/log/");
     }
     else
     {
-        char wd_path[1025] = { 0 };
-        size_t wd_len = 1024;
-        getcwd(wd_path, wd_len);
         char* parent_dir = dir_get_parent_directory(wd_path);
         strcat(dirname, parent_dir);
         strcat(dirname, "log/");
@@ -144,26 +143,33 @@ char* dir_get_config_directory(char *dirname)
     char *config_dir = (char*)calloc(2049, 1);
     config_dir = getcwd(config_dir, 2048);
 
-    size_t pos = 0;
-    pos = (size_t)strstr(config_dir, "/bin");
-
-    if(pos < 1)
+    if(strstr(config_dir, "/root"))
     {
-        for(int idx = strlen(config_dir)-1; config_dir[idx] != '/'; idx--)
-        {
-            config_dir[idx] = 0;
-        }
+        strcpy(dirname, "/etc/");
     }
     else
     {
-        for(int idx = pos; idx <= 2049; idx++)
+        size_t pos = 0;
+        pos = (size_t)strstr(config_dir, "/bin");
+
+        if(pos < 1)
         {
-            config_dir[idx] = 0;
+            for(int idx = strlen(config_dir)-1; config_dir[idx] != '/'; idx--)
+            {
+                config_dir[idx] = 0;
+            }
         }
+        else
+        {
+            for(int idx = pos; idx <= 2049; idx++)
+            {
+                config_dir[idx] = 0;
+            }
+        }
+        strcat(config_dir, "etc/");
+        strcpy(dirname, config_dir);
     }
 
-    strcat(config_dir, "etc/");
-    strcpy(dirname, config_dir);
     free(config_dir);
 
     return dirname;

@@ -49,22 +49,22 @@ static char log_level_names[5][16] = {"Information", "Error", "Warning", "Critic
 void normalize_function_name(char* func_name);
 
 #pragma pack(1)
-typedef struct Logger
+typedef struct logger_t
 {
     size_t LogFileSizeMB;
     char FileName[1025];
     FILE* FileHandle;
     pthread_mutex_t mutex;
-}Logger;
+}logger_t;
 
-void*	logger_allocate_default()
+logger_t*	logger_allocate_default()
 {
     return logger_allocate(10, NULL);
 }
 
-void*	logger_allocate(size_t flszmb, const char* dirpath)
+logger_t*	logger_allocate(size_t flszmb, const char* dirpath)
 {   
-    Logger* logger_ptr = (Logger*)calloc(1, sizeof (Logger));
+    logger_t* logger_ptr = (logger_t*)calloc(1, sizeof (logger_t));
 
     if(!logger_ptr)
     {
@@ -123,74 +123,70 @@ void*	logger_allocate(size_t flszmb, const char* dirpath)
     return logger_ptr;
 }
 
-void logger_release(void* loggerptr)
+void logger_release(logger_t* loggerptr)
 {
-    Logger* logger_ptr = (Logger*)loggerptr;
-
-    if(!logger_ptr)
+    if(!loggerptr)
     {
         return;
     }
 
-    pthread_mutex_lock(&logger_ptr->mutex);
+    pthread_mutex_lock(&loggerptr->mutex);
 
-    if(logger_ptr->FileHandle)
+    if(loggerptr->FileHandle)
     {
-        fflush(logger_ptr->FileHandle);
-        fclose(logger_ptr->FileHandle);
+        fflush(loggerptr->FileHandle);
+        fclose(loggerptr->FileHandle);
     }
 
-    pthread_mutex_unlock(&logger_ptr->mutex);
-    pthread_mutex_destroy(&logger_ptr->mutex);
+    pthread_mutex_unlock(&loggerptr->mutex);
+    pthread_mutex_destroy(&loggerptr->mutex);
 
-    free(logger_ptr);
+    free(loggerptr);
 }
 
-bool logger_write(void* loggerptr, const char* logentry, LogLevel llevel, char* func, char* file, int line)
+bool logger_write(logger_t* loggerptr, const char* logentry, LogLevel llevel, char* func, char* file, int line)
 {
-    Logger* logger_ptr = (Logger*)loggerptr;
-
-    if(!logger_ptr)
+    if(!loggerptr)
     {
         return false;
     }
 
-    pthread_mutex_lock(&logger_ptr->mutex);
+    pthread_mutex_lock(&loggerptr->mutex);
 
-    if(logger_ptr->FileHandle == NULL)
+    if(loggerptr->FileHandle == NULL)
     {
-        logger_ptr->FileHandle = fopen(logger_ptr->FileName, "w");
+        loggerptr->FileHandle = fopen(loggerptr->FileName, "w");
 
-        if(logger_ptr->FileHandle == NULL)
+        if(loggerptr->FileHandle == NULL)
         {
-            pthread_mutex_unlock(&logger_ptr->mutex);
+            pthread_mutex_unlock(&loggerptr->mutex);
             return false;
         }
     }
 
     // Check the file size
-    size_t sz = (size_t)ftell(logger_ptr->FileHandle);
+    size_t sz = (size_t)ftell(loggerptr->FileHandle);
 
     // If it exceeds the set size
-    if(sz >= logger_ptr->LogFileSizeMB*1024*1024)
+    if(sz >= loggerptr->LogFileSizeMB*1024*1024)
     {
         // Stop logging
-        fflush(logger_ptr->FileHandle);
-        fclose(logger_ptr->FileHandle);
+        fflush(loggerptr->FileHandle);
+        fclose(loggerptr->FileHandle);
 
         // Rename the file
         char old_log_filename[1025] = {0};
-        strcat(old_log_filename, logger_ptr->FileName);
+        strcat(old_log_filename, loggerptr->FileName);
         strcat(old_log_filename, ".old");
 
-        rename(logger_ptr->FileName, old_log_filename);
+        rename(loggerptr->FileName, old_log_filename);
 
         // Reopen the log file with original name
-        logger_ptr->FileHandle = fopen(logger_ptr->FileName, "w");
+        loggerptr->FileHandle = fopen(loggerptr->FileName, "w");
 
-        if(logger_ptr->FileHandle == NULL)
+        if(loggerptr->FileHandle == NULL)
         {
-            pthread_mutex_unlock(&logger_ptr->mutex);
+            pthread_mutex_unlock(&loggerptr->mutex);
             return false;
         }
     }
@@ -201,35 +197,35 @@ bool logger_write(void* loggerptr, const char* logentry, LogLevel llevel, char* 
     tmp = localtime(&t);
 
     // Timestamp
-    fprintf(logger_ptr->FileHandle, "%02d-%02d-%04d %02d:%02d:%02d\t",
+    fprintf(loggerptr->FileHandle, "%02d-%02d-%04d %02d:%02d:%02d\t",
              tmp->tm_mday, (tmp->tm_mon+1), (tmp->tm_year+1900),
              tmp->tm_hour, tmp->tm_min, tmp->tm_sec);
 
     // Level
-    fprintf(logger_ptr->FileHandle, "%s\t", log_level_names[llevel]);
+    fprintf(loggerptr->FileHandle, "%s\t", log_level_names[llevel]);
 
     // File
     char* base_file_name = file_get_basename(file);
-    fprintf(logger_ptr->FileHandle, "%s\t", base_file_name);
+    fprintf(loggerptr->FileHandle, "%s\t", base_file_name);
     free(base_file_name);
 
     // Line
-    fprintf(logger_ptr->FileHandle, "%d\t", line);
+    fprintf(loggerptr->FileHandle, "%d\t", line);
 
     // Function
     normalize_function_name(func);
-    fprintf(logger_ptr->FileHandle, "%s\t", func);
+    fprintf(loggerptr->FileHandle, "%s\t", func);
 
     // Message
-    fprintf(logger_ptr->FileHandle, "%s", logentry);
+    fprintf(loggerptr->FileHandle, "%s", logentry);
 
     // End of line
-    fprintf(logger_ptr->FileHandle, END_OF_LINE);
+    fprintf(loggerptr->FileHandle, END_OF_LINE);
 
     // Flush th contents
-    fflush(logger_ptr->FileHandle);
+    fflush(loggerptr->FileHandle);
 
-    pthread_mutex_unlock(&logger_ptr->mutex);
+    pthread_mutex_unlock(&loggerptr->mutex);
 
     return true;
 }
@@ -245,14 +241,21 @@ void normalize_function_name(char* func_name)
 
     int ctr = len - 1;
 
-    while(true)
+    long pos = 0;
+
+    pos = strindexofchar(func_name, '(');
+
+    if(pos > -1)
     {
-        func_name[ctr] = 0;
-        ctr--;
-        if(func_name[ctr] == '(')
+        while(true)
         {
             func_name[ctr] = 0;
-            break;
+            ctr--;
+            if(func_name[ctr] == '(')
+            {
+                func_name[ctr] = 0;
+                break;
+            }
         }
     }
 }

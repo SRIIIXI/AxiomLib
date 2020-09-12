@@ -39,16 +39,16 @@ extern "C" {
 
 #define LIBRARY_EXPORT __attribute__((visibility("default")))
 
-typedef struct KeyValue
+typedef struct key_value_t
 {
     buffer_t*	Key;
     buffer_t*	Value;
-}KeyValue;
+}key_value_t;
 
-extern LIBRARY_EXPORT void keyvalue_copy(KeyValue* dest, KeyValue* orig);
-extern LIBRARY_EXPORT bool keyvalue_is_equal(KeyValue* first, KeyValue* second);
-extern LIBRARY_EXPORT bool keyvalue_is_greater(KeyValue* first, KeyValue* second);
-extern LIBRARY_EXPORT bool keyvalue_is_less(KeyValue* first, KeyValue* second);
+extern LIBRARY_EXPORT void keyvalue_copy(key_value_t* dest, key_value_t* orig);
+extern LIBRARY_EXPORT bool keyvalue_is_equal(key_value_t* first, key_value_t* second);
+extern LIBRARY_EXPORT bool keyvalue_is_greater(key_value_t* first, key_value_t* second);
+extern LIBRARY_EXPORT bool keyvalue_is_less(key_value_t* first, key_value_t* second);
 
 #ifdef __cplusplus
 }

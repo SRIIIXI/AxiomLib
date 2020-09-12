@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Stack.h"
 #include "StringEx.h"
 #include "StringList.h"
+#include "Configuration.h"
 
 #ifdef __cplusplus
 extern "C" {

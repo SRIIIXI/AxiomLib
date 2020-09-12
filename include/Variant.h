@@ -53,12 +53,12 @@ typedef enum VariantType
     Raw = 9
 }VariantType;
 
-typedef struct Variant
+typedef struct variant_t
 {
     VariantType DataType;
     unsigned char RawBuffer[256];
     size_t DataSize;
-}Variant;
+}variant_t;
 
 /*
 	class Variant

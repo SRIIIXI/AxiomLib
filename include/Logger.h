@@ -48,10 +48,12 @@ typedef enum LogLevel
 	LOG_PANIC = 4
 }LogLevel;
 
-extern LIBRARY_EXPORT void*  logger_allocate_default();
-extern LIBRARY_EXPORT void*  logger_allocate(size_t flszmb, const char* dirpath);
-extern LIBRARY_EXPORT void    logger_release(void* loggerptr);
-extern LIBRARY_EXPORT bool    logger_write(void* loggerptr, const char* logentry, LogLevel llevel, char* func, char* file, int line);
+typedef struct logger_t logger_t;
+
+extern LIBRARY_EXPORT logger_t*  logger_allocate_default();
+extern LIBRARY_EXPORT logger_t*  logger_allocate(size_t flszmb, const char* dirpath);
+extern LIBRARY_EXPORT void    logger_release(logger_t* loggerptr);
+extern LIBRARY_EXPORT bool    logger_write(logger_t* loggerptr, const char* logentry, LogLevel llevel, char* func, char* file, int line);
 
 #define WriteLog(lptr, str, level) \
     logger_write(lptr, str, level, __PRETTY_FUNCTION__, __FILE__, __LINE__)

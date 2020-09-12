@@ -108,9 +108,18 @@ string_list_t* str_list_allocate_from_string(string_list_t* lptr, const char* st
     {
         node_t* node_ptr = NULL;
         node_ptr = str_list_internal_create_node(temp_ptr);
-        lptr->tail->next = node_ptr;
-        node_ptr->previous = lptr->tail;
-        lptr->tail = node_ptr;
+
+        if(lptr->count == 0)
+        {
+            lptr->head = lptr->tail = node_ptr;
+        }
+        else
+        {
+            lptr->tail->next = node_ptr;
+            node_ptr->previous = lptr->tail;
+            lptr->tail = node_ptr;
+        }
+
         lptr->count++;
         temp_ptr = strtok(NULL, delimiter);
     }
@@ -162,6 +171,26 @@ void str_list_free(string_list_t* lptr)
         pthread_mutex_destroy(&lptr->mutex);
         free(lptr);
     }
+}
+
+void str_list_lock_iterator(string_list_t* lptr)
+{
+    if(lptr == NULL)
+    {
+        return;
+    }
+
+    pthread_mutex_lock(&lptr->mutex);
+}
+
+void str_list_unlock_iterator(string_list_t* lptr)
+{
+    if(lptr == NULL)
+    {
+        return;
+    }
+
+    pthread_mutex_unlock(&lptr->mutex);
 }
 
 void str_list_add(string_list_t* lptr, char* data)

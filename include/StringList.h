@@ -46,6 +46,9 @@ extern LIBRARY_EXPORT string_list_t* str_list_allocate_from_string(string_list_t
 extern LIBRARY_EXPORT void str_list_clear(string_list_t* lptr);
 extern LIBRARY_EXPORT void str_list_free(string_list_t* lptr);
 
+extern LIBRARY_EXPORT void str_list_lock_iterator(string_list_t* lptr);
+extern LIBRARY_EXPORT void str_list_unlock_iterator(string_list_t* lptr);
+
 extern LIBRARY_EXPORT void str_list_add(string_list_t* lptr, char* data);
 extern LIBRARY_EXPORT void str_list_insert(string_list_t* lptr, char* data, long pos);
 

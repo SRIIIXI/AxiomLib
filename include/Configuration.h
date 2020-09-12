@@ -39,23 +39,22 @@ extern "C" {
 
 #define LIBRARY_EXPORT __attribute__((visibility("default")))
 
-/*
-	class Configuration
-	{
-	public:
-		Configuration();
-		~Configuration();
-		void SetFileName(std::string fname);
-		bool LoadConfiguration(const std::string &configFile);
-		bool LoadConfiguration();
-		std::string GetValue(const std::string &section, const std::string &settingKey, const std::string defval = "");
-		bool IsSection(const std::string &section);
-	private:
-		void AddSection(std::string &str, const std::map<std::string, std::string> &list);
-		std::map<std::string, std::map<std::string, std::string>> _Configuration;
-		std::string _ConfigFileName;
-	};
-*/
+typedef struct configuration_t configuration_t;
+
+extern LIBRARY_EXPORT configuration_t* configuration_allocate_default();
+extern LIBRARY_EXPORT configuration_t* configuration_allocate(const char* filename);
+extern LIBRARY_EXPORT void  configuration_release(configuration_t* config);
+
+extern LIBRARY_EXPORT char**  configuration_get_all_sections(configuration_t* config);
+extern LIBRARY_EXPORT char**  configuration_get_all_keys(configuration_t* config, const char* section);
+
+extern LIBRARY_EXPORT bool  configuration_has_section(configuration_t* config, const char* section);
+extern LIBRARY_EXPORT bool  configuration_has_key(configuration_t* config, const char* section, char* key);
+
+extern LIBRARY_EXPORT long  configuration_get_value_as_integer(configuration_t* config, const char* section, const char* key);
+extern LIBRARY_EXPORT bool  configuration_get_value_as_boolean(configuration_t* config, const char* section, const char* key);
+extern LIBRARY_EXPORT double configuration_get_value_as_real(configuration_t* config, const char* section, const char* key);
+extern LIBRARY_EXPORT char* configuration_get_value_as_string(configuration_t* config, const char* section, const char* key);
 
 #ifdef __cplusplus
 }

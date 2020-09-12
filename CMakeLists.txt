@@ -33,6 +33,7 @@ ${PROJECT_SOURCE_DIR}/Environment.c
 ${PROJECT_SOURCE_DIR}/Configuration.c
 ${PROJECT_SOURCE_DIR}/DateTime.c
 ${PROJECT_SOURCE_DIR}/Variant.c
+${PROJECT_SOURCE_DIR}/Dictionary.c
 ${PROJECT_SOURCE_DIR}/CoreLib.c
 )
 
@@ -55,6 +56,7 @@ ${PROJECT_HEADER_DIR}/Environment.h
 ${PROJECT_HEADER_DIR}/Configuration.h
 ${PROJECT_HEADER_DIR}/DateTime.h
 ${PROJECT_HEADER_DIR}/Variant.h
+${PROJECT_HEADER_DIR}/Dictionary.h
 ${PROJECT_HEADER_DIR}/CoreLib.h
 )
 

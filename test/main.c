@@ -1,7 +1,11 @@
 #include <CoreLib.h>
+#include <unistd.h>
 
 void test_list(void);
 void test_string_list(void);
+void test_string(void);
+void test_logger(void);
+void test_configuration(void);
 
 int main(int argc, char* argv[])
 {
@@ -26,6 +30,7 @@ int main(int argc, char* argv[])
         case 'c':
         {
             //Configuration
+            test_configuration();
             break;
         }
         case 'd':
@@ -62,6 +67,7 @@ int main(int argc, char* argv[])
         case 'g':
         {
             //Logger
+            test_logger();
             break;
         }
         case 'q':
@@ -87,6 +93,7 @@ int main(int argc, char* argv[])
         case 'x':
         {
             //StringEx
+            test_string();
             break;
         }
         case 'n':
@@ -149,7 +156,7 @@ void test_string_list(void)
 
     char* item = NULL;
 
-    //str_list_lock_iterator(mylist);
+    str_list_lock_iterator(mylist);
 
     item = str_list_get_first(mylist);
 
@@ -159,8 +166,94 @@ void test_string_list(void)
         item = str_list_get_next(mylist);
     }
 
-    //str_list_unlock_iterator(mylist);
+    str_list_unlock_iterator(mylist);
 
     str_list_clear(mylist);
     str_list_free(mylist);
+}
+
+void test_string(void)
+{
+    char* str = "aaxxbbxxccxxddxxeexx";
+
+    long num_sub_strs = 0;
+    char** sub_str_list = NULL;
+    sub_str_list = strsplitsubstr(str, "xx", &num_sub_strs);
+
+    for(int index = 0; sub_str_list[index] != 0; index++)
+    {
+        char* sub_str = NULL;
+        sub_str = sub_str_list[index];
+        printf("%s\n", sub_str);
+    }
+
+    strfreelist(sub_str_list, num_sub_strs);
+
+    char process_name[64] = {0};
+    char buffer[1025] = {0};
+    pid_t proc_id = getpid();
+    string_list_t* cmd_args = NULL;
+    string_list_t* dir_tokens = NULL;
+
+    sprintf(buffer, "/proc/%d/cmdline", proc_id);
+
+    FILE* fp = fopen(buffer, "r");
+
+    if(fp)
+    {
+        memset(buffer, 0, 1025);
+
+        if(fgets(buffer, 1024, fp))
+        {
+            cmd_args = str_list_allocate_from_string(cmd_args, buffer, " ");
+
+            if(cmd_args && str_list_item_count(cmd_args) > 0)
+            {
+                str_list_allocate_from_string(dir_tokens, str_list_get_first(cmd_args), "/");
+
+                if(dir_tokens && str_list_item_count(dir_tokens) > 0)
+                {
+                    strcpy(process_name, str_list_get_last(dir_tokens));
+                }
+            }
+            else
+            {
+                dir_tokens = str_list_allocate_from_string(dir_tokens, buffer, "/");
+
+                if(dir_tokens && str_list_item_count(dir_tokens) > 0)
+                {
+                    strcpy(process_name, str_list_get_last(dir_tokens));
+                }
+            }
+        }
+
+        fclose(fp);
+    }
+
+    if(cmd_args)
+    {
+        str_list_clear(cmd_args);
+        str_list_free(cmd_args);
+    }
+
+    if(dir_tokens)
+    {
+        str_list_clear(dir_tokens);
+        str_list_free(dir_tokens);
+    }
+}
+
+void test_logger(void)
+{
+    logger_t* logger = logger_allocate_default();
+
+    WriteInformation(logger, "test");
+
+    logger_release(logger);
+}
+
+void test_configuration(void)
+{
+    configuration_t* conf = configuration_allocate_default();
+    configuration_release(conf);
 }

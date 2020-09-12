@@ -50,7 +50,7 @@ extern LIBRARY_EXPORT char* strreverse(char* ptr);
 extern LIBRARY_EXPORT char* strsegmentreverse(char* str, long start, long term);
 
 extern LIBRARY_EXPORT long strindexofsubstr(const char *str, const char* substr);
-extern LIBRARY_EXPORT long strindexofchar(char* str, const char ch);
+extern LIBRARY_EXPORT long strindexofchar(const char *str, const char ch);
 
 extern LIBRARY_EXPORT long strcountsubstr(const char *str, const char* substr);
 extern LIBRARY_EXPORT long strcountchar(char* str, const char ch);
@@ -77,7 +77,8 @@ extern LIBRARY_EXPORT char* strrepcharfirst(char* str, const char oldchar, const
 extern LIBRARY_EXPORT char* strrepcharall(char* str, const char oldchar, const char newchar);
 extern LIBRARY_EXPORT char* strrepcharat(char* str, const char newchar, long pos);
 
-extern LIBRARY_EXPORT void strsplitkeyvalue(const char* str, const char* delimiter, char **key, char **value);
+extern LIBRARY_EXPORT void strsplitkeyvaluechar(const char* str, const char delimiter, char **key, char **value);
+extern LIBRARY_EXPORT void strsplitkeyvaluesubstr(const char* str, const char* delimiter, char **key, char **value);
 extern LIBRARY_EXPORT char** strsplitsubstr(const char* str, const char* delimiter, long *numsubstr);
 extern LIBRARY_EXPORT char** strsplitchar(const char* str, const char delimiter, long *numsubstr);
 extern LIBRARY_EXPORT char* strjoinwithsubstr(const char **strlist, const char* delimiter);
