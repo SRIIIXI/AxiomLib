@@ -60,117 +60,6 @@ typedef struct configuration_t
 void configuration_internal_add_section(configuration_t* conf_ptr, char* section_name);
 void configuration_internal_add_key_value(configuration_t* conf_ptr, char* section_name, char* key, char* value);
 
-
-/*
-namespace CoreLib
-{
-	Configuration::Configuration()
-	{
-		_ConfigFileName = "";
-	}
-
-	Configuration::~Configuration()
-	{
-	}
-
-	void Configuration::SetFileName(std::string fname)
-	{
-		_ConfigFileName = fname;
-	}
-
-	bool Configuration::IsSection(const std::string &section)
-	{
-		if (_Configuration.find(section) == _Configuration.end())
-		{
-			return false;
-		}
-
-		return true;
-	}
-
-	std::string Configuration::GetValue(const std::string &section, const std::string &settingKey, const std::string defval)
-	{
-		std::string str = defval;
-
-		if (IsSection(section))
-		{
-			std::map<std::string, std::string> sub_section = _Configuration[section];
-
-			if (sub_section.find(settingKey) != sub_section.end())
-			{
-				str = sub_section[settingKey];
-			}
-		}
-
-		return str;
-	}
-
-	bool Configuration::LoadConfiguration(const std::string &configFile)
-	{
-		_ConfigFileName = configFile;
-		return LoadConfiguration();
-	}
-
-	bool Configuration::LoadConfiguration()
-	{
-		std::string line, key, value;
-		std::string current_section_header = "";
-		std::map<std::string, std::string> kvlist;
-
-		std::ifstream file;
-
-		file.open(_ConfigFileName);
-
-		while (file.good())
-		{
-			line.clear();
-			std::getline(file, line);
-			//Section header line
-			if (line[0] == '[' && line[line.length() - 1] == ']')
-			{
-				//Check whether this is the first instance of a section header
-				if (_Configuration.size() < 1)
-				{
-					//Don't need to do anything
-					if (current_section_header.length() > 1)
-					{
-						//We reach here when a section is being read for the first time
-						AddSection(current_section_header, kvlist);
-					}
-				}
-				else
-				{
-					//Before staring a new section parsing we need to store the last one
-					AddSection(current_section_header, kvlist);
-				}
-
-				//Store the string as current section header and clear the key value list
-				current_section_header = line;
-				kvlist.clear();
-			}
-			else
-			{
-				key = "";
-				value = "";
-				strsplit(line, '=', key, value);
-				kvlist[key] = value;
-			}
-
-		}
-		AddSection(current_section_header, kvlist);
-		file.close();
-		return true;
-	}
-
-	void Configuration::AddSection(std::string &str, const std::map<std::string, std::string> &list)
-	{
-		strremove(str, '[');
-		strremove(str, ']');
-		_Configuration[str] = list;
-	}
-}
-*/
-
 configuration_t* configuration_allocate_default()
 {
     char* path_str = (char*)calloc(1024, sizeof(char));
@@ -198,6 +87,9 @@ configuration_t* configuration_allocate(const char* filename)
     if(fp)
     {
         ptr = (configuration_t*)calloc(1, sizeof (configuration_t));
+        ptr->section_list = NULL;
+        ptr->section_count = 0;
+        pthread_mutex_init(&ptr->mutex, 0);
 
         char current_section[65] = {0};
 
@@ -249,7 +141,43 @@ void  configuration_release(configuration_t* config)
 
 char**  configuration_get_all_sections(configuration_t* config)
 {
-    return NULL;
+    if(config == NULL)
+    {
+        return NULL;
+    }
+
+    char** buffer = NULL;
+
+    buffer = (char **)calloc(1, (unsigned long)(config->section_count + 1) * sizeof(char*));
+
+    if(buffer == NULL)
+    {
+        return NULL;
+    }
+
+    section_t* curr_section = NULL;
+
+    long index = 0;
+    for(curr_section = config->section_list; curr_section != NULL; curr_section = curr_section->next)
+    {
+        long temp_str_len = (long)strlen(curr_section->section_name);
+
+        if(temp_str_len < 1)
+        {
+            continue;
+        }
+
+        buffer[index] = (char*)calloc(1, sizeof(char) * (unsigned long)(temp_str_len + 1));
+
+        if(buffer[index] != NULL)
+        {
+            strcpy(buffer[index], curr_section->section_name);
+        }
+
+        index++;
+    }
+
+    return buffer;
 }
 
 char**  configuration_get_all_keys(configuration_t* config, const char* section)
@@ -290,11 +218,67 @@ char* configuration_get_value_as_string(configuration_t* config, const char* sec
 
 void configuration_internal_add_section(configuration_t* conf_ptr, char* section_name)
 {
+    if(conf_ptr == NULL)
+    {
+        return;
+    }
 
+    section_t* new_section = (section_t*)calloc(1, sizeof(section_t));
+    new_section->next = NULL;
+    new_section->key_value_list = NULL;
+    new_section->key_value_count = 0;
+    new_section->section_name = (char*)calloc(1, strlen(section_name)+1);
+    strcpy(new_section->section_name, section_name);
+
+    if(conf_ptr->section_list == NULL)
+    {
+        conf_ptr->section_list = new_section;
+    }
+    else
+    {
+        section_t* temp = NULL;
+        for(temp = conf_ptr->section_list; temp->next != NULL; temp = temp->next) {}
+        temp->next = new_section;
+    }
+
+    conf_ptr->section_count++;
 }
 
 void configuration_internal_add_key_value(configuration_t* conf_ptr, char* section_name, char* key, char* value)
 {
+    if(conf_ptr == NULL)
+    {
+        return;
+    }
 
+    section_t* curr_section = NULL;
+
+    for(curr_section = conf_ptr->section_list; curr_section != NULL; curr_section = curr_section->next)
+    {
+        if(strcmp(curr_section->section_name, section_name) == 0)
+        {
+            key_value_t* new_kv = (key_value_t*)calloc(1, sizeof (key_value_t));
+            new_kv->next = NULL;
+            new_kv->key = (char*)calloc(1, strlen(key)+1);
+            strcpy(new_kv->key, key);
+            new_kv->value = (char*)calloc(1, strlen(value)+1);
+            strcpy(new_kv->value, value);
+
+            if(curr_section->key_value_list == NULL)
+            {
+                curr_section->key_value_list = new_kv;
+            }
+            else
+            {
+                key_value_t* temp = NULL;
+                for(temp = curr_section->key_value_list; temp->next != NULL; temp = temp->next) {}
+                temp->next = new_kv;
+            }
+
+            curr_section->key_value_count++;
+
+            break;
+        }
+    }
 }
 
