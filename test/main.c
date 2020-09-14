@@ -255,5 +255,28 @@ void test_logger(void)
 void test_configuration(void)
 {
     configuration_t* conf = configuration_allocate_default();
+
+    char** sections = configuration_get_all_sections(conf);
+
+    for(int sindex = 0; sections[sindex] != 0; sindex++)
+    {
+        char* sec_str = NULL;
+        sec_str = sections[sindex];
+        printf("Section %s\n", sec_str);
+
+        char** keys = configuration_get_all_keys(conf, sections[sindex]);
+
+        for(int kindex = 0; keys[kindex] != 0; kindex++)
+        {
+            char* key_str = NULL;
+            key_str = keys[kindex];
+            printf("Key %s Value %s\n", key_str, configuration_get_value_as_string(conf, sec_str, key_str));
+        }
+
+        strfreelist(keys, 0);
+    }
+
+    strfreelist(sections, 0);
+
     configuration_release(conf);
 }

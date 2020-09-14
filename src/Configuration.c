@@ -30,10 +30,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "StringEx.h"
 #include "Environment.h"
 #include "Directory.h"
-#include <pthread.h>
+
 #include <memory.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <limits.h>
+#include <float.h>
 
 typedef struct key_value_t
 {
@@ -54,11 +56,12 @@ typedef struct configuration_t
 {
     long section_count;
     section_t* section_list;
-    pthread_mutex_t mutex;
 }configuration_t;
 
 void configuration_internal_add_section(configuration_t* conf_ptr, char* section_name);
 void configuration_internal_add_key_value(configuration_t* conf_ptr, char* section_name, char* key, char* value);
+const section_t* configuration_internal_get_section(const configuration_t* conf_ptr, const char *section_name);
+const char* configuration_internal_get_value(const configuration_t *conf_ptr, const section_t* section, const char *key);
 
 configuration_t* configuration_allocate_default()
 {
@@ -89,7 +92,6 @@ configuration_t* configuration_allocate(const char* filename)
         ptr = (configuration_t*)calloc(1, sizeof (configuration_t));
         ptr->section_list = NULL;
         ptr->section_count = 0;
-        pthread_mutex_init(&ptr->mutex, 0);
 
         char current_section[65] = {0};
 
@@ -116,8 +118,8 @@ configuration_t* configuration_allocate(const char* filename)
                     continue;
                 }
 
-                char* key = (char*)calloc(65, sizeof(char));
-                char* value = (char*)calloc(513, sizeof(char));
+                char* key = NULL;
+                char* value = NULL;
 
                 strsplitkeyvaluechar(buffer, '=', &key, &value);
                 stralltrim(key);
@@ -136,10 +138,40 @@ configuration_t* configuration_allocate(const char* filename)
 
 void  configuration_release(configuration_t* config)
 {
-    return;
+    if(config == NULL)
+    {
+        return;
+    }
+
+    section_t* temp_section = NULL;
+    section_t* head_section = config->section_list;
+
+    while(head_section != NULL)
+    {
+        temp_section = head_section;
+
+        key_value_t* temp_kv = NULL;
+        key_value_t* head_kv = temp_section->key_value_list;
+
+        while(head_kv != NULL)
+        {
+            temp_kv = head_kv;
+            head_kv = head_kv->next;
+            free(temp_kv->key);
+            free(temp_kv->value);
+            free(temp_kv);
+        }
+
+        free(temp_section->section_name);
+        free(temp_section);
+
+        head_section = head_section->next;
+    }
+
+    free(config);
 }
 
-char**  configuration_get_all_sections(configuration_t* config)
+char**  configuration_get_all_sections(const configuration_t* config)
 {
     if(config == NULL)
     {
@@ -180,40 +212,189 @@ char**  configuration_get_all_sections(configuration_t* config)
     return buffer;
 }
 
-char**  configuration_get_all_keys(configuration_t* config, const char* section)
+char**  configuration_get_all_keys(const configuration_t *config, const char* section)
 {
-    return NULL;
+    if(config == NULL || section == NULL)
+    {
+        return NULL;
+    }
+
+    const section_t* curr_section = configuration_internal_get_section(config, section);
+    key_value_t* curr_kv = NULL;
+
+    char** buffer = NULL;
+
+    buffer = (char **)calloc(1, (unsigned long)(curr_section->key_value_count + 1) * sizeof(char*));
+
+    if(buffer == NULL)
+    {
+        return NULL;
+    }
+
+    long index = 0;
+    for(curr_kv = curr_section->key_value_list; curr_kv != NULL; curr_kv = curr_kv->next)
+    {
+        long temp_str_len = (long)strlen(curr_kv->value);
+
+        if(temp_str_len < 1)
+        {
+            continue;
+        }
+
+        buffer[index] = (char*)calloc(1, sizeof(char) * (unsigned long)(temp_str_len + 1));
+
+        if(buffer[index] != NULL)
+        {
+            strcpy(buffer[index], curr_kv->key);
+        }
+
+        index++;
+    }
+
+    return buffer;
 }
 
-bool  configuration_has_section(configuration_t* config, const char* section)
+bool  configuration_has_section(const configuration_t* config, const char* section)
 {
+    if(config == NULL || section == NULL)
+    {
+        return false;
+    }
+
+    const section_t* curr_section = configuration_internal_get_section(config, section);
+
+    if(curr_section == NULL)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool  configuration_has_key(const configuration_t* config, const char* section, char* key)
+{
+    if(config == NULL || section == NULL || key == NULL)
+    {
+        return false;
+    }
+
+    const section_t* curr_section = configuration_internal_get_section(config, section);
+
+    if(curr_section == NULL)
+    {
+        return false;
+    }
+
+    const char* value = configuration_internal_get_value(config, curr_section, key);
+
+    if(value == NULL)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+long  configuration_get_value_as_integer(const configuration_t *config, const char* section, const char* key)
+{
+    if(config == NULL || section == NULL || key == NULL)
+    {
+        return LONG_MAX;
+    }
+
+    const section_t* curr_section = configuration_internal_get_section(config, section);
+
+    if(curr_section == NULL)
+    {
+        return LONG_MAX;
+    }
+
+    const char* value = configuration_internal_get_value(config, curr_section, key);
+
+    if(value == NULL)
+    {
+        return LONG_MAX;
+    }
+
+    return atol(value);
+}
+
+bool  configuration_get_value_as_boolean(const configuration_t* config, const char* section, const char* key)
+{
+    if(config == NULL || section == NULL || key == NULL)
+    {
+        return false;
+    }
+
+    const section_t* curr_section = configuration_internal_get_section(config, section);
+
+    if(curr_section == NULL)
+    {
+        return false;
+    }
+
+    const char* value = configuration_internal_get_value(config, curr_section, key);
+
+    if(value == NULL)
+    {
+        return false;
+    }
+
+    if(strcmp(value, "true") == 0 || strcmp(value, "1") == 0)
+    {
+        return true;
+    }
+
     return false;
 }
 
-bool  configuration_has_key(configuration_t* config, const char* section, char* key)
+double configuration_get_value_as_real(const configuration_t *config, const char* section, const char* key)
 {
-    return false;
+    if(config == NULL || section == NULL || key == NULL)
+    {
+        return DBL_MAX;
+    }
+
+    const section_t* curr_section = configuration_internal_get_section(config, section);
+
+    if(curr_section == NULL)
+    {
+        return DBL_MAX;
+    }
+
+    const char* value = configuration_internal_get_value(config, curr_section, key);
+
+    if(value == NULL)
+    {
+        return DBL_MAX;
+    }
+
+    return atof(value);
 }
 
-
-long  configuration_get_value_as_integer(configuration_t* config, const char* section, const char* key)
+const char* configuration_get_value_as_string(const configuration_t* config, const char* section, const char* key)
 {
-    return 0;
-}
+    if(config == NULL || section == NULL || key == NULL)
+    {
+        return NULL;
+    }
 
-bool  configuration_get_value_as_boolean(configuration_t* config, const char* section, const char* key)
-{
-    return false;
-}
+    const section_t* curr_section = configuration_internal_get_section(config, section);
 
-double configuration_get_value_as_real(configuration_t* config, const char* section, const char* key)
-{
-    return 0;
-}
+    if(curr_section == NULL)
+    {
+        return NULL;
+    }
 
-char* configuration_get_value_as_string(configuration_t* config, const char* section, const char* key)
-{
-    return NULL;
+    const char* value = configuration_internal_get_value(config, curr_section, key);
+
+    if(value == NULL)
+    {
+        return NULL;
+    }
+
+    return value;
 }
 
 void configuration_internal_add_section(configuration_t* conf_ptr, char* section_name)
@@ -282,3 +463,42 @@ void configuration_internal_add_key_value(configuration_t* conf_ptr, char* secti
     }
 }
 
+const section_t *configuration_internal_get_section(const configuration_t *conf_ptr, const char* section_name)
+{
+    if(conf_ptr == NULL)
+    {
+        return NULL;
+    }
+
+    section_t* curr_section = NULL;
+
+    for(curr_section = conf_ptr->section_list; curr_section != NULL; curr_section = curr_section->next)
+    {
+        if(strcmp(curr_section->section_name, section_name) == 0)
+        {
+            return curr_section;
+        }
+    }
+
+    return NULL;
+}
+
+const char *configuration_internal_get_value(const configuration_t* conf_ptr, const section_t *section, const char* key)
+{
+    if(conf_ptr == NULL || section == NULL || key == NULL)
+    {
+        return NULL;
+    }
+
+    key_value_t* curr_kv = NULL;
+
+    for(curr_kv = section->key_value_list; curr_kv != NULL; curr_kv = curr_kv->next)
+    {
+        if(strcmp(curr_kv->key, key) == 0)
+        {
+            return curr_kv->value;
+        }
+    }
+
+    return NULL;
+}
