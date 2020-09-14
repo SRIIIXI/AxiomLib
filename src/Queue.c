@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 typedef struct node_t
 {
-    char* data;
+    void* data;
     struct node_t* next;
 }node_t;
 

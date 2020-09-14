@@ -56,10 +56,10 @@ extern LIBRARY_EXPORT void    logger_release(logger_t* loggerptr);
 extern LIBRARY_EXPORT bool    logger_write(logger_t* loggerptr, const char* logentry, LogLevel llevel, char* func, char* file, int line);
 
 #define WriteLog(lptr, str, level) \
-    logger_write(lptr, str, level, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+    logger_write(lptr, str, level, (char*)__PRETTY_FUNCTION__, (char*)__FILE__, __LINE__)
 
 #define WriteInformation(lptr, str) \
-    logger_write(lptr, str, LOG_INFO, __PRETTY_FUNCTION__, __FILE__, __LINE__);
+    logger_write(lptr, str, LOG_INFO, (char*)__PRETTY_FUNCTION__, (char*)__FILE__, __LINE__);
 
 #ifdef __cplusplus
 }

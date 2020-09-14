@@ -15,6 +15,27 @@ modification, is allowed only with prior permission from CIMCON Automation
 #include <string.h>
 #include <unistd.h>
 
+typedef struct key_value_t
+{
+    void* key;
+    void* value;
+    struct key_value_t* next;
+}key_value_t;
+
+typedef struct hash_bucket_t
+{
+    void* hash;
+    long key_value_count;
+    key_value_t* key_value_list;
+    struct section_t* next;
+}hash_bucket_t;
+
+typedef struct dictionary_t
+{
+    long hash_count;
+    hash_bucket_t* hash_bucket;
+}dictionary_t;
+
 //typedef struct _dictionary_ {
 //    int             n ;     /** Number of entries in dictionary */
 //    ssize_t         size ;  /** Storage size */
