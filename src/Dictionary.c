@@ -306,12 +306,12 @@ void dictionary_free(dictionary_t* dict_ptr)
 
 }
 
-void dictionary_set_value(dictionary_t* dict_ptr, const char* key, const void* value)
+void dictionary_set_value(dictionary_t* dict_ptr, const char* key, const size_t key_size, const void* value, const size_t value_size)
 {
 
 }
 
-void* dictionary_get_value(dictionary_t* dict_ptr, const char* key)
+void* dictionary_get_value(dictionary_t* dict_ptr, const char* key, const size_t key_size)
 {
     return NULL;
 }

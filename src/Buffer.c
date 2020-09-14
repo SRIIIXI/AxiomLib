@@ -34,9 +34,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 typedef struct buffer_t
 {
-    void* Data;
-    size_t Size;
-    size_t Memory;
+    void* data;
+    size_t size;
+    size_t memory;
 }buffer_t;
 
 buffer_t* buffer_allocate(void* data, size_t sz)
@@ -45,13 +45,13 @@ buffer_t* buffer_allocate(void* data, size_t sz)
 
     if(nd != NULL)
     {
-        nd->Data = (char*)calloc(1, sz);
+        nd->data = (char*)calloc(1, sz);
 
-        if(nd->Data != NULL)
+        if(nd->data != NULL)
         {
-            nd->Size = sz;
-            nd->Memory = sz;
-            memcpy(nd->Data, data, sz);
+            nd->size = sz;
+            nd->memory = sz;
+            memcpy(nd->data, data, sz);
         }
     }
     return nd;
@@ -61,16 +61,16 @@ buffer_t* buffer_copy(buffer_t* dest, buffer_t* orig)
 {
     if(orig != NULL && dest != NULL)
     {
-        if(orig->Data != NULL)
+        if(orig->data != NULL)
         {
-            if(dest->Data != NULL)
+            if(dest->data != NULL)
             {
-                free(dest->Data);
+                free(dest->data);
             }
 
-            dest->Size = orig->Size;
-            dest->Data = (char*)calloc(1, dest->Size);
-            memcpy(dest->Data, orig->Data, dest->Size);
+            dest->size = orig->size;
+            dest->data = (char*)calloc(1, dest->size);
+            memcpy(dest->data, orig->data, dest->size);
         }
     }
 
@@ -100,7 +100,7 @@ buffer_t *buffer_append(buffer_t* dest, void* data, size_t sz)
 
 void buffer_free(buffer_t* ptr)
 {
-    free(ptr->Data);
+    free(ptr->data);
     free(ptr);
 }
 
@@ -108,14 +108,14 @@ bool buffer_is_equal(buffer_t* first, buffer_t* second)
 {
     if(first != NULL && second != NULL)
     {
-       if (first->Data != NULL && second->Data != NULL)
+       if (first->data != NULL && second->data != NULL)
         {
-            if(first->Size != second->Size)
+            if(first->size != second->size)
             {
                 return false;
             }
 
-            if(memcmp(first->Data, second->Data, first->Size) == 0)
+            if(memcmp(first->data, second->data, first->size) == 0)
             {
                 return true;
             }
@@ -129,14 +129,14 @@ bool buffer_is_greater(buffer_t* first, buffer_t* second)
 {
     if(first != NULL && second != NULL)
     {
-        if(first->Data != NULL && second->Data != NULL)
+        if(first->data != NULL && second->data != NULL)
         {
-            if(first->Size != second->Size)
+            if(first->size != second->size)
             {
                 return false;
             }
 
-            if(memcmp(first->Data, second->Data, first->Size) > 0)
+            if(memcmp(first->data, second->data, first->size) > 0)
             {
                 return true;
             }
@@ -150,14 +150,14 @@ bool buffer_is_less(buffer_t* first, buffer_t* second)
 {
     if(first != NULL && second != NULL)
     {
-        if(first->Data != NULL && second->Data != NULL)
+        if(first->data != NULL && second->data != NULL)
         {
-            if(first->Size != second->Size)
+            if(first->size != second->size)
             {
                 return false;
             }
 
-            if(memcmp(first->Data, second->Data, first->Size) < 0)
+            if(memcmp(first->data, second->data, first->size) < 0)
             {
                 return true;
             }
@@ -175,7 +175,7 @@ bool buffer_is_null(buffer_t* ptr)
     }
     else
     {
-        if(ptr->Data == NULL)
+        if(ptr->data == NULL)
         {
             return true;
         }
@@ -195,7 +195,7 @@ const void *data(buffer_t* ptr)
         return NULL;
     }
 
-    return ptr->Data;
+    return ptr->data;
 }
 
 size_t size(buffer_t* ptr)
@@ -205,5 +205,5 @@ size_t size(buffer_t* ptr)
         return 0;
     }
 
-    return ptr->Size;
+    return ptr->size;
 }
