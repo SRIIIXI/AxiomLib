@@ -596,7 +596,7 @@ void strsplitkeyvaluesubstr(const char* str, const char* delimiter, char **key, 
 
 void strsplitkeyvaluechar(const char* str, const char delimiter, char **key, char **value)
 {
-    if(str == NULL || delimiter == NULL)
+    if(str == NULL || delimiter == 0)
     {
         return;
     }

@@ -6,6 +6,7 @@ void test_string_list(void);
 void test_string(void);
 void test_logger(void);
 void test_configuration(void);
+void test_dictionary(void);
 
 int main(int argc, char* argv[])
 {
@@ -36,6 +37,7 @@ int main(int argc, char* argv[])
         case 'd':
         {
             //Dictionary
+            test_dictionary();
             break;
         }
         case 't':
@@ -279,4 +281,31 @@ void test_configuration(void)
     strfreelist(sections, 0);
 
     configuration_release(conf);
+}
+
+void test_dictionary(void)
+{
+    dictionary_t* dict = dictionary_allocate();
+
+    dictionary_set_value(dict, "123", strlen("123"), "ABCDEFGHIJKLMN", strlen("ABCDEFGHIJKLMN"));
+    dictionary_set_value(dict, "ABC", strlen("ABC"), "0123456789", strlen("0123456789"));
+
+    char* val1 = (char*)dictionary_get_value(dict, "123", strlen("123"));
+    char* val2 = (char*)dictionary_get_value(dict, "ABC", strlen("ABC"));
+
+    dictionary_set_value(dict, "123", strlen("123"), "opqrstuvwxyz", strlen("opqrstuvwxyz"));
+    char* val3 = (char*)dictionary_get_value(dict, "123", strlen("123"));
+
+    char** all_keys = dictionary_get_all_keys(dict);
+
+    for(int kindex = 0; all_keys[kindex] != 0; kindex++)
+    {
+        char* key_str = NULL;
+        key_str = all_keys[kindex];
+        printf("%s\n", key_str);
+    }
+
+    dictionary_free_key_list(dict, all_keys);
+
+    dictionary_free(dict);
 }

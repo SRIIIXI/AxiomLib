@@ -1,11 +1,29 @@
 /*
+BSD 2-Clause License
 
-Copyright (c) 2020, CIMCON Automation
+Copyright (c) 2017, Subrato Roy (subratoroy@hotmail.com)
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
-modification, is allowed only with prior permission from CIMCON Automation
+modification, are permitted provided that the following conditions are met:
 
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "Dictionary.h"
@@ -19,15 +37,17 @@ typedef struct key_value_t
 {
     void* key;
     void* value;
+    size_t value_size;
+    size_t key_size;
     struct key_value_t* next;
 }key_value_t;
 
 typedef struct hash_bucket_t
 {
-    void* hash;
+    unsigned long hash;
     long key_value_count;
     key_value_t* key_value_list;
-    struct section_t* next;
+    struct hash_bucket_t* next;
 }hash_bucket_t;
 
 typedef struct dictionary_t
@@ -36,282 +56,273 @@ typedef struct dictionary_t
     hash_bucket_t* hash_bucket;
 }dictionary_t;
 
-//typedef struct _dictionary_ {
-//    int             n ;     /** Number of entries in dictionary */
-//    ssize_t         size ;  /** Storage size */
-//    char        **  val ;   /** List of string values */
-//    char        **  key ;   /** List of string keys */
-//    unsigned     *  hash ;  /** List of hash values for keys */
-//} dictionary ;
-
-///** Maximum value size for integers and doubles. */
-//#define MAXVALSZ    1024
-
-///** Minimal allocated number of entries in a dictionary */
-//#define DICTMINSZ   128
-
-///** Invalid key token */
-//#define DICT_INVALID_KEY    ((char*)-1)
-
-//static char * xstrdup(const char * s)
-//{
-//    char * t ;
-//    size_t len ;
-//    if (!s)
-//        return NULL ;
-
-//    len = strlen(s) + 1 ;
-//    t = (char*) malloc(len) ;
-//    if (t) {
-//        memcpy(t, s, len) ;
-//    }
-//    return t ;
-//}
-
-//static int dictionary_grow(void * dptr)
-//{
-//    dictionary * d = (dictionary*)dptr;
-
-//    char        ** new_val ;
-//    char        ** new_key ;
-//    unsigned     * new_hash ;
-
-//    new_val  = (char**) calloc(d->size * 2, sizeof *d->val);
-//    new_key  = (char**) calloc(d->size * 2, sizeof *d->key);
-//    new_hash = (unsigned*) calloc(d->size * 2, sizeof *d->hash);
-//    if (!new_val || !new_key || !new_hash) {
-//        /* An allocation failed, leave the dictionary unchanged */
-//        if (new_val)
-//            free(new_val);
-//        if (new_key)
-//            free(new_key);
-//        if (new_hash)
-//            free(new_hash);
-//        return -1 ;
-//    }
-//    /* Initialize the newly allocated space */
-//    memcpy(new_val, d->val, d->size * sizeof(char *));
-//    memcpy(new_key, d->key, d->size * sizeof(char *));
-//    memcpy(new_hash, d->hash, d->size * sizeof(unsigned));
-//    /* Delete previous data */
-//    free(d->val);
-//    free(d->key);
-//    free(d->hash);
-//    /* Actually update the dictionary */
-//    d->size *= 2 ;
-//    d->val = new_val;
-//    d->key = new_key;
-//    d->hash = new_hash;
-//    return 0 ;
-//}
-
-//unsigned dictionary_hash(const char * key)
-//{
-//    size_t      len ;
-//    unsigned    hash ;
-//    size_t      i ;
-
-//    if (!key)
-//        return 0 ;
-
-//    len = strlen(key);
-//    for (hash=0, i=0 ; i<len ; i++) {
-//        hash += (unsigned)key[i] ;
-//        hash += (hash<<10);
-//        hash ^= (hash>>6) ;
-//    }
-//    hash += (hash <<3);
-//    hash ^= (hash >>11);
-//    hash += (hash <<15);
-//    return hash ;
-//}
-
-//void * dictionary_new(size_t size)
-//{
-//    dictionary  *   d ;
-
-//    /* If no size was specified, allocate space for DICTMINSZ */
-//    if (size<DICTMINSZ) size=DICTMINSZ ;
-
-//    d = (dictionary*) calloc(1, sizeof *d) ;
-
-//    if (d) {
-//        d->size = size ;
-//        d->val  = (char**) calloc(size, sizeof *d->val);
-//        d->key  = (char**) calloc(size, sizeof *d->key);
-//        d->hash = (unsigned*) calloc(size, sizeof *d->hash);
-//    }
-//    return d ;
-//}
-
-//void dictionary_del(void * dptr)
-//{
-//    dictionary * d = (dictionary*)dptr;
-
-//    ssize_t  i ;
-
-//    if (d==NULL) return ;
-//    for (i=0 ; i<d->size ; i++) {
-//        if (d->key[i]!=NULL)
-//            free(d->key[i]);
-//        if (d->val[i]!=NULL)
-//            free(d->val[i]);
-//    }
-//    free(d->val);
-//    free(d->key);
-//    free(d->hash);
-//    free(d);
-//    return ;
-//}
-
-//const char * dictionary_get(const void * dptr, const char * key, const char * def)
-//{
-//    dictionary * d = (dictionary*)dptr;
-
-//    unsigned    hash ;
-//    ssize_t      i ;
-
-//    hash = dictionary_hash(key);
-//    for (i=0 ; i<d->size ; i++) {
-//        if (d->key[i]==NULL)
-//            continue ;
-//        /* Compare hash */
-//        if (hash==d->hash[i]) {
-//            /* Compare string, to avoid hash collisions */
-//            if (!strcmp(key, d->key[i])) {
-//                return d->val[i] ;
-//            }
-//        }
-//    }
-//    return def ;
-//}
-
-//int dictionary_set(void * dptr, const char * key, const char * val)
-//{
-//    dictionary * d = (dictionary*)dptr;
-
-//    ssize_t         i ;
-//    unsigned       hash ;
-
-//    if (d==NULL || key==NULL) return -1 ;
-
-//    /* Compute hash for this key */
-//    hash = dictionary_hash(key) ;
-//    /* Find if value is already in dictionary */
-//    if (d->n>0) {
-//        for (i=0 ; i<d->size ; i++) {
-//            if (d->key[i]==NULL)
-//                continue ;
-//            if (hash==d->hash[i]) { /* Same hash value */
-//                if (!strcmp(key, d->key[i])) {   /* Same key */
-//                    /* Found a value: modify and return */
-//                    if (d->val[i]!=NULL)
-//                        free(d->val[i]);
-//                    d->val[i] = (val ? xstrdup(val) : NULL);
-//                    /* Value has been modified: return */
-//                    return 0 ;
-//                }
-//            }
-//        }
-//    }
-//    /* Add a new value */
-//    /* See if dictionary needs to grow */
-//    if (d->n==d->size) {
-//        /* Reached maximum size: reallocate dictionary */
-//        if (dictionary_grow(d) != 0)
-//            return -1;
-//    }
-
-//    /* Insert key in the first empty slot. Start at d->n and wrap at
-//       d->size. Because d->n < d->size this will necessarily
-//       terminate. */
-//    for (i=d->n ; d->key[i] ; ) {
-//        if(++i == d->size) i = 0;
-//    }
-//    /* Copy key */
-//    d->key[i]  = xstrdup(key);
-//    d->val[i]  = (val ? xstrdup(val) : NULL) ;
-//    d->hash[i] = hash;
-//    d->n ++ ;
-//    return 0 ;
-//}
-
-//void dictionary_unset(void * dptr, const char * key)
-//{
-//    dictionary * d = (dictionary*)dptr;
-
-//    unsigned    hash ;
-//    ssize_t      i ;
-
-//    if (key == NULL || d == NULL) {
-//        return;
-//    }
-
-//    hash = dictionary_hash(key);
-//    for (i=0 ; i<d->size ; i++) {
-//        if (d->key[i]==NULL)
-//            continue ;
-//        /* Compare hash */
-//        if (hash==d->hash[i]) {
-//            /* Compare string, to avoid hash collisions */
-//            if (!strcmp(key, d->key[i])) {
-//                /* Found key */
-//                break ;
-//            }
-//        }
-//    }
-//    if (i>=d->size)
-//        /* Key not found */
-//        return ;
-
-//    free(d->key[i]);
-//    d->key[i] = NULL ;
-//    if (d->val[i]!=NULL) {
-//        free(d->val[i]);
-//        d->val[i] = NULL ;
-//    }
-//    d->hash[i] = 0 ;
-//    d->n -- ;
-//    return ;
-//}
-
-//void dictionary_dump(const void * dptr, FILE * out)
-//{
-//    dictionary * d = (dictionary*)dptr;
-
-//    ssize_t  i ;
-
-//    if (d==NULL || out==NULL) return ;
-//    if (d->n<1) {
-//        fprintf(out, "empty dictionary\n");
-//        return ;
-//    }
-//    for (i=0 ; i<d->size ; i++) {
-//        if (d->key[i]) {
-//            fprintf(out, "%20s\t[%s]\n",
-//                    d->key[i],
-//                    d->val[i] ? d->val[i] : "UNDEF");
-//        }
-//    }
-//    return ;
-//}
+void dictionary_internal_add_hash_bucket(dictionary_t* dict_ptr, const void* key, const size_t key_size);
+void dictionary_internal_add_key_value(dictionary_t* dict_ptr, const unsigned long hash, const void *key, size_t key_size, const void* value, const size_t value_size);
+unsigned long dictionary_internal_get_hash(const void* key, const size_t key_size);
 
 dictionary_t* dictionary_allocate()
 {
-    return NULL;
+    dictionary_t* ptr = (dictionary_t*)calloc(1, sizeof (dictionary_t));
+    ptr->hash_bucket = NULL;
+    ptr->hash_count = 0;
+    return ptr;
 }
 
 void dictionary_free(dictionary_t* dict_ptr)
 {
+    if(dict_ptr == NULL)
+    {
+        return;
+    }
 
+    hash_bucket_t* temp_hash_bucket = NULL;
+    hash_bucket_t* head_hash_bucket = dict_ptr->hash_bucket;
+
+    while(head_hash_bucket != NULL)
+    {
+        temp_hash_bucket = head_hash_bucket;
+
+        key_value_t* temp_kv = NULL;
+        key_value_t* head_kv = temp_hash_bucket->key_value_list;
+
+        while(head_kv != NULL)
+        {
+            temp_kv = head_kv;
+            head_kv = head_kv->next;
+            free(temp_kv->key);
+            free(temp_kv->value);
+            free(temp_kv);
+        }
+
+        free(temp_hash_bucket);
+
+        head_hash_bucket = head_hash_bucket->next;
+    }
+
+    free(dict_ptr);
 }
 
-void dictionary_set_value(dictionary_t* dict_ptr, const char* key, const size_t key_size, const void* value, const size_t value_size)
+void dictionary_set_value(dictionary_t *dict_ptr, const void* key, const size_t key_size, const void* value, const size_t value_size)
 {
+    if(dict_ptr == NULL)
+    {
+        return;
+    }
 
+    unsigned long current_hash = dictionary_internal_get_hash(key, key_size);
+
+    hash_bucket_t* current_hash_bucket = dict_ptr->hash_bucket;
+
+    while(current_hash_bucket != NULL)
+    {
+        if(current_hash_bucket->hash == current_hash)
+        {
+            key_value_t* current_kv = current_hash_bucket->key_value_list;
+
+            while(current_kv)
+            {
+                if(memcmp(current_kv->key, key, key_size) == 0)
+                {
+                    free(current_kv->value);
+                    current_kv->value = calloc(value_size, sizeof(char));
+                    memcpy(current_kv->value, value, value_size);
+                    return;
+                }
+
+                current_kv = current_kv->next;
+            }
+
+            dictionary_internal_add_key_value(dict_ptr, current_hash, key, key_size, value, value_size);
+        }
+
+        current_hash_bucket = current_hash_bucket->next;
+    }
+
+    dictionary_internal_add_hash_bucket(dict_ptr, key, key_size);
+    dictionary_internal_add_key_value(dict_ptr, current_hash, key, key_size, value, value_size);
+
+    return;
 }
 
-void* dictionary_get_value(dictionary_t* dict_ptr, const char* key, const size_t key_size)
+void* dictionary_get_value(dictionary_t* dict_ptr, const void *key, const size_t key_size)
 {
+    if(dict_ptr == NULL)
+    {
+        return NULL;
+    }
+
+    unsigned long current_hash = dictionary_internal_get_hash(key, key_size);
+
+    hash_bucket_t* current_hash_bucket = dict_ptr->hash_bucket;
+
+    while(current_hash_bucket != NULL)
+    {
+        if(current_hash_bucket->hash == current_hash)
+        {
+            key_value_t* current_kv = current_hash_bucket->key_value_list;
+
+            while(current_kv)
+            {
+                if(memcmp(current_kv->key, key, key_size) == 0)
+                {
+                    return current_kv->value;
+                }
+
+                current_kv = current_kv->next;
+            }
+        }
+
+        current_hash_bucket = current_hash_bucket->next;
+    }
+
     return NULL;
+}
+
+char** dictionary_get_all_keys(dictionary_t* dict_ptr)
+{
+    if(dict_ptr == NULL)
+    {
+        return NULL;
+    }
+
+    long total_keys = 0;
+    hash_bucket_t* current_hash_bucket = NULL;
+    long index = 0;
+
+    current_hash_bucket = dict_ptr->hash_bucket;
+    while( current_hash_bucket != NULL)
+    {
+        total_keys = total_keys + current_hash_bucket->key_value_count;
+        current_hash_bucket = current_hash_bucket->next;
+    }
+
+    char** buffer = NULL;
+    buffer = (char **)calloc(1, (unsigned long)(total_keys + 1) * sizeof(char*));
+
+    current_hash_bucket = dict_ptr->hash_bucket;
+    while( current_hash_bucket != NULL)
+    {
+        key_value_t* current_kv = current_hash_bucket->key_value_list;
+
+        while(current_kv)
+        {
+            buffer[index] = (char*)calloc(current_kv->key_size+1, sizeof(char));
+            memcpy(buffer[index], current_kv->key, current_kv->key_size);
+            current_kv = current_kv->next;
+            index++;
+        }
+        current_hash_bucket = current_hash_bucket->next;
+    }
+
+    return buffer;
+}
+
+void dictionary_free_key_list(dictionary_t* dict_ptr, char **key_list)
+{
+    if(dict_ptr == NULL)
+    {
+        return;
+    }
+
+    long index = 0;
+
+    while(key_list[index] != NULL)
+    {
+        free(key_list[index]);
+        index++;
+    }
+
+    free(key_list);
+}
+
+void dictionary_internal_add_hash_bucket(dictionary_t *dict_ptr, const void *key, const size_t key_size)
+{
+    if(dict_ptr == NULL)
+    {
+        return;
+    }
+
+    hash_bucket_t* new_hash_bucket = (hash_bucket_t*)calloc(1, sizeof(hash_bucket_t));
+    new_hash_bucket->next = NULL;
+    new_hash_bucket->key_value_list = NULL;
+    new_hash_bucket->key_value_count = 0;
+    new_hash_bucket->hash = dictionary_internal_get_hash(key, key_size);
+
+    if(dict_ptr->hash_bucket == NULL)
+    {
+        dict_ptr->hash_bucket = new_hash_bucket;
+    }
+    else
+    {
+        hash_bucket_t* temp = NULL;
+        for(temp = dict_ptr->hash_bucket; temp->next != NULL; temp = temp->next) {}
+        temp->next = new_hash_bucket;
+    }
+
+    dict_ptr->hash_count++;
+}
+
+void dictionary_internal_add_key_value(dictionary_t *dict_ptr, const unsigned long hash, const void* key, size_t key_size, const void *value, const size_t value_size)
+{
+    if(dict_ptr == NULL)
+    {
+        return;
+    }
+
+    hash_bucket_t* curr_hash_bucket = NULL;
+
+    for(curr_hash_bucket = dict_ptr->hash_bucket; curr_hash_bucket != NULL; curr_hash_bucket = curr_hash_bucket->next)
+    {
+        if(curr_hash_bucket->hash ==  hash)
+        {
+            key_value_t* new_kv = (key_value_t*)calloc(1, sizeof (key_value_t));
+            new_kv->next = NULL;
+            new_kv->key = (char*)calloc(1, key_size);
+            memcpy(new_kv->key, key, key_size);
+            new_kv->value = (char*)calloc(1, value_size);
+            memcpy(new_kv->value, value, value_size);
+            new_kv->value_size = value_size;
+            new_kv->key_size = key_size;
+
+            if(curr_hash_bucket->key_value_list == NULL)
+            {
+                curr_hash_bucket->key_value_list = new_kv;
+            }
+            else
+            {
+                key_value_t* temp = NULL;
+                for(temp = curr_hash_bucket->key_value_list; temp->next != NULL; temp = temp->next) {}
+                temp->next = new_kv;
+            }
+
+            curr_hash_bucket->key_value_count++;
+
+            break;
+        }
+    }
+
+}
+
+unsigned long dictionary_internal_get_hash(const void *key, const size_t key_size)
+{
+    unsigned long hash = 0;
+    size_t index = 0;
+
+    if (!key)
+        return 0;
+
+    const char* key_buffer = (const char*)key;
+
+    for(hash = 0, index = 0 ; index < key_size ; index++)
+    {
+        hash += (unsigned)key_buffer[index] ;
+        hash += (hash<<10);
+        hash ^= (hash>>6) ;
+    }
+
+    hash += (hash <<3);
+    hash ^= (hash >>11);
+    hash += (hash <<15);
+
+    return hash;
 }

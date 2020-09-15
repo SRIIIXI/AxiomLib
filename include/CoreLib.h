@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Base64.h"
 #include "Buffer.h"
 #include "Directory.h"
+#include "Dictionary.h"
 #include "File.h"
 #include "KeyValue.h"
 #include "List.h"
