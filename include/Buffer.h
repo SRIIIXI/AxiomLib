@@ -40,10 +40,18 @@ extern "C" {
 
 typedef struct buffer_t buffer_t;
 
-extern LIBRARY_EXPORT buffer_t* buffer_allocate(void* data, size_t sz);
+extern LIBRARY_EXPORT buffer_t* buffer_allocate(const void* data, size_t sz);
+extern LIBRARY_EXPORT buffer_t* buffer_allocate_default();
 
 extern LIBRARY_EXPORT buffer_t* buffer_copy(buffer_t* dest, buffer_t* orig);
-extern LIBRARY_EXPORT buffer_t* buffer_append(buffer_t* dest, void* data, size_t sz);
+extern LIBRARY_EXPORT buffer_t* buffer_append(buffer_t* dest, const void* data, size_t sz);
+extern LIBRARY_EXPORT buffer_t* buffer_append_string(buffer_t* dest, const char* data);
+extern LIBRARY_EXPORT buffer_t* buffer_append_integer(buffer_t* dest, const long data);
+extern LIBRARY_EXPORT buffer_t* buffer_append_real(buffer_t* dest, const double data);
+extern LIBRARY_EXPORT buffer_t* buffer_append_char(buffer_t* dest, const char data);
+extern LIBRARY_EXPORT buffer_t* buffer_append_boolean(buffer_t* dest, const bool data);
+extern LIBRARY_EXPORT buffer_t* buffer_append_curr_timestamp(buffer_t* dest);
+
 extern LIBRARY_EXPORT void buffer_free(buffer_t* ptr);
 
 extern LIBRARY_EXPORT bool buffer_is_equal(buffer_t* first, buffer_t* second);
@@ -51,8 +59,8 @@ extern LIBRARY_EXPORT bool buffer_is_greater(buffer_t* first, buffer_t* second);
 extern LIBRARY_EXPORT bool buffer_is_less(buffer_t* first, buffer_t* second);
 extern LIBRARY_EXPORT bool buffer_is_null(buffer_t* ptr);
 
-extern LIBRARY_EXPORT const void* data(buffer_t* ptr);
-extern LIBRARY_EXPORT size_t size(buffer_t* ptr);
+extern LIBRARY_EXPORT const void* buffer_get_data(buffer_t* ptr);
+extern LIBRARY_EXPORT size_t buffer_get_size(buffer_t* ptr);
 
 #ifdef __cplusplus
 }

@@ -31,28 +31,46 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <memory.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <time.h>
 
 typedef struct buffer_t
 {
-    void* data;
-    size_t size;
-    size_t memory;
+    char* data;
+    size_t data_size;
+    size_t memory_size;
 }buffer_t;
 
-buffer_t* buffer_allocate(void* data, size_t sz)
+buffer_t* buffer_internal_adjust_storage(buffer_t* buffer_ptr, size_t sz);
+
+buffer_t* buffer_allocate(const void *data, size_t sz)
 {
     buffer_t* nd = (buffer_t*)calloc(1, sizeof(buffer_t));
 
     if(nd != NULL)
     {
-        nd->data = (char*)calloc(1, sz);
+        nd->memory_size = sysconf(_SC_PAGESIZE);
+        nd->data_size = sz;
+        nd->data = (char*)calloc(nd->memory_size, sizeof (char));
 
         if(nd->data != NULL)
         {
-            nd->size = sz;
-            nd->memory = sz;
             memcpy(nd->data, data, sz);
         }
+    }
+    return nd;
+}
+
+buffer_t* buffer_allocate_default()
+{
+    buffer_t* nd = (buffer_t*)calloc(1, sizeof(buffer_t));
+
+    if(nd != NULL)
+    {
+        nd->memory_size = sysconf(_SC_PAGESIZE);
+        nd->data_size = 0;
+        nd->data = (char*)calloc(nd->memory_size, sizeof (char));
     }
     return nd;
 }
@@ -68,16 +86,16 @@ buffer_t* buffer_copy(buffer_t* dest, buffer_t* orig)
                 free(dest->data);
             }
 
-            dest->size = orig->size;
-            dest->data = (char*)calloc(1, dest->size);
-            memcpy(dest->data, orig->data, dest->size);
+            dest->data_size = orig->data_size;
+            dest->data = (char*)calloc(1, dest->data_size);
+            memcpy(dest->data, orig->data, dest->data_size);
         }
     }
 
     return  dest;
 }
 
-buffer_t *buffer_append(buffer_t* dest, void* data, size_t sz)
+buffer_t *buffer_append(buffer_t* dest, const void *data, size_t sz)
 {
     if(data == NULL || sz < 1)
     {
@@ -91,16 +109,87 @@ buffer_t *buffer_append(buffer_t* dest, void* data, size_t sz)
     }
     else
     {
-
-
+        dest = buffer_internal_adjust_storage(dest, sz);
+        memcpy(&dest->data[dest->data_size], data, sz);
+        dest->data_size = dest->data_size + sz;
     }
 
     return dest;
 }
 
+buffer_t* buffer_append_string(buffer_t* dest, const char* data)
+{
+    return buffer_append(dest, data, strlen(data));
+}
+
+buffer_t* buffer_append_integer(buffer_t* dest, const long data)
+{
+    char buffer[17] = {0};
+    sprintf(buffer, "%ld", data);
+    return buffer_append(dest, buffer, strlen(buffer));
+}
+
+buffer_t* buffer_append_real(buffer_t* dest, const double data)
+{
+    char buffer[17] = {0};
+    sprintf(buffer, "%f", data);
+    return buffer_append(dest, buffer, strlen(buffer));
+}
+
+buffer_t* buffer_append_char(buffer_t* dest, const char data)
+{
+    char buffer[2] = {data, 0};
+    return buffer_append(dest, buffer, strlen(buffer));
+}
+
+buffer_t* buffer_append_boolean(buffer_t* dest, const bool data)
+{
+    char buffer[6] = {0};
+
+    if(data)
+    {
+        strcpy(buffer, "true");
+    }
+    else
+    {
+        strcpy(buffer, "false");
+    }
+
+    return buffer_append(dest, buffer, strlen(buffer));
+}
+
+buffer_t* buffer_append_curr_timestamp(buffer_t* dest)
+{
+    if(dest == NULL)
+    {
+        return NULL;
+    }
+
+    char buffer[15] = {0};
+    time_t t ;
+    struct tm *tmp ;
+    time(&t);
+    tmp = localtime(&t);
+
+    sprintf(buffer, "%04d%02d%02d%02d%02d%02d",
+             (tmp->tm_year+1900), (tmp->tm_mon+1), tmp->tm_mday,
+             tmp->tm_hour, tmp->tm_min, tmp->tm_sec);
+
+    return buffer_append(dest, buffer, strlen(buffer));
+}
+
 void buffer_free(buffer_t* ptr)
 {
-    free(ptr->data);
+    if(ptr == NULL)
+    {
+        return;
+    }
+
+    if(ptr->data)
+    {
+        free(ptr->data);
+    }
+
     free(ptr);
 }
 
@@ -110,12 +199,12 @@ bool buffer_is_equal(buffer_t* first, buffer_t* second)
     {
        if (first->data != NULL && second->data != NULL)
         {
-            if(first->size != second->size)
+            if(first->data_size != second->data_size)
             {
                 return false;
             }
 
-            if(memcmp(first->data, second->data, first->size) == 0)
+            if(memcmp(first->data, second->data, first->data_size) == 0)
             {
                 return true;
             }
@@ -131,12 +220,12 @@ bool buffer_is_greater(buffer_t* first, buffer_t* second)
     {
         if(first->data != NULL && second->data != NULL)
         {
-            if(first->size != second->size)
+            if(first->data_size != second->data_size)
             {
                 return false;
             }
 
-            if(memcmp(first->data, second->data, first->size) > 0)
+            if(memcmp(first->data, second->data, first->data_size) > 0)
             {
                 return true;
             }
@@ -152,12 +241,12 @@ bool buffer_is_less(buffer_t* first, buffer_t* second)
     {
         if(first->data != NULL && second->data != NULL)
         {
-            if(first->size != second->size)
+            if(first->data_size != second->data_size)
             {
                 return false;
             }
 
-            if(memcmp(first->data, second->data, first->size) < 0)
+            if(memcmp(first->data, second->data, first->data_size) < 0)
             {
                 return true;
             }
@@ -188,7 +277,7 @@ bool buffer_is_null(buffer_t* ptr)
     return false;
 }
 
-const void *data(buffer_t* ptr)
+const void *buffer_get_data(buffer_t* ptr)
 {
     if(ptr == NULL)
     {
@@ -198,12 +287,33 @@ const void *data(buffer_t* ptr)
     return ptr->data;
 }
 
-size_t size(buffer_t* ptr)
+size_t buffer_get_size(buffer_t* ptr)
 {
     if(ptr == NULL)
     {
         return 0;
     }
 
-    return ptr->size;
+    return ptr->data_size;
+}
+
+buffer_t* buffer_internal_adjust_storage(buffer_t* buffer_ptr, size_t sz)
+{
+    if(buffer_ptr == NULL)
+    {
+        return NULL;
+    }
+
+    size_t buffer_remaining = buffer_ptr->memory_size - buffer_ptr->data_size;
+
+    if(buffer_remaining < sz)
+    {
+        buffer_ptr->memory_size = buffer_ptr->memory_size*2;
+        void* ptr = (char*)calloc(buffer_ptr->memory_size, sizeof (char));
+        memcpy(ptr, buffer_ptr->data, buffer_ptr->data_size);
+        free(buffer_ptr->data);
+        buffer_ptr->data = ptr;
+    }
+
+    return  buffer_ptr;
 }
