@@ -39,8 +39,8 @@ extern "C" {
 #define LIBRARY_EXPORT __attribute__((visibility("default")))
 
 extern LIBRARY_EXPORT char*   env_get_current_process_name(char* ptr);
-extern LIBRARY_EXPORT char*   env_get_current_user_name();
-extern LIBRARY_EXPORT char*   env_get_lock_filename();
+extern LIBRARY_EXPORT char*   env_get_current_user_name(void);
+extern LIBRARY_EXPORT char*   env_get_lock_filename(void);
 extern LIBRARY_EXPORT bool    env_lock_process(const char* lock_filename);
 
 #ifdef __cplusplus

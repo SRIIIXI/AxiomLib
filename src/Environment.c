@@ -100,12 +100,12 @@ char* env_get_current_process_name(char* ptr)
     return ptr;
 }
 
-char* env_get_current_user_name()
+char* env_get_current_user_name(void)
 {
     return getenv("USER");
 }
 
-char* env_get_lock_filename()
+char* env_get_lock_filename(void)
 {
     char* lock_filename = (char*)calloc(1, 1025);
     char process_name[64] = {0};

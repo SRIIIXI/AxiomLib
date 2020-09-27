@@ -28,12 +28,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "CoreLib.h"
 
-void __attribute__((constructor)) library_load()
+void __attribute__((constructor)) library_load(void)
 {
 
 }
 
-void __attribute__((destructor)) library_unload()
+void __attribute__((destructor)) library_unload(void)
 {
 
 }

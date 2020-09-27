@@ -89,7 +89,7 @@ void signals_register_callback(signal_callback callback_func)
     callback_ptr = callback_func;
 }
 
-void signals_initialize_handlers()
+void signals_initialize_handlers(void)
 {
     for(int signum = 1; signum < 32; signum++)
     {

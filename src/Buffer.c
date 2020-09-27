@@ -62,7 +62,7 @@ buffer_t* buffer_allocate(const void *data, size_t sz)
     return nd;
 }
 
-buffer_t* buffer_allocate_default()
+buffer_t* buffer_allocate_default(void)
 {
     buffer_t* nd = (buffer_t*)calloc(1, sizeof(buffer_t));
 

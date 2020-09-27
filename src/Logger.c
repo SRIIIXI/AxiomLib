@@ -57,7 +57,7 @@ typedef struct logger_t
     pthread_mutex_t mutex;
 }logger_t;
 
-logger_t*	logger_allocate_default()
+logger_t*	logger_allocate_default(void)
 {
     return logger_allocate(10, NULL);
 }

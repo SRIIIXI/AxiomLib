@@ -48,8 +48,8 @@ extern "C" {
 #endif
 
 // Shared libary load/unload handlers
-void __attribute__((constructor)) library_load();
-void __attribute__((destructor)) library_unload();
+void __attribute__((constructor)) library_load(void);
+void __attribute__((destructor)) library_unload(void);
 
 #ifdef __cplusplus
 }

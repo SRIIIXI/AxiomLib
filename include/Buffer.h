@@ -41,7 +41,7 @@ extern "C" {
 typedef struct buffer_t buffer_t;
 
 extern LIBRARY_EXPORT buffer_t* buffer_allocate(const void* data, size_t sz);
-extern LIBRARY_EXPORT buffer_t* buffer_allocate_default();
+extern LIBRARY_EXPORT buffer_t* buffer_allocate_default(void);
 
 extern LIBRARY_EXPORT buffer_t* buffer_copy(buffer_t* dest, buffer_t* orig);
 extern LIBRARY_EXPORT buffer_t* buffer_append(buffer_t* dest, const void* data, size_t sz);

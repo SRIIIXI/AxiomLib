@@ -63,7 +63,7 @@ void configuration_internal_add_key_value(configuration_t* conf_ptr, char* secti
 const section_t* configuration_internal_get_section(const configuration_t* conf_ptr, const char *section_name);
 const char* configuration_internal_get_value(const configuration_t *conf_ptr, const section_t* section, const char *key);
 
-configuration_t* configuration_allocate_default()
+configuration_t* configuration_allocate_default(void)
 {
     char* path_str = (char*)calloc(1024, sizeof(char));
     path_str = dir_get_config_directory(path_str);
@@ -395,6 +395,30 @@ const char* configuration_get_value_as_string(const configuration_t* config, con
     }
 
     return value;
+}
+
+char configuration_get_value_as_char(const configuration_t* config, const char* section, const char* key)
+{
+    if(config == NULL || section == NULL || key == NULL)
+    {
+        return 0;
+    }
+
+    const section_t* curr_section = configuration_internal_get_section(config, section);
+
+    if(curr_section == NULL)
+    {
+        return 0;
+    }
+
+    const char* value = configuration_internal_get_value(config, curr_section, key);
+
+    if(value == 0)
+    {
+        return 0;
+    }
+
+    return value[0];
 }
 
 void configuration_internal_add_section(configuration_t* conf_ptr, char* section_name)

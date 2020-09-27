@@ -60,7 +60,7 @@ void dictionary_internal_add_hash_bucket(dictionary_t* dict_ptr, const void* key
 void dictionary_internal_add_key_value(dictionary_t* dict_ptr, const unsigned long hash, const void *key, size_t key_size, const void* value, const size_t value_size);
 unsigned long dictionary_internal_get_hash(const void* key, const size_t key_size);
 
-dictionary_t* dictionary_allocate()
+dictionary_t* dictionary_allocate(void)
 {
     dictionary_t* ptr = (dictionary_t*)calloc(1, sizeof (dictionary_t));
     ptr->hash_bucket = NULL;

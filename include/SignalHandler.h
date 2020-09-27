@@ -53,7 +53,7 @@ typedef enum SignalType
 
 typedef void(*signal_callback)(SignalType stype);
 
-extern LIBRARY_EXPORT void signals_initialize_handlers();
+extern LIBRARY_EXPORT void signals_initialize_handlers(void);
 extern LIBRARY_EXPORT void signals_register_callback(signal_callback callback_func);
 extern LIBRARY_EXPORT bool signals_is_shutdownsignal(const int signum);
 extern LIBRARY_EXPORT void signals_get_name(const int signum);
