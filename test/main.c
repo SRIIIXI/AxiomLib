@@ -7,6 +7,7 @@ void test_string(void);
 void test_logger(void);
 void test_configuration(void);
 void test_dictionary(void);
+void test_base64(void);
 
 int main(int argc, char* argv[])
 {
@@ -21,6 +22,7 @@ int main(int argc, char* argv[])
         case 'b':
         {
             //Base64
+            test_base64();
             break;
         }
         case 'f':
@@ -308,4 +310,45 @@ void test_dictionary(void)
     dictionary_free_key_list(dict, all_keys);
 
     dictionary_free(dict);
+}
+
+void test_base64(void)
+{
+    char* old_fname = "/home/subrato/Pictures/testimage.jpg";
+    char* new_fname = "/home/subrato/Pictures/testimage_new.jpg";
+
+    FILE* fp = fopen(old_fname, "rb");
+
+    if(fp)
+    {
+        fseek(fp, 0, SEEK_END);
+        long sz = ftell(fp);
+        rewind(fp);
+
+        unsigned char* old_image = (char*)calloc(1, sz);
+        fread(old_image, sz, 1, fp);
+        fclose(fp);
+
+        char* encoded_image = NULL;
+        unsigned long encoded_image_len = 0;
+
+        encoded_image = base64_encode(old_image, sz, encoded_image, &encoded_image_len);
+
+        unsigned char* new_image = NULL;
+        unsigned long new_image_len = 0;
+
+        new_image = base64_decode(encoded_image, encoded_image_len, new_image, &new_image_len);
+
+        fp = fopen(new_fname, "wb");
+
+        if(fp)
+        {
+            fwrite(new_image, new_image_len, 1, fp);
+            fflush(fp);
+            fclose(fp);
+        }
+
+        free(encoded_image);
+        free(new_image);
+    }
 }

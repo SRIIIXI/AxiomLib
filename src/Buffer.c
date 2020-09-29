@@ -178,6 +178,47 @@ buffer_t* buffer_append_curr_timestamp(buffer_t* dest)
     return buffer_append(dest, buffer, strlen(buffer));
 }
 
+void buffer_remove(buffer_t* ptr, size_t start, size_t len)
+{
+    if(ptr == NULL || len < 1 || start < 0)
+    {
+        return;
+    }
+
+    if(start >= 0 && start <= ptr->data_size)
+    {
+        memcpy(ptr->data+start, ptr->data+start+len, ptr->data_size-len);
+        buffer_remove_end(ptr, len);
+    }
+}
+
+void buffer_remove_end(buffer_t* ptr, size_t len)
+{
+    if(ptr == NULL || len < 1)
+    {
+        return;
+    }
+
+    size_t pos = 0;
+
+    pos = ptr->data_size - len;
+
+    for(size_t index = ptr->data_size; index > pos; index--)
+    {
+        ptr->data[index] = 0;
+    }
+
+    ptr->data_size = ptr->data_size - len;
+
+    return;
+}
+
+void buffer_remove_start(buffer_t* ptr, size_t len)
+{
+    buffer_remove(ptr, 0, len);
+    buffer_remove_end(ptr, len);
+}
+
 void buffer_free(buffer_t* ptr)
 {
     if(ptr == NULL)
