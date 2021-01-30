@@ -147,3 +147,5 @@ build/
 Debug/
 packages/
 .directory/
+temp/
+tmp/
