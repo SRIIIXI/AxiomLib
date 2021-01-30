@@ -65,19 +65,27 @@ const char* configuration_internal_get_value(const configuration_t *conf_ptr, co
 
 configuration_t* configuration_allocate_default(void)
 {
-    char* path_str = (char*)calloc(1024, sizeof(char));
-    path_str = dir_get_config_directory(path_str);
+    char* filename = (char*)calloc(1024, sizeof(char));
 
-    char* proces_name = (char*)calloc(1024, sizeof(char));
+    if(strcmp(getenv("USER"), "root") == 0)
+    {
+        strcat(filename, "/etc/");
+    }
+    else
+    {
+        strcat(filename, getenv("HOME"));
+        strcat(filename, "/etc/");
+    }
+
+    char* proces_name = (char*)calloc(1025, sizeof(char));
     proces_name = env_get_current_process_name(proces_name);
-
-    strcat(path_str, proces_name);
-    strcat(path_str, ".conf");
+    strcat(filename, proces_name);
+    strcat(filename, ".conf");
     free(proces_name);
 
-    configuration_t* ptr = configuration_allocate(path_str);
+    configuration_t* ptr = configuration_allocate(filename);
 
-    free(path_str);
+    free(filename);
 
     return ptr;
 }

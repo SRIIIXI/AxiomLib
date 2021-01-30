@@ -621,7 +621,7 @@ void strsplitkeyvaluechar(const char* str, const char delimiter, char **key, cha
     strcpy(*value, &str[val_start]);
 }
 
-extern char** strsplitsubstr(const char* str, const char* delimiter, long *numsubstr)
+extern char** strsplitsubstr(const char* str, const char* delimiter)
 {
 	if(str == NULL || delimiter == NULL)
 	{
@@ -630,8 +630,6 @@ extern char** strsplitsubstr(const char* str, const char* delimiter, long *numsu
 
     long substr_count = strcountsubstr(str, delimiter);
     long str_len = (long)strlen(str);
-
-    *numsubstr = substr_count;
 
 	if(substr_count < 1)
 	{
@@ -688,11 +686,11 @@ extern char** strsplitsubstr(const char* str, const char* delimiter, long *numsu
 	return buffer;
 }
 
-extern char** strsplitchar(const char* str, const char delimiter, long *numsubstr)
+extern char** strsplitchar(const char* str, const char delimiter)
 {
 	char temp_delimiter[2] = {delimiter, 0};
 
-	return strsplitsubstr(str, temp_delimiter, numsubstr);
+    return strsplitsubstr(str, temp_delimiter);
 }
 
 extern char* strjoinwithsubstr(const char** strlist, const char* delimiter)
@@ -707,7 +705,7 @@ extern char* strjoinwithchar(const char** strlist, const char delimiter)
 	return strjoinwithsubstr(strlist, temp_delimiter);
 }
 
-void strfreelist(char** strlist, long numsubstr)
+void strfreelist(char** strlist)
 {
     long index = 0;
 

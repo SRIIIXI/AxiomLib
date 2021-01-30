@@ -180,9 +180,8 @@ void test_string(void)
 {
     char* str = "aaxxbbxxccxxddxxeexx";
 
-    long num_sub_strs = 0;
     char** sub_str_list = NULL;
-    sub_str_list = strsplitsubstr(str, "xx", &num_sub_strs);
+    sub_str_list = strsplitsubstr(str, "xx");
 
     for(int index = 0; sub_str_list[index] != 0; index++)
     {
@@ -191,7 +190,7 @@ void test_string(void)
         printf("%s\n", sub_str);
     }
 
-    strfreelist(sub_str_list, num_sub_strs);
+    strfreelist(sub_str_list);
 
     char process_name[64] = {0};
     char buffer[1025] = {0};
@@ -277,10 +276,10 @@ void test_configuration(void)
             printf("Key %s Value %s\n", key_str, configuration_get_value_as_string(conf, sec_str, key_str));
         }
 
-        strfreelist(keys, 0);
+        strfreelist(keys);
     }
 
-    strfreelist(sections, 0);
+    strfreelist(sections);
 
     configuration_release(conf);
 }

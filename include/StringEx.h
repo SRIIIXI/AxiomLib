@@ -79,11 +79,11 @@ extern LIBRARY_EXPORT char* strrepcharat(char* str, const char newchar, long pos
 
 extern LIBRARY_EXPORT void strsplitkeyvaluechar(const char* str, const char delimiter, char **key, char **value);
 extern LIBRARY_EXPORT void strsplitkeyvaluesubstr(const char* str, const char* delimiter, char **key, char **value);
-extern LIBRARY_EXPORT char** strsplitsubstr(const char* str, const char* delimiter, long *numsubstr);
-extern LIBRARY_EXPORT char** strsplitchar(const char* str, const char delimiter, long *numsubstr);
+extern LIBRARY_EXPORT char** strsplitsubstr(const char* str, const char* delimiter);
+extern LIBRARY_EXPORT char** strsplitchar(const char* str, const char delimiter);
 extern LIBRARY_EXPORT char* strjoinwithsubstr(const char **strlist, const char* delimiter);
 extern LIBRARY_EXPORT char* strjoinwithchar(const char** strlist, const char delimiter);
-extern LIBRARY_EXPORT void  strfreelist(char** strlist, long numsubstr);
+extern LIBRARY_EXPORT void  strfreelist(char** strlist);
 
 #ifdef __cplusplus
 }

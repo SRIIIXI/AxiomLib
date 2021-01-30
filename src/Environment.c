@@ -45,56 +45,76 @@ char* env_get_current_process_name(char* ptr)
         return NULL;
     }
 
-    char buffer[1025] = {0};
+    char* buffer = (char*)calloc(1, 32);
     pid_t proc_id = getpid();
-    void* cmd_args = NULL;
-    void* dir_tokens = NULL;
+
+    char** cmd_args = NULL;
+    char** dir_tokens = NULL;
 
     sprintf(buffer, "/proc/%d/cmdline", proc_id);
 
     FILE* fp = fopen(buffer, "r");
+    free(buffer);
+    buffer = NULL;
 
     if(fp)
     {
-        memset(buffer, 0, 1025);
+        buffer = (char*)calloc(1, 1025);
 
         if(fgets(buffer, 1024, fp))
         {
-            cmd_args = str_list_allocate_from_string(cmd_args, buffer, " ");
+            long dir_sep_pos = strindexofchar(buffer, '/');
 
-            if(cmd_args && str_list_item_count(cmd_args) > 0)
+            if(dir_sep_pos < 0)
             {
-                str_list_allocate_from_string(dir_tokens, str_list_get_first(cmd_args), "/");
+                strcpy(ptr, buffer);
+                free(buffer);
+                fclose(fp);
+                return ptr;
+            }
 
-                if(dir_tokens && str_list_item_count(dir_tokens) > 0)
-                {
-                    strcpy(ptr, str_list_get_last(dir_tokens));
-                }
+            cmd_args = strsplitchar(buffer, ' ');
+
+            if(cmd_args != NULL)
+            {
+                dir_tokens = strsplitchar(cmd_args[0], '/');
             }
             else
             {
-                dir_tokens = str_list_allocate_from_string(dir_tokens, buffer, "/");
-
-                if(dir_tokens && str_list_item_count(dir_tokens) > 0)
-                {
-                    strcpy(ptr, str_list_get_last(dir_tokens));
-                }
+                dir_tokens = strsplitchar(buffer, '/');
             }
+
+            if(dir_tokens != NULL)
+            {
+                char* last_str = NULL;
+                for(int index = 0; dir_tokens[index] != 0; index++)
+                {
+                    last_str = dir_tokens[index];
+                }
+                strcpy(ptr, last_str);
+            }
+
+            if(cmd_args)
+            {
+                strfreelist(cmd_args);
+            }
+
+            if(dir_tokens)
+            {
+                strfreelist(dir_tokens);
+            }
+        }
+        else
+        {
+            printf("Could not read process commandline\n");
         }
 
         fclose(fp);
     }
 
-    if(cmd_args)
+    if(buffer)
     {
-        str_list_clear(cmd_args);
-        str_list_free(cmd_args);
-    }
-
-    if(dir_tokens)
-    {
-        str_list_clear(dir_tokens);
-        str_list_free(dir_tokens);
+        free(buffer);
     }
 
     return ptr;

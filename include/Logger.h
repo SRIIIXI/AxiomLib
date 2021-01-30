@@ -50,10 +50,14 @@ typedef enum LogLevel
 
 typedef struct logger_t logger_t;
 
-extern LIBRARY_EXPORT logger_t*  logger_allocate_default(void);
+extern LIBRARY_EXPORT logger_t*  logger_allocate_default();
 extern LIBRARY_EXPORT logger_t*  logger_allocate(size_t flszmb, const char* dirpath);
+extern LIBRARY_EXPORT logger_t*  logger_allocate_file(size_t flszmb, const char* filename);
+extern LIBRARY_EXPORT const char* logger_filename(logger_t* loggerptr);
 extern LIBRARY_EXPORT void    logger_release(logger_t* loggerptr);
-extern LIBRARY_EXPORT bool    logger_write(logger_t* loggerptr, const char* logentry, LogLevel llevel, char* func, char* file, int line);
+extern LIBRARY_EXPORT bool    logger_write(logger_t* loggerptr, const char* logentry, LogLevel llevel, const char* func, const char* file, int line);
+extern LIBRARY_EXPORT void logger_enable_console_out(logger_t* loggerptr, bool consoleout);
+extern LIBRARY_EXPORT void logger_set_log_level(logger_t* loggerptr, LogLevel llevel);
 
 #define WriteLog(lptr, str, level) \
     logger_write(lptr, str, level, (char*)__PRETTY_FUNCTION__, (char*)__FILE__, __LINE__)

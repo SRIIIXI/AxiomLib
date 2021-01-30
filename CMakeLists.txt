@@ -68,12 +68,13 @@ add_library(core SHARED ${SOURCE} ${HEADERS})
 install(TARGETS core DESTINATION local/lib)
 install(FILES ${HEADERS} DESTINATION local/include/CoreLib)
 
-install(TARGETS core DESTINATION local/lib)
-install(FILES ${HEADERS} DESTINATION local/include/CoreLib)
+install(TARGETS core DESTINATION lib)
+install(FILES ${HEADERS} DESTINATION include/RTUCore)
 set(CPACK_PACKAGE_FILE_NAME ${Project}.${CMAKE_SYSTEM_PROCESSOR}.${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}.${LIB_VERSION_PATCH})
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Subrato Roy")
-set(CPACK_PACKAGE_DESCRIPTION, "CoreLib C utilities")
+set(CPACK_PACKAGE_DESCRIPTION, "Core C Utilities")
+
 
 include(CPack)
 

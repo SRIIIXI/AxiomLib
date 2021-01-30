@@ -136,6 +136,13 @@ buffer_t* buffer_append_real(buffer_t* dest, const double data)
     return buffer_append(dest, buffer, strlen(buffer));
 }
 
+buffer_t* buffer_append_real_scientific(buffer_t* dest, const double data)
+{
+    char buffer[17] = {0};
+    sprintf(buffer, "%.3e", data);
+    return buffer_append(dest, buffer, strlen(buffer));
+}
+
 buffer_t* buffer_append_char(buffer_t* dest, const char data)
 {
     char buffer[2] = {data, 0};
@@ -232,6 +239,21 @@ void buffer_free(buffer_t* ptr)
     }
 
     free(ptr);
+}
+
+void buffer_clear(buffer_t* ptr)
+{
+    if(ptr == NULL)
+    {
+        return;
+    }
+
+    if(ptr->data)
+    {
+        for(size_t i = 0; i < sizeof ptr->data; ++i)
+          ptr->data[i] = 0;
+    }
+    ptr->data_size = 0;
 }
 
 bool buffer_is_equal(buffer_t* first, buffer_t* second)

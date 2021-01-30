@@ -45,6 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define MAX_LOGGERS 512
 
 static char log_level_names[5][16] = {"Information", "Error", "Warning", "Critical", "Panic"};
+pthread_mutex_t mutex;
 
 void normalize_function_name(char* func_name);
 
@@ -54,16 +55,49 @@ typedef struct logger_t
     size_t LogFileSizeMB;
     char FileName[1025];
     FILE* FileHandle;
-    pthread_mutex_t mutex;
+    bool console_out;
+    LogLevel log_level;
 }logger_t;
 
-logger_t*	logger_allocate_default(void)
+logger_t*	logger_allocate_default()
 {
     return logger_allocate(10, NULL);
 }
 
+logger_t*  logger_allocate_file(size_t flszmb, const char* filename)
+{
+    if(!filename)
+    {
+        return NULL;
+    }
+
+    logger_t* logger_ptr = (logger_t*)calloc(1, sizeof (logger_t));
+
+    if(!logger_ptr)
+    {
+        return NULL;
+    }
+
+    logger_ptr->FileHandle = NULL;
+
+    if(flszmb < 1 || flszmb > 10)
+    {
+        flszmb = 10;
+    }
+
+    logger_ptr->LogFileSizeMB = flszmb;
+    strncpy(logger_ptr->FileName, filename, 1024);
+
+    pthread_mutex_init(&mutex, NULL);
+    logger_ptr->log_level = LOG_INFO;
+    logger_ptr->console_out = false;
+
+    return logger_ptr;
+}
+
+
 logger_t*	logger_allocate(size_t flszmb, const char* dirpath)
-{   
+{
     logger_t* logger_ptr = (logger_t*)calloc(1, sizeof (logger_t));
 
     if(!logger_ptr)
@@ -91,21 +125,14 @@ logger_t*	logger_allocate(size_t flszmb, const char* dirpath)
     }
     else
     {
-        pid_t parent = getppid();
-
-        if(parent == 0)
+        if(strcmp(getenv("USER"), "root") == 0)
         {
             strcat(logger_ptr->FileName, "/var/log/");
         }
         else
         {
-            char wd_path[1025] = { 0 };
-            size_t wd_len = 1024;
-            getcwd(wd_path, wd_len);
-            char* parent_dir = dir_get_parent_directory(wd_path);
-            strcat(logger_ptr->FileName, parent_dir);
-            strcat(logger_ptr->FileName, "log/");
-            free(parent_dir);
+            strcat(logger_ptr->FileName, getenv("HOME"));
+            strcat(logger_ptr->FileName, "/log/");
         }
     }
 
@@ -114,13 +141,27 @@ logger_t*	logger_allocate(size_t flszmb, const char* dirpath)
         dir_create_directory(logger_ptr->FileName);
     }
 
-    char temp[1024] = {0};
-    env_get_current_process_name(&temp[0]);
-    strcat(logger_ptr->FileName, temp);
+    char* proces_name = (char*)calloc(1, 1025);;
+    proces_name = env_get_current_process_name(proces_name);
+    strcat(logger_ptr->FileName, proces_name);
     strcat(logger_ptr->FileName, ".log");
+    free(proces_name);
 
-    pthread_mutex_init(&logger_ptr->mutex, NULL);
+    pthread_mutex_init(&mutex, NULL);
+    logger_ptr->log_level = LOG_INFO;
+    logger_ptr->console_out = false;
+
     return logger_ptr;
+}
+
+const char* logger_filename(logger_t* loggerptr)
+{
+    if(!loggerptr)
+    {
+        return NULL;
+    }
+
+    return &loggerptr->FileName[0];
 }
 
 void logger_release(logger_t* loggerptr)
@@ -130,7 +171,7 @@ void logger_release(logger_t* loggerptr)
         return;
     }
 
-    pthread_mutex_lock(&loggerptr->mutex);
+    pthread_mutex_lock(&mutex);
 
     if(loggerptr->FileHandle)
     {
@@ -138,20 +179,25 @@ void logger_release(logger_t* loggerptr)
         fclose(loggerptr->FileHandle);
     }
 
-    pthread_mutex_unlock(&loggerptr->mutex);
-    pthread_mutex_destroy(&loggerptr->mutex);
+    pthread_mutex_unlock(&mutex);
+    pthread_mutex_destroy(&mutex);
 
     free(loggerptr);
 }
 
-bool logger_write(logger_t* loggerptr, const char* logentry, LogLevel llevel, char* func, char* file, int line)
+bool logger_write(logger_t* loggerptr, const char* logentry, LogLevel llevel, const char* func, const char* file, int line)
 {
     if(!loggerptr)
     {
         return false;
     }
 
-    pthread_mutex_lock(&loggerptr->mutex);
+    if(llevel < loggerptr->log_level)
+    {
+        return false;
+    }
+
+    pthread_mutex_lock(&mutex);
 
     if(loggerptr->FileHandle == NULL)
     {
@@ -159,7 +205,7 @@ bool logger_write(logger_t* loggerptr, const char* logentry, LogLevel llevel, ch
 
         if(loggerptr->FileHandle == NULL)
         {
-            pthread_mutex_unlock(&loggerptr->mutex);
+            pthread_mutex_unlock(&mutex);
             return false;
         }
     }
@@ -186,7 +232,7 @@ bool logger_write(logger_t* loggerptr, const char* logentry, LogLevel llevel, ch
 
         if(loggerptr->FileHandle == NULL)
         {
-            pthread_mutex_unlock(&loggerptr->mutex);
+            pthread_mutex_unlock(&mutex);
             return false;
         }
     }
@@ -207,14 +253,15 @@ bool logger_write(logger_t* loggerptr, const char* logentry, LogLevel llevel, ch
     // File
     char* base_file_name = file_get_basename(file);
     fprintf(loggerptr->FileHandle, "%s\t", base_file_name);
-    free(base_file_name);
 
     // Line
     fprintf(loggerptr->FileHandle, "%d\t", line);
 
     // Function
-    normalize_function_name(func);
-    fprintf(loggerptr->FileHandle, "%s\t", func);
+    char* func_name = (char*)calloc(1, strlen(func)+1);
+    strcpy(func_name, func);
+    normalize_function_name(func_name);
+    fprintf(loggerptr->FileHandle, "%s\t", func_name);
 
     // Message
     fprintf(loggerptr->FileHandle, "%s", logentry);
@@ -225,9 +272,37 @@ bool logger_write(logger_t* loggerptr, const char* logentry, LogLevel llevel, ch
     // Flush th contents
     fflush(loggerptr->FileHandle);
 
-    pthread_mutex_unlock(&loggerptr->mutex);
+    if(loggerptr->console_out)
+    {
+        printf("%s %d %s %s\n", base_file_name, line, func, logentry);
+        fflush(stdout);
+    }
+
+    free(base_file_name);
+    free(func_name);
+    pthread_mutex_unlock(&mutex);
 
     return true;
+}
+
+void logger_enable_console_out(logger_t* loggerptr, bool consoleout)
+{
+    if(!loggerptr)
+    {
+        return;
+    }
+
+    loggerptr->console_out = consoleout;
+}
+
+void logger_set_log_level(logger_t* loggerptr, LogLevel llevel)
+{
+    if(!loggerptr)
+    {
+        return;
+    }
+
+    loggerptr->log_level = llevel;
 }
 
 void normalize_function_name(char* func_name)
@@ -239,7 +314,7 @@ void normalize_function_name(char* func_name)
         return;
     }
 
-    int ctr = len - 1;
+    long ctr = len - 1;
 
     long pos = 0;
 
@@ -258,4 +333,18 @@ void normalize_function_name(char* func_name)
             }
         }
     }
+
+    pos = strindexofchar(func_name, ' ');
+
+    if(pos > -1)
+    {
+        ctr = pos;
+        while(ctr > -1)
+        {
+            func_name[ctr] = 32;
+            ctr--;
+        }
+    }
+
+    strlefttrim(func_name);
 }

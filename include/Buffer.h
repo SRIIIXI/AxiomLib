@@ -48,6 +48,8 @@ extern LIBRARY_EXPORT buffer_t* buffer_append(buffer_t* dest, const void* data, 
 extern LIBRARY_EXPORT buffer_t* buffer_append_string(buffer_t* dest, const char* data);
 extern LIBRARY_EXPORT buffer_t* buffer_append_integer(buffer_t* dest, const long data);
 extern LIBRARY_EXPORT buffer_t* buffer_append_real(buffer_t* dest, const double data);
+extern LIBRARY_EXPORT buffer_t* buffer_append_real_scientific(buffer_t* dest, const double data);
+
 extern LIBRARY_EXPORT buffer_t* buffer_append_char(buffer_t* dest, const char data);
 extern LIBRARY_EXPORT buffer_t* buffer_append_boolean(buffer_t* dest, const bool data);
 extern LIBRARY_EXPORT buffer_t* buffer_append_curr_timestamp(buffer_t* dest);
@@ -56,6 +58,7 @@ extern LIBRARY_EXPORT void buffer_remove(buffer_t* ptr, size_t start, size_t len
 extern LIBRARY_EXPORT void buffer_remove_end(buffer_t* ptr, size_t len);
 extern LIBRARY_EXPORT void buffer_remove_start(buffer_t* ptr, size_t len);
 
+extern LIBRARY_EXPORT void buffer_clear(buffer_t* ptr);
 extern LIBRARY_EXPORT void buffer_free(buffer_t* ptr);
 
 extern LIBRARY_EXPORT bool buffer_is_equal(buffer_t* first, buffer_t* second);
