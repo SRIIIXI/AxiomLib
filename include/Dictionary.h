@@ -45,6 +45,7 @@ typedef struct dictionary_t dictionary_t;
 extern LIBRARY_EXPORT dictionary_t* dictionary_allocate(void);
 extern LIBRARY_EXPORT void dictionary_free(dictionary_t* dict_ptr);
 extern LIBRARY_EXPORT void dictionary_set_value(dictionary_t* dict_ptr, const void* key, const size_t key_size, const void* value, const size_t value_size);
+extern LIBRARY_EXPORT void dictionary_set_reference(dictionary_t* dict_ptr, const void* key, const size_t key_size, const void* reference);
 extern LIBRARY_EXPORT void* dictionary_get_value(dictionary_t* dict_ptr, const void* key, const size_t key_size);
 extern LIBRARY_EXPORT char **dictionary_get_all_keys(dictionary_t* dict_ptr);
 extern LIBRARY_EXPORT void dictionary_free_key_list(dictionary_t* dict_ptr, char** key_list);
