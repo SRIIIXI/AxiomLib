@@ -29,6 +29,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef MAIL
 #define MAIL
 
+#include <stddef.h>
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "Dictionary.h"
 #include "StringList.h"
 #include "List.h"
@@ -39,7 +43,6 @@ extern "C" {
 
 #define LIBRARY_EXPORT __attribute__((visibility("default")))
 
-/*
 typedef enum MailTextEncoding
 {
     QuotedPrintable,
@@ -79,7 +82,6 @@ typedef struct mail_t
     mail_body_t* Body;
     const char* SerializedBody;
 }mail_t;
-*/
 
 typedef struct mime_node_t mime_node_t;
 typedef struct mail_body_t mail_body_t;

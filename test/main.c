@@ -8,6 +8,8 @@ void test_logger(void);
 void test_configuration(void);
 void test_dictionary(void);
 void test_base64(void);
+void test_email(void);
+void test_queue(void);
 
 int main(int argc, char* argv[])
 {
@@ -77,6 +79,7 @@ int main(int argc, char* argv[])
         case 'q':
         {
             //Queue
+            test_queue();
             break;
         }
         case 'r':
@@ -109,6 +112,12 @@ int main(int argc, char* argv[])
         case 'v':
         {
             //Variant
+            break;
+        }
+        case 'm':
+        {
+            //Email
+            test_email();
             break;
         }
         default:
@@ -350,4 +359,14 @@ void test_base64(void)
         free(encoded_image);
         free(new_image);
     }
+}
+
+void test_email(void)
+{
+
+}
+
+void test_queue(void)
+{
+
 }

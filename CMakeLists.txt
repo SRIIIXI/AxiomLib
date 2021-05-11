@@ -10,6 +10,7 @@ set(LIB_VERSION_PATCH 0)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 include_directories(./include /usr/include /usr/local/include)
+link_libraries(rt pthread dl ssl crypto)
 
 set(PROJECT_SOURCE_DIR ./src)
 set(PROJECT_HEADER_DIR ./include)
@@ -29,12 +30,15 @@ ${PROJECT_SOURCE_DIR}/Directory.c
 ${PROJECT_SOURCE_DIR}/Logger.c
 ${PROJECT_SOURCE_DIR}/SignalHandler.c
 ${PROJECT_SOURCE_DIR}/Responder.c
+${PROJECT_SOURCE_DIR}/ResponderSsl.c
 ${PROJECT_SOURCE_DIR}/Environment.c
 ${PROJECT_SOURCE_DIR}/Configuration.c
 ${PROJECT_SOURCE_DIR}/DateTime.c
 ${PROJECT_SOURCE_DIR}/Variant.c
 ${PROJECT_SOURCE_DIR}/Dictionary.c
 ${PROJECT_SOURCE_DIR}/Mail.c
+${PROJECT_SOURCE_DIR}/Imap.c
+${PROJECT_SOURCE_DIR}/Smtp.c
 ${PROJECT_SOURCE_DIR}/CoreLib.c
 )
 
@@ -53,12 +57,17 @@ ${PROJECT_HEADER_DIR}/Directory.h
 ${PROJECT_HEADER_DIR}/Logger.h
 ${PROJECT_HEADER_DIR}/SignalHandler.h
 ${PROJECT_HEADER_DIR}/Responder.h
+${PROJECT_HEADER_DIR}/ResponderSsl.h
 ${PROJECT_HEADER_DIR}/Environment.h
 ${PROJECT_HEADER_DIR}/Configuration.h
 ${PROJECT_HEADER_DIR}/DateTime.h
 ${PROJECT_HEADER_DIR}/Variant.h
 ${PROJECT_HEADER_DIR}/Dictionary.h
 ${PROJECT_HEADER_DIR}/Mail.h
+${PROJECT_HEADER_DIR}/Mime.h
+${PROJECT_HEADER_DIR}/SecurityType.h
+${PROJECT_HEADER_DIR}/Imap.h
+${PROJECT_HEADER_DIR}/Smtp.h
 ${PROJECT_HEADER_DIR}/CoreLib.h
 )
 
@@ -69,7 +78,7 @@ install(TARGETS core DESTINATION local/lib)
 install(FILES ${HEADERS} DESTINATION local/include/CoreLib)
 
 install(TARGETS core DESTINATION lib)
-install(FILES ${HEADERS} DESTINATION include/RTUCore)
+install(FILES ${HEADERS} DESTINATION include/Core)
 set(CPACK_PACKAGE_FILE_NAME ${Project}.${CMAKE_SYSTEM_PROCESSOR}.${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}.${LIB_VERSION_PATCH})
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Subrato Roy")

@@ -28,6 +28,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "Mail.h"
 
+/*
 typedef enum MailTextEncoding
 {
     QuotedPrintable,
@@ -67,6 +68,7 @@ typedef struct mail_t
     mail_body_t* Body;
     const char* SerializedBody;
 }mail_t;
+*/
 
 void mail_body_set_message_id(mail_body_t* mailbody, const char* msgid)
 {

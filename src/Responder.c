@@ -128,6 +128,16 @@ bool is_ip4_address(char* str)
     return true;
 }
 
+responder_t* responder_allocate()
+{
+    responder_t* ptr = (responder_t*)calloc(1, sizeof (responder_t));
+    return ptr;
+}
+
+void responder_free(responder_t* ptr)
+{
+    free(ptr);
+}
 
 responder_t *responder_create_socket(responder_t *ptr, const char* servername, int serverport)
 {
@@ -417,16 +427,14 @@ bool responder_receive_string(responder_t* ptr, char** iostr, const char* delime
 
 bool responder_send_buffer(responder_t* ptr, const char* data, size_t len)
 {
-    struct responder_t* responder_ptr = (struct responder_t*)ptr;
-
-    if(!responder_ptr)
+    if(!ptr)
     {
         return  false;
     }
 
 	long sentsize =0;
 
-    sentsize = send(responder_ptr->socket, data, len, 0);
+    sentsize = send(ptr->socket, data, len, 0);
 
     if(sentsize == SOCKET_ERROR)
 	{
@@ -438,23 +446,9 @@ bool responder_send_buffer(responder_t* ptr, const char* data, size_t len)
 
 bool responder_send_string(responder_t* ptr, const char* str)
 {
-    if(!ptr)
-    {
-        return  false;
-    }
-
     size_t len = strlen(str);
 
-    long sentsize =0;
-
-    sentsize = send(ptr->socket, str, len, 0);
-
-    if(sentsize == SOCKET_ERROR)
-    {
-        return false;
-    }
-
-    return true;
+    return responder_send_buffer(ptr, str, len);
 }
 
 size_t responder_read_size(responder_t *ptr)
