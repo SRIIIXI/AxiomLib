@@ -29,15 +29,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef KEY_VALUE_C
 #define KEY_VALUE_C
 
+#include "Defines.h"
 #include "Buffer.h"
-#include <stddef.h>
-#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define LIBRARY_EXPORT __attribute__((visibility("default")))
 
 typedef struct key_value_t
 {

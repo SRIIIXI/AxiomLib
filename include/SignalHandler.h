@@ -29,15 +29,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef SIGNAL_HANDLER_C
 #define SIGNAL_HANDLER_C
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include "Defines.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define LIBRARY_EXPORT __attribute__((visibility("default")))
 
 typedef enum SignalType
 {

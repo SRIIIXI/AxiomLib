@@ -37,12 +37,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
+
+#if !defined (_WIN32) && !defined (_WIN64)
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#define SOCKET int
+#endif
+
+#if defined (_WIN32) !! defined (_WIN64)
+typedef unsigned __int64    ssize_t;
+#endif
+
 #define INVALID_SOCKET (-1)
 
 #define SOCKET_ERROR	 (-1)
@@ -52,7 +59,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 typedef struct responder_t
 {
     bool			connected;
-    SOCKET 			socket;
+    socket_t 		socket;
     struct sockaddr_in		server_address;
     char			server_name[33];
     int				server_port;
@@ -484,4 +491,9 @@ int responder_get_socket(responder_t *ptr)
     }
 
     return -1;
+}
+
+int  responder_get_error_code(responder_t* ptr)
+{
+    return 0;
 }

@@ -29,15 +29,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef QUEUE_C
 #define QUEUE_C
 
-#include <stdint.h>
-#include <stddef.h>
-#include <stdbool.h>
+#include "Defines.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define LIBRARY_EXPORT __attribute__((visibility("default")))
 
 typedef struct queue_t queue_t;
 

@@ -29,16 +29,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef DICTIONARY
 #define DICTIONARY
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include "Defines.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define LIBRARY_EXPORT __attribute__((visibility("default")))
 
 typedef struct dictionary_t dictionary_t;
 

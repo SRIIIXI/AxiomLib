@@ -32,11 +32,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Directory.h"
 
 #include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+
+#if !defined (_WIN32) && !defined (_WIN64)
+#include <fcntl.h>
+#include <unistd.h>
+#endif
 
 char* env_get_current_process_name(char* ptr)
 {
@@ -142,6 +145,7 @@ char* env_get_lock_filename(void)
     return  lock_filename;
 }
 
+/*
 bool env_lock_process(const char* lock_filename)
 {
     int lock_file = 0;
@@ -175,3 +179,9 @@ bool env_lock_process(const char* lock_filename)
 
     return true;
 }
+
+bool env_unlock_process(const char* lock_filename)
+{
+
+}
+*/

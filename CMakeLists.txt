@@ -8,12 +8,23 @@ set(LIB_VERSION_MINOR 0)
 set(LIB_VERSION_PATCH 0)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-include_directories(./include /usr/include /usr/local/include)
-link_libraries(rt pthread dl ssl crypto)
-
 set(PROJECT_SOURCE_DIR ./src)
 set(PROJECT_HEADER_DIR ./include)
+
+if (WIN32)
+add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+add_definitions(-DWIN32_LEAN_AND_MEAN)
+endif(WIN32)
+
+if (WIN32)
+    include_directories(${PROJECT_HEADER_DIR} C:/usr/include )
+    link_libraries(ws2_32 wsock32 ssl crypto)    
+    link_directories(C:/usr/lib/)
+else(WIN32)
+    include_directories(${PROJECT_HEADER_DIR} /usr/include /usr/local/include)
+    link_libraries(rt pthread dl ssl crypto)    
+    link_directories(/usr/local/lib/)
+endif(WIN32)
 
 set(SOURCE
 ${SOURCE}
@@ -44,6 +55,7 @@ ${PROJECT_SOURCE_DIR}/CoreLib.c
 
 set(HEADERS
 ${HEADERS}
+${PROJECT_HEADER_DIR}/Defines.h
 ${PROJECT_HEADER_DIR}/Base64.h
 ${PROJECT_HEADER_DIR}/Buffer.h
 ${PROJECT_HEADER_DIR}/KeyValue.h

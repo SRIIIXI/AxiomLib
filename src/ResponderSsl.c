@@ -37,11 +37,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
+
+#if !defined (_WIN32) && !defined (_WIN64)
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#endif
+
+#if defined (_WIN32) !! defined (_WIN64)
+typedef unsigned __int64    ssize_t;
+#endif
 
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
@@ -50,7 +57,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <openssl/x509.h>
 #include <openssl/x509_vfy.h>
 
-#define SOCKET int
 #define INVALID_SOCKET (-1)
 
 #define SOCKET_ERROR	 (-1)
@@ -60,7 +66,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 typedef struct responder_ssl_t
 {
     bool                    connected;
-    SOCKET                  socket;
+    socket_t                socket;
     struct sockaddr_in		server_address;
     char                    server_name[33];
     int                     server_port;
@@ -206,7 +212,7 @@ responder_ssl_t *responder_ssl_create_socket(responder_ssl_t *ptr, const char* s
         return false;
     }
 
-    SSL_CTX_set_options(ptr->ssl_context, SSL_OP_NO_SSLv2);
+    SSL_CTX_set_options(ptr->ssl_context, SSL_OP_NO_SSLv3);
 
     ptr->ssl_session = SSL_new(ptr->ssl_context);
 
@@ -543,4 +549,9 @@ int responder_ssl_get_socket(responder_ssl_t *ptr)
     }
 
     return -1;
+}
+
+int  responder_ssl_get_error_code(responder_ssl_t* ptr)
+{
+    return 0;
 }

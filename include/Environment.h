@@ -29,20 +29,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef ENVIRONMENT_C
 #define ENVIRONMENT_C
 
-#include <string.h>
-#include <stdbool.h>
+#include "Defines.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define LIBRARY_EXPORT __attribute__((visibility("default")))
-
 extern LIBRARY_EXPORT char*   env_get_current_process_name(char* ptr);
 extern LIBRARY_EXPORT char*   env_get_current_user_name(void);
 extern LIBRARY_EXPORT char*   env_get_lock_filename(void);
+/*
 extern LIBRARY_EXPORT bool    env_lock_process(const char* lock_filename);
-
+extern LIBRARY_EXPORT bool    env_unlock_process(const char* lock_filename);
+*/
 #ifdef __cplusplus
 }
 #endif

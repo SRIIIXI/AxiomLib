@@ -29,15 +29,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef STACK_C
 #define STACK_C
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include "Defines.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define LIBRARY_EXPORT __attribute__((visibility("default")))
 
 typedef struct stack_t stack_t;
 

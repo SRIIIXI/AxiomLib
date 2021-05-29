@@ -31,8 +31,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if defined (_WIN32) || defined (_WIN64)
+#else
 #include <unistd.h>
-#include <stdbool.h>
+#endif
 
 typedef struct key_value_t
 {

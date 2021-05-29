@@ -29,15 +29,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef DIRECTORY_C
 #define DIRECTORY_C
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include "Defines.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define LIBRARY_EXPORT __attribute__((visibility("default")))
 
 extern LIBRARY_EXPORT bool dir_is_exists(const char* dirname);
 extern LIBRARY_EXPORT bool dir_create_directory(const char* dirname);

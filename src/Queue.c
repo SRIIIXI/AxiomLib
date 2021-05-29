@@ -31,7 +31,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <memory.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include <limits.h>
 
 typedef struct node_t
@@ -45,7 +44,7 @@ typedef struct queue_t
     long count;
     node_t* head;
     node_t* tail;
-    pthread_mutex_t mutex;
+    lock_t lock;
 }queue_t;
 
 void* queue_internal_remove_tail(queue_t* qptr);
@@ -55,7 +54,7 @@ queue_t *queue_allocate(queue_t* qptr)
     qptr = (queue_t*)calloc(1, sizeof(queue_t));
     qptr->count = 0;
     qptr->head = qptr->tail = NULL;
-    pthread_mutex_init(&qptr->mutex, NULL);
+    lock_create(qptr->lock);
     return qptr;
 }
 
@@ -67,7 +66,7 @@ void queue_clear(queue_t *qptr)
     }
     else
     {
-        pthread_mutex_lock(&qptr->mutex);
+        lock_acquire(qptr->lock);
 
         while(qptr->count > 0)
         {
@@ -75,7 +74,7 @@ void queue_clear(queue_t *qptr)
             free(ptr);
         }
 
-        pthread_mutex_unlock(&qptr->mutex);
+        lock_release(qptr->lock);
     }
 }
 
@@ -87,7 +86,7 @@ void queue_free(queue_t* qptr)
     }
     else
     {
-        pthread_mutex_lock(&qptr->mutex);
+        lock_acquire(qptr->lock);
 
         while(qptr->count > 0)
         {
@@ -95,8 +94,8 @@ void queue_free(queue_t* qptr)
             free(ptr);
         }
 
-        pthread_mutex_unlock(&qptr->mutex);
-        pthread_mutex_destroy(&qptr->mutex);
+        lock_release(qptr->lock);
+        lock_destroy(qptr->lock);
 
         free(qptr);
     }
@@ -109,7 +108,7 @@ void queue_enqueue(queue_t *qptr, void* data, size_t sz)
         return;
     }
 
-    pthread_mutex_lock(&qptr->mutex);
+    lock_acquire(qptr->lock);
 
     node_t* ptr = (node_t*)calloc(1, sizeof(node_t));
     ptr->data = calloc(1, sz);
@@ -127,7 +126,7 @@ void queue_enqueue(queue_t *qptr, void* data, size_t sz)
 
     qptr->count++;
 
-    pthread_mutex_unlock(&qptr->mutex);
+    lock_release(qptr->lock);
 }
 
 void* queue_denqueue(queue_t *qptr)
@@ -144,11 +143,11 @@ void* queue_denqueue(queue_t *qptr)
         }
     }
 
-    pthread_mutex_lock(&qptr->mutex);
+    lock_acquire(qptr->lock);
 
     void* ptr = queue_internal_remove_tail(qptr);
 
-    pthread_mutex_unlock(&qptr->mutex);
+    lock_release(qptr->lock);
 
     return ptr;
 }

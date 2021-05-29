@@ -29,15 +29,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VARIANT_C
 #define VARIANT_C
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
+#include "Defines.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define LIBRARY_EXPORT __attribute__((visibility("default")))
 
 typedef enum VariantType
 {

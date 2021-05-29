@@ -32,7 +32,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <memory.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include <limits.h>
 
 typedef struct node_t
@@ -49,7 +48,7 @@ typedef struct list_t
     node_t* head;
     node_t* tail;
     node_t* iterator;
-    pthread_mutex_t mutex;
+    lock_t lock;
 }list_t;
 
 void* list_internal_remove_from_head(list_t* lptr);
@@ -63,7 +62,7 @@ list_t * list_allocate(list_t* lptr)
     lptr->count = 0;
     lptr->head = lptr->tail = NULL;
     lptr->iterator = NULL;
-    pthread_mutex_init(&lptr->mutex, NULL);
+    lock_create(lptr->lock);
     return lptr;
 }
 
@@ -75,7 +74,7 @@ void list_clear(list_t* lptr)
     }
     else
     {
-        pthread_mutex_lock(&lptr->mutex);
+        lock_acquire(lptr->lock);
 
         while(lptr->count > 0)
         {
@@ -83,7 +82,7 @@ void list_clear(list_t* lptr)
             free(ptr);
         }
 
-        pthread_mutex_unlock(&lptr->mutex);
+        lock_release(lptr->lock);
     }
 }
 
@@ -95,7 +94,7 @@ void list_free(list_t* lptr)
     }
     else
     {
-        pthread_mutex_lock(&lptr->mutex);
+        lock_acquire(lptr->lock);
 
         while(lptr->count > 0)
         {
@@ -103,8 +102,8 @@ void list_free(list_t* lptr)
             free(ptr);
         }
 
-        pthread_mutex_unlock(&lptr->mutex);
-        pthread_mutex_destroy(&lptr->mutex);
+        lock_release(lptr->lock);
+        lock_destroy(lptr->lock);
         free(lptr);
     }
 }
@@ -116,7 +115,7 @@ void list_lock_iterator(list_t* lptr)
         return;
     }
 
-    pthread_mutex_lock(&lptr->mutex);
+    lock_acquire(lptr->lock);
 }
 
 void list_unlock_iterator(list_t* lptr)
@@ -126,7 +125,7 @@ void list_unlock_iterator(list_t* lptr)
         return;
     }
 
-    pthread_mutex_unlock(&lptr->mutex);
+    lock_release(lptr->lock);
 }
 
 void list_add_to_head(list_t* lptr, void* data, size_t sz)
@@ -146,7 +145,7 @@ void list_insert(list_t* lptr, void* data, size_t sz, long pos)
         return;
 	}
 
-    pthread_mutex_lock(&lptr->mutex);
+    lock_acquire(lptr->lock);
 
     node_t* ptr = NULL;
 
@@ -158,14 +157,14 @@ void list_insert(list_t* lptr, void* data, size_t sz, long pos)
     if(pos <= 0)
     {
         list_internal_add_to_head(lptr, ptr);
-        pthread_mutex_unlock(&lptr->mutex);
+        lock_release(lptr->lock);
         return;
     }
 
     if (pos >= lptr->count)
     {
         list_internal_add_to_tail(lptr, ptr);
-        pthread_mutex_unlock(&lptr->mutex);
+        lock_release(lptr->lock);
         return;
     }
 
@@ -190,7 +189,7 @@ void list_insert(list_t* lptr, void* data, size_t sz, long pos)
         idx++;
     }
 
-    pthread_mutex_unlock(&lptr->mutex);
+    lock_release(lptr->lock);
 }
 
 void list_remove_from_head(list_t* lptr)
@@ -210,7 +209,7 @@ void list_remove(list_t* lptr, const void *node)
         return;
     }
 
-    pthread_mutex_lock(&lptr->mutex);
+    lock_acquire(lptr->lock);
 
     for(node_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next)
     {
@@ -246,7 +245,7 @@ void list_remove(list_t* lptr, const void *node)
         }
     }
 
-    pthread_mutex_unlock(&lptr->mutex);
+    lock_release(lptr->lock);
 }
 
 void list_remove_at(list_t* lptr, long pos)
@@ -261,7 +260,7 @@ void list_remove_at(list_t* lptr, long pos)
         return;
     }
 
-    pthread_mutex_lock(&lptr->mutex);
+    lock_acquire(lptr->lock);
 
     if(pos >= lptr->count -1)
     {
@@ -298,7 +297,7 @@ void list_remove_at(list_t* lptr, long pos)
         }
     }
 
-    pthread_mutex_unlock(&lptr->mutex);
+    lock_release(lptr->lock);
 }
 
 void list_remove_value(list_t* lptr, void* data, size_t sz)
@@ -308,7 +307,7 @@ void list_remove_value(list_t* lptr, void* data, size_t sz)
         return;
     }
 
-    pthread_mutex_lock(&lptr->mutex);
+    lock_acquire(lptr->lock);
 
     node_t* ptr = NULL;
 
@@ -356,7 +355,7 @@ void list_remove_value(list_t* lptr, void* data, size_t sz)
         idx++;
     }
 
-    pthread_mutex_unlock(&lptr->mutex);
+    lock_release(lptr->lock);
 
     return;
 }
@@ -378,7 +377,7 @@ long list_index_of(list_t *lptr, const void *node)
         return -1;
     }
 
-    pthread_mutex_lock(&lptr->mutex);
+    lock_acquire(lptr->lock);
 
     node_t* ptr = NULL;
 
@@ -403,12 +402,12 @@ long list_index_of(list_t *lptr, const void *node)
 
         if(ptr->data == node)
         {
-            pthread_mutex_unlock(&lptr->mutex);
+            lock_release(lptr->lock);
             return idx;
         }
     }
 
-    pthread_mutex_unlock(&lptr->mutex);
+    lock_release(lptr->lock);
     return -1;
 }
 
@@ -419,7 +418,7 @@ long list_index_of_value(list_t* lptr, void* data, size_t sz)
         return -1;
     }
 
-    pthread_mutex_lock(&lptr->mutex);
+    lock_acquire(lptr->lock);
 
     node_t* ptr = NULL;
 
@@ -429,7 +428,7 @@ long list_index_of_value(list_t* lptr, void* data, size_t sz)
 
     if(memcmp(ptr->data, data, ptr->size) == 0 && ptr->size == sz)
     {
-        pthread_mutex_unlock(&lptr->mutex);
+        lock_release(lptr->lock);
         return idx;
     }
 
@@ -445,12 +444,12 @@ long list_index_of_value(list_t* lptr, void* data, size_t sz)
 
         if(memcmp(ptr->data, data, ptr->size) == 0)
         {
-            pthread_mutex_unlock(&lptr->mutex);
+            lock_release(lptr->lock);
             return idx;
         }
     }
 
-    pthread_mutex_unlock(&lptr->mutex);
+    lock_release(lptr->lock);
     return -1;
 }
 
@@ -466,7 +465,8 @@ void *list_get_at(list_t* lptr, long atpos)
         return NULL;
     }
 
-    pthread_mutex_lock(&lptr->mutex);
+    lock_acquire(lptr->lock);
+
     node_t* ptr = NULL;
 
     ptr = lptr->head;
@@ -479,7 +479,8 @@ void *list_get_at(list_t* lptr, long atpos)
         }
     }
 
-    pthread_mutex_lock(&lptr->mutex);
+    lock_release(lptr->lock);
+
     return ptr->data;
 }
 

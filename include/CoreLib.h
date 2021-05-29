@@ -29,6 +29,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef CORE_LIB
 #define CORE_LIB
 
+#include<stdint.h>
+#include<stdbool.h>
+
 #include "Base64.h"
 #include "Buffer.h"
 #include "Directory.h"
@@ -48,8 +51,17 @@ extern "C" {
 #endif
 
 // Shared libary load/unload handlers
-void __attribute__((constructor)) library_load(void);
-void __attribute__((destructor)) library_unload(void);
+
+#if defined (_WIN32) || defined (_WIN64)
+#include <WinSock2.h>
+#include <Windows.h>
+	BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
+	void library_load(void);
+	void library_unload(void);
+#else
+	void __attribute__((constructor)) library_load(void);
+	void __attribute__((destructor)) library_unload(void);
+#endif
 
 #ifdef __cplusplus
 }

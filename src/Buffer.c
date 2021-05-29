@@ -31,9 +31,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <memory.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <time.h>
+
+#if defined (_WIN32) || defined (_WIN64)
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
 
 typedef struct buffer_t
 {
@@ -50,7 +55,13 @@ buffer_t* buffer_allocate(const void *data, size_t sz)
 
     if(nd != NULL)
     {
-        nd->memory_size = sysconf(_SC_PAGESIZE);
+        #if defined (_WIN32) || defined (_WIN64)
+            SYSTEM_INFO siSysInfo;
+            GetSystemInfo(&siSysInfo);
+            nd->memory_size = siSysInfo.dwPageSize;
+        #else
+                nd->memory_size = sysconf(_SC_PAGESIZE);
+        #endif
         nd->data_size = sz;
         nd->data = (char*)calloc(nd->memory_size, sizeof (char));
 
@@ -68,7 +79,13 @@ buffer_t* buffer_allocate_default(void)
 
     if(nd != NULL)
     {
-        nd->memory_size = sysconf(_SC_PAGESIZE);
+        #if defined (_WIN32) || defined (_WIN64)
+            SYSTEM_INFO siSysInfo;
+            GetSystemInfo(&siSysInfo);
+            nd->memory_size = siSysInfo.dwPageSize;
+        #else
+                nd->memory_size = sysconf(_SC_PAGESIZE);
+        #endif
         nd->data_size = 0;
         nd->data = (char*)calloc(nd->memory_size, sizeof (char));
     }

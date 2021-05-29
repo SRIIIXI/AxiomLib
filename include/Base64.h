@@ -29,15 +29,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef BASE_64_C
 #define BASE_64_C
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include "Defines.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define LIBRARY_EXPORT __attribute__((visibility("default")))
 
 extern LIBRARY_EXPORT char* base64_encode(const unsigned char *data, unsigned long inputlength, char *encodedString, unsigned long *outputlength);
 extern LIBRARY_EXPORT unsigned char* base64_decode(const char *encodedString, unsigned long inputlength, unsigned char *decodedData, unsigned long *outputlength);

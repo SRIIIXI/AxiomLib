@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <limits.h>
 #include <float.h>
+#include <string.h>
 
 typedef struct key_value_t
 {

@@ -34,7 +34,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stddef.h>
 #include <stdint.h>
 #include <memory.h>
-#include <pthread.h>
 #include <limits.h>
 
 typedef struct node_t
@@ -48,7 +47,7 @@ typedef struct stack_t
     long count;
     node_t* head;
     node_t* tail;
-    pthread_mutex_t mutex;
+    lock_t lock;
 }stack_t;
 
 void* stack_internal_remove_tail(stack_t* sptr);
@@ -58,7 +57,7 @@ stack_t *stack_allocate(stack_t* sptr)
     sptr = (stack_t*)calloc(1, sizeof(stack_t));
     sptr->count = 0;
     sptr->head = sptr->tail = NULL;
-    pthread_mutex_init(&sptr->mutex, NULL);
+    lock_create(sptr->lock);
     return sptr;
 }
 
@@ -70,7 +69,7 @@ void stack_clear(stack_t* sptr)
     }
     else
     {
-        pthread_mutex_lock(&sptr->mutex);
+        lock_acquire(sptr->lock);
 
         while(sptr->count > 0)
         {
@@ -78,7 +77,7 @@ void stack_clear(stack_t* sptr)
             free(ptr);
         }
 
-        pthread_mutex_unlock(&sptr->mutex);
+        lock_release(sptr->lock);
     }
 }
 
@@ -90,7 +89,7 @@ void stack_free(stack_t* sptr)
     }
     else
     {
-        pthread_mutex_lock(&sptr->mutex);
+        lock_acquire(sptr->lock);
 
         while(sptr->count > 0)
         {
@@ -98,8 +97,8 @@ void stack_free(stack_t* sptr)
             free(ptr);
         }
 
-        pthread_mutex_unlock(&sptr->mutex);
-        pthread_mutex_destroy(&sptr->mutex);
+        lock_release(sptr->lock);
+        pthread_mutex_destroy(&sptr->lock);
 
         free(sptr);
     }
@@ -112,7 +111,7 @@ void stack_push(stack_t* sptr, void* data, size_t sz)
         return;
     }
 
-    pthread_mutex_lock(&sptr->mutex);
+    lock_acquire(sptr->lock);
 
     node_t* ptr = (node_t*)calloc(1, sizeof(node_t));
     ptr->data = calloc(1, sz);
@@ -130,7 +129,7 @@ void stack_push(stack_t* sptr, void* data, size_t sz)
 
     sptr->count++;
 
-    pthread_mutex_unlock(&sptr->mutex);
+    lock_release(sptr->lock);
 }
 
 void* stack_pop(stack_t* sptr)
@@ -140,11 +139,11 @@ void* stack_pop(stack_t* sptr)
         return NULL;
     }
 
-    pthread_mutex_lock(&sptr->mutex);
+    lock_acquire(sptr->lock);
 
     void* ptr = stack_internal_remove_tail(sptr);
 
-    pthread_mutex_unlock(&sptr->mutex);
+    lock_release(sptr->lock);
 
     return ptr;
 }

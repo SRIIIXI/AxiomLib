@@ -29,15 +29,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef LOGGER_C
 #define LOGGER_C
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
+#include "Defines.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define LIBRARY_EXPORT __attribute__((visibility("default")))
 
 typedef enum LogLevel
 {
@@ -47,6 +43,10 @@ typedef enum LogLevel
 	LOG_CRITICAL = 3,
 	LOG_PANIC = 4
 }LogLevel;
+
+#if defined(_WIN32) || defined(WIN32)
+#define __PRETTY_FUNCTION__ __FUNCTION__
+#endif
 
 typedef struct logger_t logger_t;
 

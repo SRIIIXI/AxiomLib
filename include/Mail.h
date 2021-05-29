@@ -26,13 +26,10 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef MAIL
-#define MAIL
+#ifndef MAIL_C
+#define MAIL_C
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
-
+#include "Defines.h"
 #include "Dictionary.h"
 #include "StringList.h"
 #include "List.h"
@@ -40,8 +37,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define LIBRARY_EXPORT __attribute__((visibility("default")))
 
 typedef enum MailTextEncoding
 {

@@ -32,7 +32,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <pthread.h>
 #include <limits.h>
 
 typedef struct node_t
@@ -49,7 +48,7 @@ typedef struct string_list_t
     node_t* head;
     node_t* tail;
     node_t* iterator;
-    pthread_mutex_t mutex;
+    lock_t lock;
 }string_list_t;
 
 node_t* str_list_internal_create_node(char* data);
@@ -60,7 +59,7 @@ string_list_t* str_list_allocate(string_list_t* lptr)
     lptr->count = 0;
     lptr->head = lptr->tail = NULL;
     lptr->iterator = NULL;
-    pthread_mutex_init(&lptr->mutex, NULL);
+    lock_create(lptr->lock);
     return lptr;
 }
 
@@ -92,7 +91,7 @@ string_list_t* str_list_allocate_from_string(string_list_t* lptr, const char* st
     lptr->count = 0;
     lptr->head = lptr->tail = NULL;
     lptr->iterator = NULL;
-    pthread_mutex_init(&lptr->mutex, NULL);
+    lock_create(lptr->lock);
 
     if(lptr == NULL)
     {
@@ -141,14 +140,14 @@ void str_list_clear(string_list_t* lptr)
     }
     else
     {
-       pthread_mutex_lock(&lptr->mutex);
+        lock_acquire(lptr->lock);
 
        while(lptr->count > 0)
         {
             str_list_remove_at(lptr, lptr->count-1);
         }
 
-       pthread_mutex_unlock(&lptr->mutex);
+       lock_release(lptr->lock);
     }
 }
 
@@ -160,15 +159,15 @@ void str_list_free(string_list_t* lptr)
     }
     else
     {
-        pthread_mutex_lock(&lptr->mutex);
+        lock_acquire(lptr->lock);
 
         while(lptr->count > 0)
         {
             str_list_remove_at(lptr, lptr->count-1);
         }
 
-        pthread_mutex_unlock(&lptr->mutex);
-        pthread_mutex_destroy(&lptr->mutex);
+        lock_release(lptr->lock);
+        lock_destroy(lptr->lock);
         free(lptr);
     }
 }
@@ -180,7 +179,7 @@ void str_list_lock_iterator(string_list_t* lptr)
         return;
     }
 
-    pthread_mutex_lock(&lptr->mutex);
+    lock_acquire(lptr->lock);
 }
 
 void str_list_unlock_iterator(string_list_t* lptr)
@@ -190,7 +189,7 @@ void str_list_unlock_iterator(string_list_t* lptr)
         return;
     }
 
-    pthread_mutex_unlock(&lptr->mutex);
+    lock_release(lptr->lock);
 }
 
 void str_list_add(string_list_t* lptr, char* data)
@@ -205,7 +204,7 @@ void str_list_insert(string_list_t* lptr, char* data, long pos)
         return;
     }
 
-    pthread_mutex_lock(&lptr->mutex);
+    lock_acquire(lptr->lock);
 
     node_t* ptr = NULL;
     ptr = str_list_internal_create_node(data);
@@ -267,7 +266,7 @@ void str_list_insert(string_list_t* lptr, char* data, long pos)
         idx++;
     }
 
-    pthread_mutex_unlock(&lptr->mutex);
+    lock_release(lptr->lock);
 }
 
 void str_list_remove(string_list_t* lptr, const char* node)
@@ -277,7 +276,7 @@ void str_list_remove(string_list_t* lptr, const char* node)
         return;
     }
 
-    pthread_mutex_lock(&lptr->mutex);
+    lock_acquire(lptr->lock);
 
     for(node_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next)
     {
@@ -332,7 +331,7 @@ void str_list_remove(string_list_t* lptr, const char* node)
         }
     }
 
-    pthread_mutex_unlock(&lptr->mutex);
+    lock_release(lptr->lock);
 }
 
 void str_list_remove_at(string_list_t* lptr, long pos)
@@ -347,7 +346,7 @@ void str_list_remove_at(string_list_t* lptr, long pos)
         return;
     }
 
-    pthread_mutex_lock(&lptr->mutex);
+    lock_acquire(lptr->lock);
 
     if(pos == 0)
     {
@@ -402,7 +401,7 @@ void str_list_remove_at(string_list_t* lptr, long pos)
         }
     }
 
-    pthread_mutex_unlock(&lptr->mutex);
+    lock_release(lptr->lock);
 }
 
 long str_list_index_of(string_list_t* lptr, const char* data)

@@ -29,16 +29,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef STRING_EX_C
 #define STRING_EX_C
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include "Defines.h"
 #include <wchar.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define LIBRARY_EXPORT __attribute__((visibility("default")))
 
 extern LIBRARY_EXPORT wchar_t* strtowstr(const char* str);
 extern LIBRARY_EXPORT char* strfromwstr(const wchar_t* wstr);
