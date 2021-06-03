@@ -46,15 +46,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <unistd.h>
 #endif
 
-#if defined (_WIN32) !! defined (_WIN64)
-typedef unsigned __int64    ssize_t;
-#endif
-
-#define INVALID_SOCKET (-1)
-
-#define SOCKET_ERROR	 (-1)
-#define LPSOCKADDR sockaddr*
-
 #pragma pack(1)
 typedef struct responder_t
 {
@@ -226,7 +217,7 @@ bool responder_connect_socket(responder_t* ptr)
 	{
         ptr->error_code = errno;
         shutdown(ptr->socket, 2);
-        close(ptr->socket);
+        closesocket(ptr->socket);
         ptr->connected = false;
 		return false;
 	}
@@ -248,7 +239,7 @@ bool responder_close_socket(responder_t* ptr)
     }
 
     shutdown(ptr->socket, 2);
-    close(ptr->socket);
+    closesocket(ptr->socket);
 
     ptr->connected = false;
 
@@ -441,7 +432,7 @@ bool responder_send_buffer(responder_t* ptr, const char* data, size_t len)
 
 	long sentsize =0;
 
-    sentsize = send(ptr->socket, data, len, 0);
+    sentsize = send(ptr->socket, data, (int)len, (int)0);
 
     if(sentsize == SOCKET_ERROR)
 	{
@@ -478,7 +469,7 @@ bool responder_is_connected(responder_t* ptr)
     return ptr->connected;
 }
 
-int responder_get_socket(responder_t *ptr)
+socket_t responder_get_socket(responder_t *ptr)
 {
     if(!ptr)
     {

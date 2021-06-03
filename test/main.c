@@ -1,5 +1,6 @@
 #include <CoreLib.h>
 #include <stdio.h>
+#include <malloc.h>
 
 void test_list(void);
 void test_string_list(void);

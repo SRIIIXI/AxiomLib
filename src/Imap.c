@@ -30,6 +30,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "StringEx.h"
 #include "ResponderSsl.h"
 
+#include <malloc.h>
+
 typedef struct imap_t
 {
     char host[33];

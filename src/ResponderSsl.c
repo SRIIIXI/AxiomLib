@@ -46,10 +46,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <unistd.h>
 #endif
 
-#if defined (_WIN32) !! defined (_WIN64)
-typedef unsigned __int64    ssize_t;
-#endif
-
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -57,10 +53,10 @@ typedef unsigned __int64    ssize_t;
 #include <openssl/x509.h>
 #include <openssl/x509_vfy.h>
 
-#define INVALID_SOCKET (-1)
+#if defined (_WIN32) || defined (_WIN64)
+#include <openssl/applink.c>
+#endif
 
-#define SOCKET_ERROR	 (-1)
-#define LPSOCKADDR sockaddr*
 
 #pragma pack(1)
 typedef struct responder_ssl_t
@@ -195,12 +191,12 @@ responder_ssl_t *responder_ssl_create_socket(responder_ssl_t *ptr, const char* s
     }
     else
     {
-         inet_pton (AF_INET, ptr->server_name, &ptr->server_address.sin_addr);
+         inet_pton(AF_INET, ptr->server_name, &ptr->server_address.sin_addr);
     }
 
     ptr->certificate_BIO = BIO_new(BIO_s_file());
 
-    if (SSL_library_init() < 0)
+    if (OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, NULL) != 1)
     {
         return false;
     }
@@ -259,7 +255,7 @@ bool responder_ssl_connect_socket(responder_ssl_t* ptr)
     if (returncode == SOCKET_ERROR)
     {
         shutdown(ptr->socket, 2);
-        close(ptr->socket);
+        closesocket(ptr->socket);
         ptr->connected = false;
         return false;
     }
@@ -268,7 +264,7 @@ bool responder_ssl_connect_socket(responder_ssl_t* ptr)
     {
         SSL_free(ptr->ssl_session);
         shutdown(ptr->socket, 2);
-        close(ptr->socket);
+        closesocket(ptr->socket);
         X509_free(ptr->certificate);
         SSL_CTX_free(ptr->ssl_context);
         ptr->connected = false;
@@ -304,7 +300,7 @@ bool responder_ssl_close_socket(responder_ssl_t* ptr)
     SSL_shutdown(ptr->ssl_session);
     SSL_free(ptr->ssl_session);
     shutdown(ptr->socket, 0);
-    close(ptr->socket);
+    closesocket(ptr->socket);
     X509_free(ptr->certificate);
     SSL_CTX_free(ptr->ssl_context);
 
@@ -536,7 +532,7 @@ bool responder_ssl_is_connected(responder_ssl_t* ptr)
     return ptr->connected;
 }
 
-int responder_ssl_get_socket(responder_ssl_t *ptr)
+socket_t responder_ssl_get_socket(responder_ssl_t *ptr)
 {
     if(!ptr)
     {

@@ -47,10 +47,10 @@ extern LIBRARY_EXPORT bool responder_send_buffer(responder_t* ptr, const char* d
 extern LIBRARY_EXPORT bool responder_send_string(responder_t* ptr, const char* str);
 extern LIBRARY_EXPORT bool responder_receive_buffer(responder_t* ptr, char** iobuffer, size_t len, bool alloc_buffer);
 extern LIBRARY_EXPORT bool responder_receive_string(responder_t* ptr, char** iostr, const char* delimeter);
-extern LIBRARY_EXPORT size_t  responder_read_size(responder_t* ptr);
+extern LIBRARY_EXPORT size_t responder_read_size(responder_t* ptr);
 extern LIBRARY_EXPORT bool responder_is_connected(responder_t* ptr);
-extern LIBRARY_EXPORT int  responder_get_socket(responder_t* ptr);
-extern LIBRARY_EXPORT int  responder_get_error_code(responder_t* ptr);
+extern LIBRARY_EXPORT socket_t responder_get_socket(responder_t* ptr);
+extern LIBRARY_EXPORT int responder_get_error_code(responder_t* ptr);
 
 #ifdef __cplusplus
 }

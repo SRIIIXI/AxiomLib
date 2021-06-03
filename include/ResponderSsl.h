@@ -47,9 +47,9 @@ extern LIBRARY_EXPORT bool responder_ssl_send_buffer(responder_ssl_t* ptr, const
 extern LIBRARY_EXPORT bool responder_ssl_send_string(responder_ssl_t* ptr, const char* str);
 extern LIBRARY_EXPORT bool responder_ssl_receive_buffer(responder_ssl_t* ptr, char** iobuffer, size_t len, bool alloc_buffer);
 extern LIBRARY_EXPORT bool responder_ssl_receive_string(responder_ssl_t* ptr, char** iostr, const char* delimeter);
-extern LIBRARY_EXPORT size_t  responder_ssl_read_size(responder_ssl_t* ptr);
+extern LIBRARY_EXPORT size_t responder_ssl_read_size(responder_ssl_t* ptr);
 extern LIBRARY_EXPORT bool responder_ssl_is_connected(responder_ssl_t* ptr);
-extern LIBRARY_EXPORT int  responder_ssl_get_socket(responder_ssl_t* ptr);
+extern LIBRARY_EXPORT socket_t responder_ssl_get_socket(responder_ssl_t* ptr);
 extern LIBRARY_EXPORT int  responder_ssl_get_error_code(responder_ssl_t* ptr);
 
 #ifdef __cplusplus

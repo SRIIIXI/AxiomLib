@@ -41,7 +41,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	/*Operating system specific headers*/
 	#if defined (_WIN32) || defined (_WIN64)
 		#include <WinSock2.h>
+		#include <ws2tcpip.h>
 		#include <Windows.h>
+		#include <process.h>
+		#include <direct.h>
 	#else
 		#include <unistd.h>
 		#include <pthread.h>
@@ -54,16 +57,21 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		#define LIBRARY_EXPORT __attribute__((visibility("default")))
 	#endif
 
-	/*Object alises*/
+	/*Object aliases*/
 	#if defined (_WIN32) || defined (_WIN64)
+		typedef unsigned __int64    ssize_t;
 		#define thread_t HANDLE
 		#define lock_t CRITICAL_SECTION
 		#define socket_t SOCKET
 		#define pid_t long
-#else
+	#else
 		#define lock_t pthread_mutex_t
 		#define thread_t pthread_t
 		#define socket_t int
+		#define LPSOCKADDR sockaddr*
+		#define INVALID_SOCKET (-1)
+		#define SOCKET_ERROR	 (-1)
+		#define closesocket(s) close(s)
 	#endif
 
 	/*Function aliases*/
@@ -74,7 +82,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		#define lock_try_acquire(l) TryEnterCriticalSection(&l)
 		#define lock_release(l) LeaveCriticalSection(&l)
 		#define strtoull(str, endptr, base) _strtoui64(str, endptr, base)
-#else
+		#define getpid() _getpid()
+		#define mkdir(s) _mkdir(s)
+		#define getcwd(p, l) _getcwd(p, l)
+	#else
 		#define lock_create(l) pthread_mutex_init(&l, NULL)
 		#define lock_destroy(l) pthread_mutex_destroy(&l)
 		#define lock_acquire(l) pthread_mutex_lock(&l)

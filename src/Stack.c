@@ -98,7 +98,7 @@ void stack_free(stack_t* sptr)
         }
 
         lock_release(sptr->lock);
-        pthread_mutex_destroy(&sptr->lock);
+        lock_destroy(sptr->lock);
 
         free(sptr);
     }

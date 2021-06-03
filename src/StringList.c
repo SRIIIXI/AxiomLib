@@ -56,6 +56,12 @@ node_t* str_list_internal_create_node(char* data);
 string_list_t* str_list_allocate(string_list_t* lptr)
 {
     lptr = (string_list_t*)calloc(1, sizeof(string_list_t));
+
+    if (lptr == NULL)
+    {
+        return NULL;
+    }
+
     lptr->count = 0;
     lptr->head = lptr->tail = NULL;
     lptr->iterator = NULL;
@@ -88,6 +94,12 @@ string_list_t* str_list_allocate_from_string(string_list_t* lptr, const char* st
     memcpy(ptr, str, str_len);
 
     lptr = (string_list_t*)calloc(1, sizeof(string_list_t));
+
+    if (lptr == NULL)
+    {
+        return NULL;
+    }
+
     lptr->count = 0;
     lptr->head = lptr->tail = NULL;
     lptr->iterator = NULL;
@@ -223,6 +235,7 @@ void str_list_insert(string_list_t* lptr, char* data, long pos)
         }
 
         lptr->count++;
+        lock_release(lptr->lock);
         return;
     }
 
@@ -240,6 +253,7 @@ void str_list_insert(string_list_t* lptr, char* data, long pos)
         }
 
         lptr->count++;
+        lock_release(lptr->lock);
         return;
     }
 
@@ -622,8 +636,21 @@ void str_list_join(string_list_t* lptrFirst, string_list_t* lptrSecond)
 node_t* str_list_internal_create_node(char *data)
 {
     node_t* ptr = (node_t*)calloc(1, sizeof(node_t));
+
+    if (ptr == NULL)
+    {
+        return NULL;
+    }
+
     ptr->size = strlen(data);
     ptr->data = (char*)calloc(1, ptr->size+1);
+
+    if (ptr->data == NULL)
+    {
+        free(ptr);
+        return NULL;
+    }
+
     strcpy(ptr->data, data);
     ptr->next = ptr->previous = NULL;
     return ptr;

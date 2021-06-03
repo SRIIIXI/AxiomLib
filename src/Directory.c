@@ -30,13 +30,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define DIRECTORY_SEPARATOR '/'
 
-
 #include <stdlib.h>
 #include <memory.h>
 
-
-#if defined (_WIN32) || defined (_WIN64)
-#else
+#if !defined (_WIN32) && !defined (_WIN64)
 #include <dirent.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -139,7 +136,14 @@ char* dir_get_log_directory(char *dirname)
 
     char wd_path[1025] = { 0 };
     size_t wd_len = 1024;
-    getcwd(wd_path, wd_len);
+    char* temp_ptr = NULL;
+
+    temp_ptr = getcwd(wd_path, wd_len);
+
+    if (temp_ptr == NULL)
+    {
+        return NULL;
+    }
 
     if(strstr(wd_path, "/root"))
     {
@@ -163,8 +167,16 @@ char* dir_get_config_directory(char *dirname)
         return NULL;
     }
 
-    char *config_dir = (char*)calloc(2049, 1);
-    config_dir = getcwd(config_dir, 2048);
+    char config_dir[1025] = { 0 };
+    size_t wd_len = 1024;
+    char* temp_ptr = NULL;
+
+    temp_ptr = getcwd(config_dir, wd_len);
+
+    if (temp_ptr == NULL)
+    {
+        return NULL;
+    }
 
     if(strstr(config_dir, "/root"))
     {
@@ -184,7 +196,7 @@ char* dir_get_config_directory(char *dirname)
         }
         else
         {
-            for(int idx = pos; idx <= 2049; idx++)
+            for(size_t idx = pos; idx <= 1024; idx++)
             {
                 config_dir[idx] = 0;
             }
