@@ -214,7 +214,7 @@ responder_ssl_t *responder_ssl_create_socket(responder_ssl_t *ptr, const char* s
 
     ptr->socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-    SSL_set_fd(ptr->ssl_session, ptr->socket);
+    SSL_set_fd(ptr->ssl_session, (int)ptr->socket);
 
     if(ptr->socket == INVALID_SOCKET)
     {
@@ -349,7 +349,7 @@ bool responder_ssl_receive_buffer(responder_ssl_t* ptr, char** iobuffer, size_t 
 
         if (buffer)
         {
-            bytesread = SSL_read(ptr->ssl_session, buffer, (size_t)bytesleft);
+            bytesread = SSL_read(ptr->ssl_session, buffer, (int)bytesleft);
         }
 
         // Error or link down

@@ -176,7 +176,7 @@ void dictionary_set_reference(dictionary_t* dict_ptr, const void* key, const siz
                 if(memcmp(current_kv->key, key, key_size) == 0)
                 {
                     free(current_kv->value);
-                    current_kv->value = reference;
+                    current_kv->value = (void*)reference;
                     current_kv->is_value = false;
                     return;
                 }
@@ -373,7 +373,7 @@ void dictionary_internal_add_key_reference(dictionary_t* dict_ptr, const unsigne
             new_kv->next = NULL;
             new_kv->key = (char*)calloc(1, key_size);
             memcpy(new_kv->key, key, key_size);
-            new_kv->value = reference;
+            new_kv->value = (void*)reference;
             new_kv->key_size = key_size;
 
             if(curr_hash_bucket->key_value_list == NULL)
