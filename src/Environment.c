@@ -36,7 +36,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <string.h>
 
-#if !defined (_WIN32) && !defined (_WIN64)
+#if defined (_WIN32) || defined (_WIN64)
+#include <psapi.h>
+#else
 #include <fcntl.h>
 #include <unistd.h>
 #endif
@@ -48,98 +50,163 @@ char* env_get_current_process_name(char* ptr)
         return NULL;
     }
 
-    char* buffer = (char*)calloc(1, 32);
     pid_t proc_id = getpid();
 
-    char** cmd_args = NULL;
-    char** dir_tokens = NULL;
+    #if defined (_WIN32) || defined (_WIN64)
 
-    sprintf(buffer, "/proc/%d/cmdline", proc_id);
+    TCHAR szProcessName[MAX_PATH] = TEXT("<unknown>");
 
-    FILE* fp = fopen(buffer, "r");
-    free(buffer);
-    buffer = NULL;
+    // Get a handle to the process.
 
-    if(fp)
+    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, proc_id);
+
+    // Get the process name.
+
+    if (NULL != hProcess)
     {
-        buffer = (char*)calloc(1, 1025);
+        HMODULE hMod;
+        DWORD cbNeeded;
 
-        if(fgets(buffer, 1024, fp))
+        if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded))
         {
-            long dir_sep_pos = strindexofchar(buffer, '/');
+            GetModuleBaseName(hProcess, hMod, szProcessName, sizeof(szProcessName) / sizeof(TCHAR));
+            strcpy(ptr, szProcessName);
+        }
 
-            if(dir_sep_pos < 0)
+        CloseHandle(hProcess);
+    }
+
+    #else
+
+        char* buffer = (char*)calloc(1, 32);
+        char** cmd_args = NULL;
+        char** dir_tokens = NULL;
+
+        sprintf(buffer, "/proc/%d/cmdline", proc_id);
+
+        FILE* fp = fopen(buffer, "r");
+        free(buffer);
+        buffer = NULL;
+
+        if(fp)
+        {
+            buffer = (char*)calloc(1, 1025);
+
+            if(fgets(buffer, 1024, fp))
             {
-                strcpy(ptr, buffer);
-                free(buffer);
-                fclose(fp);
-                return ptr;
-            }
+                long dir_sep_pos = strindexofchar(buffer, '/');
 
-            cmd_args = strsplitchar(buffer, ' ');
+                if(dir_sep_pos < 0)
+                {
+                    strcpy(ptr, buffer);
+                    free(buffer);
+                    fclose(fp);
+                    return ptr;
+                }
 
-            if(cmd_args != NULL)
-            {
-                dir_tokens = strsplitchar(cmd_args[0], '/');
+                cmd_args = strsplitchar(buffer, ' ');
+
+                if(cmd_args != NULL)
+                {
+                    dir_tokens = strsplitchar(cmd_args[0], '/');
+                }
+                else
+                {
+                    dir_tokens = strsplitchar(buffer, '/');
+                }
+
+                if(dir_tokens != NULL)
+                {
+                    char* last_str = NULL;
+                    for(int index = 0; dir_tokens[index] != 0; index++)
+                    {
+                        last_str = dir_tokens[index];
+                    }
+
+                    if (last_str != NULL)
+                    {
+                        strcpy(ptr, last_str);
+                    }
+                }
+
+                if(cmd_args)
+                {
+                    strfreelist(cmd_args);
+                }
+
+                if(dir_tokens)
+                {
+                    strfreelist(dir_tokens);
+                }
             }
             else
             {
-                dir_tokens = strsplitchar(buffer, '/');
+                printf("Could not read process commandline\n");
             }
 
-            if(dir_tokens != NULL)
-            {
-                char* last_str = NULL;
-                for(int index = 0; dir_tokens[index] != 0; index++)
-                {
-                    last_str = dir_tokens[index];
-                }
-                strcpy(ptr, last_str);
-            }
-
-            if(cmd_args)
-            {
-                strfreelist(cmd_args);
-            }
-
-            if(dir_tokens)
-            {
-                strfreelist(dir_tokens);
-            }
-        }
-        else
+            fclose(fp);
+        }    
+        
+        if(buffer)
         {
-            printf("Could not read process commandline\n");
+            free(buffer);
         }
 
-        fclose(fp);
-    }
-
-    if(buffer)
-    {
-        free(buffer);
-    }
+    #endif
 
     return ptr;
 }
 
-char* env_get_current_user_name(void)
+char* env_get_current_user_name(char* ptr)
 {
-    return getenv("USER");
+    if (ptr == NULL)
+    {
+        return NULL;
+    }
+
+    #if defined (_WIN32) || defined (_WIN64)
+
+        TCHAR szUserName[65] = { 0 };
+        DWORD slen = 64;
+
+        if (GetUserNameA(szUserName, &slen))
+        {
+            strcpy(ptr, szUserName);
+        }
+
+    #else
+        strcpy(ptr, getenv("USER"));
+    #endif
+
+    return ptr;
 }
 
-char* env_get_lock_filename(void)
+char* env_get_lock_filename(char* ptr)
 {
+    if (ptr == NULL)
+    {
+        return NULL;
+    }
+
     char* lock_filename = (char*)calloc(1, 1025);
-    char process_name[64] = {0};
 
-    char temp[33] = {0};
+    if (lock_filename == NULL)
+    {
+        return NULL;
+    }
 
+    char temp[65] = {0};
+
+    memset(temp, 0, 65);
     strcat(lock_filename, dir_get_temp_directory(temp));
     strcat(lock_filename, "/");
-    strcat(lock_filename, env_get_current_process_name(process_name));
+
+    memset(temp, 0, 65);
+    strcat(lock_filename, env_get_current_process_name(temp));
     strcat(lock_filename, ".");
-    strcat(lock_filename, env_get_current_user_name());
+
+    memset(temp, 0, 65);
+    strcat(lock_filename, env_get_current_user_name(temp));
     strcat(lock_filename, ".lock");
 
     return  lock_filename;

@@ -14,14 +14,33 @@ void test_queue(void);
 
 int main(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        printf("Usage : coretest <option>\nOptions are b, f, c, d, t, y, e, k, l, g, q, r, i, s, x, n, v\n");
-        return -1;
-    }
+    char user_name[64] = { 0 };
 
-    switch (argv[1][0])
+    env_get_current_user_name(user_name);
+
+    char process_name[64] = { 0 };
+
+    env_get_current_process_name(process_name);
+
+    char lock_file_name[128] = { 0 };
+
+    env_get_lock_filename(lock_file_name);
+
+    char dirname[2048] = { 0 };
+
+    memset(dirname, 0, 2048);
+    dir_get_temp_directory(dirname);
+
+    memset(dirname, 0, 2048);
+    dir_get_log_directory(dirname);
+
+    memset(dirname, 0, 2048);
+    dir_get_config_directory(dirname);
+
+    if (argc == 2)
     {
+        switch (argv[1][0])
+        {
         case 'b':
         {
             //Base64
@@ -125,6 +144,11 @@ int main(int argc, char* argv[])
         {
             break;
         }
+        }
+    }
+    else
+    {
+        printf("Usage : coretest <option>\nOptions are b, f, c, d, t, y, e, k, l, g, q, r, i, s, x, n, v\n");
     }
 
     return 0;

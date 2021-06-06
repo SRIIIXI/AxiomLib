@@ -19,7 +19,7 @@ endif(WIN32)
 
 if (WIN32)
     include_directories(${PROJECT_HEADER_DIR} C:/usr/include/ )
-    link_libraries(ws2_32 wsock32 libssl libcrypto)    
+    link_libraries(ws2_32 wsock32 userenv libssl libcrypto)    
     link_directories(C:/usr/lib/)
 else(WIN32)
     include_directories(${PROJECT_HEADER_DIR} /usr/include/ /usr/local/include/)

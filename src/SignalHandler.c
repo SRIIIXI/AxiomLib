@@ -66,7 +66,7 @@ static char signal_name_string[16]={0};
 static signal_callback callback_ptr = NULL;
 
 #if defined (_WIN32) || defined (_WIN64)
-void signal_handler_internal(int signum, void* context);
+void signal_handler_internal(int signum);
 #else
 void signal_handler_internal(int signum, siginfo_t *siginfo, void *context);
 #endif
@@ -138,7 +138,7 @@ void signals_initialize_handlers(void)
 }
 
 #if defined (_WIN32) || defined (_WIN64)
-void signal_handler_internal(int signum, void* context)
+void signal_handler_internal(int signum)
 {
     switch (signum)
     {

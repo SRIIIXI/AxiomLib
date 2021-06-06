@@ -162,7 +162,7 @@ long strindexofsubstr(const char* str, const char* substr)
         return -1;
     }
 
-    result = pdest - str;
+    result = (long)(pdest - str);
 
     return result;
 }

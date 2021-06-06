@@ -45,6 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "StringEx.h"
 #include "StringList.h"
 #include "Configuration.h"
+#include "Environment.h"
 
 #ifdef __cplusplus
 extern "C" {

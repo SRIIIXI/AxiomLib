@@ -438,14 +438,14 @@ long str_list_index_of(string_list_t* lptr, const char* data)
     {
         if (strcmp(curptr->data, data) == 0)
         {
-            return idx;
+            return (long)idx;
         }
 
         curptr = curptr->next;
         idx++;
     }
 
-    return -1;
+    return (long)-1;
 }
 
 long str_list_index_of_like(string_list_t* lptr, const char* data)
@@ -468,7 +468,7 @@ long str_list_index_of_like(string_list_t* lptr, const char* data)
     {
         if (strstr(curptr->data, data))
         {
-            return idx;
+            return (long)idx;
         }
 
         curptr = curptr->next;
