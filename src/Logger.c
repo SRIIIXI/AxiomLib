@@ -128,15 +128,7 @@ logger_t*	logger_allocate(size_t flszmb, const char* dirpath)
     }
     else
     {
-        if(strcmp(getenv("USER"), "root") == 0)
-        {
-            strcat(logger_ptr->FileName, "/var/log/");
-        }
-        else
-        {
-            strcat(logger_ptr->FileName, getenv("HOME"));
-            strcat(logger_ptr->FileName, "/log/");
-        }
+        dir_get_log_directory(logger_ptr->FileName);
     }
 
     if(!dir_is_exists(logger_ptr->FileName))

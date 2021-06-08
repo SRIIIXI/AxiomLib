@@ -41,8 +41,8 @@ extern LIBRARY_EXPORT list_t* list_allocate(list_t* lptr);
 extern LIBRARY_EXPORT void list_clear(list_t* lptr);
 extern LIBRARY_EXPORT void list_free(list_t* lptr);
 
-extern LIBRARY_EXPORT void list_lock_iterator(list_t* lptr);
-extern LIBRARY_EXPORT void list_unlock_iterator(list_t* lptr);
+extern LIBRARY_EXPORT void list_lock(list_t* lptr);
+extern LIBRARY_EXPORT void list_unlock(list_t* lptr);
 
 extern LIBRARY_EXPORT void list_add_to_head(list_t* lptr, void* data, size_t sz);
 extern LIBRARY_EXPORT void list_add_to_tail(list_t* lptr, void* data, size_t sz);

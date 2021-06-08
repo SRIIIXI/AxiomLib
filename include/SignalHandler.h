@@ -44,7 +44,8 @@ typedef enum SignalType
     Reset=4,
     ChildExit=5,
     Userdefined1=6,
-    Userdefined2=7
+    Userdefined2=7,
+    WindowResized = 8
 }SignalType;
 
 typedef void(*signal_callback)(SignalType stype);

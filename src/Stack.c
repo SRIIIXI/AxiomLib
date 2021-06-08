@@ -27,144 +27,111 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "Stack.h"
+#include "List.h"
 
 #include <string.h>
 #include <memory.h>
 #include <stdlib.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <memory.h>
 #include <limits.h>
-
-typedef struct node_t
-{
-    void* data;
-    struct node_t* next;
-}node_t;
 
 typedef struct stack_t
 {
-    long count;
-    node_t* head;
-    node_t* tail;
-    lock_t lock;
+    list_t* list;
 }stack_t;
 
-void* stack_internal_remove_tail(stack_t* sptr);
-
-stack_t *stack_allocate(stack_t* sptr)
+stack_t* stack_allocate(stack_t* sptr)
 {
     sptr = (stack_t*)calloc(1, sizeof(stack_t));
-    sptr->count = 0;
-    sptr->head = sptr->tail = NULL;
-    lock_create(sptr->lock);
+
+    if (sptr)
+    {
+        sptr->list = list_allocate(sptr->list);
+    }
+
     return sptr;
 }
 
 void stack_clear(stack_t* sptr)
 {
-    if(sptr == NULL)
+    if (sptr == NULL)
     {
         return;
     }
-    else
+
+    if (sptr->list == NULL)
     {
-        lock_acquire(sptr->lock);
-
-        while(sptr->count > 0)
-        {
-            void* ptr = stack_internal_remove_tail(sptr);
-            free(ptr);
-        }
-
-        lock_release(sptr->lock);
+        return;
     }
+
+    list_lock(sptr->list);
+    list_clear(sptr->list);
+    list_unlock(sptr->list);
 }
 
 void stack_free(stack_t* sptr)
 {
-    if(sptr == NULL)
+    if (sptr == NULL)
     {
         return;
     }
-    else
+
+    if (sptr->list == NULL)
     {
-        lock_acquire(sptr->lock);
-
-        while(sptr->count > 0)
-        {
-            void* ptr = stack_internal_remove_tail(sptr);
-            free(ptr);
-        }
-
-        lock_release(sptr->lock);
-        lock_destroy(sptr->lock);
-
-        free(sptr);
+        return;
     }
+
+    list_free(sptr->list);
+    free(sptr);
 }
 
 void stack_push(stack_t* sptr, void* data, size_t sz)
 {
-    if(sptr == NULL)
+    if (sptr == NULL)
     {
         return;
     }
 
-    lock_acquire(sptr->lock);
-
-    node_t* ptr = (node_t*)calloc(1, sizeof(node_t));
-    ptr->data = calloc(1, sz);
-    memcpy(ptr->data, data, sz);
-
-    if(sptr->count == 0)
+    if (sptr->list == NULL)
     {
-        sptr->head = sptr->tail = ptr;
-    }
-    else
-    {
-        sptr->tail->next = ptr;
-        sptr->tail = ptr;
+        return;
     }
 
-    sptr->count++;
-
-    lock_release(sptr->lock);
+    list_lock(sptr->list);
+    list_add_to_tail(sptr->list, data, sz);
+    list_unlock(sptr->list);
 }
 
 void* stack_pop(stack_t* sptr)
 {
-    if(sptr == NULL)
+    if (sptr == NULL)
     {
         return NULL;
     }
 
-    lock_acquire(sptr->lock);
-
-    void* ptr = stack_internal_remove_tail(sptr);
-
-    lock_release(sptr->lock);
-
-    return ptr;
-}
-
-long stack_item_count(stack_t *sptr)
-{
-    if(sptr != NULL)
+    if (sptr->list == NULL)
     {
-        return sptr->count;
+        return NULL;
     }
 
-    return 0;
-}
+    void* ptr = NULL;
 
-void* stack_internal_remove_tail(stack_t* sptr)
-{
-    node_t* oldtail = sptr->tail;
-    void* ptr = oldtail->data;
-    sptr->tail->next = NULL;
-    free(oldtail);
-    sptr->count--;
+    list_lock(sptr->list);
+    ptr = list_get_last(sptr->list);
+    list_remove_from_tail(sptr->list);
+    list_unlock(sptr->list);
 
     return ptr;
+}
+
+long stack_item_count(stack_t* sptr)
+{
+    if (sptr != NULL)
+    {
+        if (sptr->list != NULL)
+        {
+            return list_item_count(sptr->list);
+        }
+    }
+
+    return -1;
 }

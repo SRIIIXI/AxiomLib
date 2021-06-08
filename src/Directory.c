@@ -191,10 +191,8 @@ char* dir_get_log_directory(char *dirname)
         }
         else
         {
-            char* parent_dir = dir_get_parent_directory(wd_path);
-            strcat(dirname, parent_dir);
-            strcat(dirname, "log/");
-            free(parent_dir);
+            strcat(dirname, getenv("HOME"));
+            strcat(dirname, "/log/");
         }
 
     #endif

@@ -56,10 +56,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SIGALRM 1010
 #define SIGTSTP 1011
 #define SIGCONT 1012
+#define SIGWINCH 1013
 #endif
 
-static int signal_numbers[] = {SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGBUS, SIGFPE, SIGSEGV, SIGPIPE, SIGTERM, SIGSTKFLT, SIGUSR1, SIGUSR2, SIGCHLD};
-static const char *signal_names[] = {"SIGHUP", "SIGINT", "SIGQUIT", "SIGILL", "SIGTRAP", "SIGABRT", "SIGBUS", "SIGFPE", "SIGSEGV", "SIGPIPE", "SIGTERM", "SIGSTKFLT", "SIGUSR1", "SIGUSR2", "SIGCHLD"};
+static int signal_numbers[] = {SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGBUS, SIGFPE, SIGSEGV, SIGPIPE, SIGTERM, SIGSTKFLT, SIGUSR1, SIGUSR2, SIGCHLD, SIGWINCH };
+static const char *signal_names[] = {"SIGHUP", "SIGINT", "SIGQUIT", "SIGILL", "SIGTRAP", "SIGABRT", "SIGBUS", "SIGFPE", "SIGSEGV", "SIGPIPE", "SIGTERM", "SIGSTKFLT", "SIGUSR1", "SIGUSR2", "SIGCHLD", "SIGWINCH"};
 
 static char signal_name_string[16]={0};
 
@@ -195,6 +196,11 @@ void signal_handler_internal(int signum)
         callback_ptr(Userdefined2);
         break;
     }
+    case SIGWINCH:
+    {
+        callback_ptr(WindowResized);
+        break;
+    }
     }
 }
 #else
@@ -253,6 +259,11 @@ void signal_handler_internal(int signum, siginfo_t *siginfo, void *context)
         case SIGUSR2:
         {
             callback_ptr(Userdefined2);
+            break;
+        }
+        case SIGWINCH:
+        {
+            callback_ptr(WindowResized);
             break;
         }
     }

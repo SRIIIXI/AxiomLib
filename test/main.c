@@ -166,7 +166,7 @@ void test_list(void)
 
     void* item = NULL;
 
-    list_lock_iterator(mylist);
+    list_lock(mylist);
 
     item = list_get_first(mylist);
 
@@ -176,7 +176,7 @@ void test_list(void)
         item = list_get_next(mylist);
     }
 
-    list_unlock_iterator(mylist);
+    list_unlock(mylist);
 
     list_clear(mylist);
     list_free(mylist);

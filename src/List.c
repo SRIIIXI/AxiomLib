@@ -108,7 +108,7 @@ void list_free(list_t* lptr)
     }
 }
 
-void list_lock_iterator(list_t* lptr)
+void list_lock(list_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -118,7 +118,7 @@ void list_lock_iterator(list_t* lptr)
     lock_acquire(lptr->lock);
 }
 
-void list_unlock_iterator(list_t* lptr)
+void list_unlock(list_t* lptr)
 {
     if(lptr == NULL)
     {
