@@ -103,9 +103,9 @@ void dictionary_free(dictionary_t* dict_ptr)
             free(temp_kv);
         }
 
+        head_hash_bucket = head_hash_bucket->next;
         free(temp_hash_bucket);
 
-        head_hash_bucket = head_hash_bucket->next;
     }
 
     free(dict_ptr);
