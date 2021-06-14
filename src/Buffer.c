@@ -101,11 +101,16 @@ buffer_t* buffer_copy(buffer_t* dest, buffer_t* orig)
             if(dest->data != NULL)
             {
                 free(dest->data);
+                dest->data = NULL;
+                dest->data_size = 0;
             }
 
-            dest->data_size = orig->data_size;
             dest->data = (char*)calloc(1, dest->data_size);
-            memcpy(dest->data, orig->data, dest->data_size);
+            if (dest->data)
+            {
+                memcpy(dest->data, orig->data, dest->data_size);
+                dest->data_size = orig->data_size;
+            }
         }
     }
 
@@ -388,11 +393,16 @@ buffer_t* buffer_internal_adjust_storage(buffer_t* buffer_ptr, size_t sz)
 
     if(buffer_remaining < sz)
     {
-        buffer_ptr->memory_size = buffer_ptr->memory_size*2;
-        void* ptr = (char*)calloc(buffer_ptr->memory_size, sizeof (char));
-        memcpy(ptr, buffer_ptr->data, buffer_ptr->data_size);
-        free(buffer_ptr->data);
-        buffer_ptr->data = ptr;
+        void* ptr = (char*)calloc(buffer_ptr->memory_size*2, sizeof (char));
+
+        if (ptr)
+        {
+            buffer_ptr->memory_size = buffer_ptr->memory_size*2;
+            memcpy(ptr, buffer_ptr->data, buffer_ptr->data_size);
+            free(buffer_ptr->data);
+            buffer_ptr->data = ptr;
+        }
+
     }
 
     return  buffer_ptr;

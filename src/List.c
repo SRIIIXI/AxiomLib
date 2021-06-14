@@ -59,6 +59,12 @@ void list_internal_add_to_tail(list_t* lptr, node_t* ptr);
 list_t * list_allocate(list_t* lptr)
 {
     lptr = (list_t*)calloc(1, sizeof(list_t));
+
+    if (!lptr)
+    {
+        return NULL;
+    }
+
     lptr->count = 0;
     lptr->head = lptr->tail = NULL;
     lptr->iterator = NULL;
@@ -74,15 +80,11 @@ void list_clear(list_t* lptr)
     }
     else
     {
-        lock_acquire(lptr->lock);
-
         while(lptr->count > 0)
         {
             void* ptr = list_internal_remove_from_tail(lptr);
             free(ptr);
         }
-
-        lock_release(lptr->lock);
     }
 }
 
@@ -94,15 +96,12 @@ void list_free(list_t* lptr)
     }
     else
     {
-        lock_acquire(lptr->lock);
-
         while(lptr->count > 0)
         {
             void* ptr = list_internal_remove_from_tail(lptr);
             free(ptr);
         }
 
-        lock_release(lptr->lock);
         lock_destroy(lptr->lock);
         free(lptr);
     }
@@ -145,26 +144,35 @@ void list_insert(list_t* lptr, void* data, size_t sz, long pos)
         return;
 	}
 
-    lock_acquire(lptr->lock);
-
     node_t* ptr = NULL;
 
     ptr = (node_t*)calloc(1, sizeof(node_t));
+
+    if (!ptr)
+    {
+        return;
+    }
+
     ptr->data = calloc(1, sz);
+
+    if (!ptr->data)
+    {
+        free(ptr);
+        return;
+    }
+
     memcpy(ptr->data, data, sz);
     ptr->size = sz;
 
     if(pos <= 0)
     {
         list_internal_add_to_head(lptr, ptr);
-        lock_release(lptr->lock);
         return;
     }
 
     if (pos >= lptr->count)
     {
         list_internal_add_to_tail(lptr, ptr);
-        lock_release(lptr->lock);
         return;
     }
 
@@ -188,8 +196,6 @@ void list_insert(list_t* lptr, void* data, size_t sz, long pos)
 
         idx++;
     }
-
-    lock_release(lptr->lock);
 }
 
 void list_remove_from_head(list_t* lptr)
@@ -208,8 +214,6 @@ void list_remove(list_t* lptr, const void *node)
     {
         return;
     }
-
-    lock_acquire(lptr->lock);
 
     for(node_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next)
     {
@@ -244,8 +248,6 @@ void list_remove(list_t* lptr, const void *node)
             break;
         }
     }
-
-    lock_release(lptr->lock);
 }
 
 void list_remove_at(list_t* lptr, long pos)
@@ -259,8 +261,6 @@ void list_remove_at(list_t* lptr, long pos)
     {
         return;
     }
-
-    lock_acquire(lptr->lock);
 
     if(pos >= lptr->count -1)
     {
@@ -296,8 +296,6 @@ void list_remove_at(list_t* lptr, long pos)
             }
         }
     }
-
-    lock_release(lptr->lock);
 }
 
 void list_remove_value(list_t* lptr, void* data, size_t sz)
@@ -306,8 +304,6 @@ void list_remove_value(list_t* lptr, void* data, size_t sz)
     {
         return;
     }
-
-    lock_acquire(lptr->lock);
 
     node_t* ptr = NULL;
 
@@ -355,8 +351,6 @@ void list_remove_value(list_t* lptr, void* data, size_t sz)
         idx++;
     }
 
-    lock_release(lptr->lock);
-
     return;
 }
 
@@ -376,8 +370,6 @@ long list_index_of(list_t *lptr, const void *node)
     {
         return -1;
     }
-
-    lock_acquire(lptr->lock);
 
     node_t* ptr = NULL;
 
@@ -402,12 +394,10 @@ long list_index_of(list_t *lptr, const void *node)
 
         if(ptr->data == node)
         {
-            lock_release(lptr->lock);
             return idx;
         }
     }
 
-    lock_release(lptr->lock);
     return -1;
 }
 
@@ -418,8 +408,6 @@ long list_index_of_value(list_t* lptr, void* data, size_t sz)
         return -1;
     }
 
-    lock_acquire(lptr->lock);
-
     node_t* ptr = NULL;
 
     ptr = lptr->head;
@@ -428,7 +416,6 @@ long list_index_of_value(list_t* lptr, void* data, size_t sz)
 
     if(memcmp(ptr->data, data, ptr->size) == 0 && ptr->size == sz)
     {
-        lock_release(lptr->lock);
         return idx;
     }
 
@@ -449,7 +436,6 @@ long list_index_of_value(list_t* lptr, void* data, size_t sz)
         }
     }
 
-    lock_release(lptr->lock);
     return -1;
 }
 
@@ -465,8 +451,6 @@ void *list_get_at(list_t* lptr, long atpos)
         return NULL;
     }
 
-    lock_acquire(lptr->lock);
-
     node_t* ptr = NULL;
 
     ptr = lptr->head;
@@ -478,8 +462,6 @@ void *list_get_at(list_t* lptr, long atpos)
             ptr = ptr->next;
         }
     }
-
-    lock_release(lptr->lock);
 
     return ptr->data;
 }

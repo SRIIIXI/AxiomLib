@@ -99,6 +99,13 @@ configuration_t* configuration_allocate(const char* filename)
     if(fp)
     {
         ptr = (configuration_t*)calloc(1, sizeof (configuration_t));
+
+        if (!ptr)
+        {
+            fclose(fp);
+            return NULL;
+        }
+
         ptr->section_list = NULL;
         ptr->section_count = 0;
 
@@ -171,10 +178,9 @@ void  configuration_release(configuration_t* config)
             free(temp_kv);
         }
 
+        head_section = head_section->next;
         free(temp_section->section_name);
         free(temp_section);
-
-        head_section = head_section->next;
     }
 
     free(config);
@@ -189,7 +195,9 @@ char**  configuration_get_all_sections(const configuration_t* config)
 
     char** buffer = NULL;
 
-    buffer = (char **)calloc(1, (unsigned long)(config->section_count + 1) * sizeof(char*));
+    long len = config->section_count + 1;
+
+    buffer = (char **)calloc(1, (long)(len * sizeof(char*)));
 
     if(buffer == NULL)
     {
@@ -208,7 +216,8 @@ char**  configuration_get_all_sections(const configuration_t* config)
             continue;
         }
 
-        buffer[index] = (char*)calloc(1, sizeof(char) * (unsigned long)(temp_str_len + 1));
+        temp_str_len++;
+        buffer[index] = (char*)calloc(1, sizeof(char) * (unsigned long)(temp_str_len));
 
         if(buffer[index] != NULL)
         {
@@ -233,7 +242,9 @@ char**  configuration_get_all_keys(const configuration_t *config, const char* se
 
     char** buffer = NULL;
 
-    buffer = (char **)calloc(1, (unsigned long)(curr_section->key_value_count + 1) * sizeof(char*));
+    long len = curr_section->key_value_count + 1;
+
+    buffer = (char **)calloc(1, (long)(len) * sizeof(char*));
 
     if(buffer == NULL)
     {
@@ -250,7 +261,9 @@ char**  configuration_get_all_keys(const configuration_t *config, const char* se
             continue;
         }
 
-        buffer[index] = (char*)calloc(1, sizeof(char) * (unsigned long)(temp_str_len + 1));
+        temp_str_len++;
+
+        buffer[index] = (char*)calloc(1, sizeof(char) * (unsigned long)(temp_str_len));
 
         if(buffer[index] != NULL)
         {
@@ -438,10 +451,23 @@ void configuration_internal_add_section(configuration_t* conf_ptr, char* section
     }
 
     section_t* new_section = (section_t*)calloc(1, sizeof(section_t));
+
+    if (!new_section)
+    {
+        return;
+    }
+
     new_section->next = NULL;
     new_section->key_value_list = NULL;
     new_section->key_value_count = 0;
     new_section->section_name = (char*)calloc(1, strlen(section_name)+1);
+
+    if (!new_section->section_name)
+    {
+        free(new_section);
+        return;
+    }
+
     strcpy(new_section->section_name, section_name);
 
     if(conf_ptr->section_list == NULL)
@@ -472,10 +498,32 @@ void configuration_internal_add_key_value(configuration_t* conf_ptr, char* secti
         if(strcmp(curr_section->section_name, section_name) == 0)
         {
             key_value_t* new_kv = (key_value_t*)calloc(1, sizeof (key_value_t));
+
+            if(!new_kv)
+            {
+                return;
+            }
+
             new_kv->next = NULL;
             new_kv->key = (char*)calloc(1, strlen(key)+1);
+
+            if (!new_kv->key)
+            {
+                free(new_kv);
+                return;
+            }
+
             strcpy(new_kv->key, key);
+
             new_kv->value = (char*)calloc(1, strlen(value)+1);
+
+            if (!new_kv->value)
+            {
+                free(new_kv);
+                free(new_kv->key);
+                return;
+            }
+
             strcpy(new_kv->value, value);
 
             if(curr_section->key_value_list == NULL)
