@@ -12,9 +12,9 @@ set(PROJECT_SOURCE_DIR ./src)
 set(PROJECT_HEADER_DIR ./include)
 
 if (WIN32)
-add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-add_definitions(-DWIN32_LEAN_AND_MEAN)
-add_definitions(-D_WINSOCK_DEPRECATED_NO_WARNINGS)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(-DWIN32_LEAN_AND_MEAN)
+    add_definitions(-D_WINSOCK_DEPRECATED_NO_WARNINGS)
 endif(WIN32)
 
 if (WIN32)
@@ -87,16 +87,19 @@ ${PROJECT_HEADER_DIR}/CoreLib.h
 add_executable(coretest ${SOURCE} ${HEADERS} ./test/main.c)
 add_library(core SHARED ${SOURCE} ${HEADERS})
 
-install(TARGETS core DESTINATION local/lib)
-install(FILES ${HEADERS} DESTINATION local/include/CoreLib)
-
-install(TARGETS core DESTINATION lib)
-install(FILES ${HEADERS} DESTINATION include/Core)
 set(CPACK_PACKAGE_FILE_NAME ${Project}.${CMAKE_SYSTEM_PROCESSOR}.${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}.${LIB_VERSION_PATCH})
-set(CPACK_GENERATOR "DEB")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Subrato Roy")
 set(CPACK_PACKAGE_DESCRIPTION, "Core C Utilities")
 
+if (WIN32)
+set(CPACK_GENERATOR "WIX")
+install(TARGETS core DESTINATION C:/usr/lib)
+install(FILES ${HEADERS} DESTINATION C:/usr/include/CoreLib)
+else(WIN32)
+set(CPACK_GENERATOR "DEB")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Subrato Roy")
+install(TARGETS core DESTINATION local/lib)
+install(FILES ${HEADERS} DESTINATION local/include/CoreLib)
+endif(WIN32)
 
 include(CPack)
 

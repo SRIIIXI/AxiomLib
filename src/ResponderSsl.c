@@ -57,7 +57,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <openssl/applink.c>
 #endif
 
-
 #pragma pack(1)
 typedef struct responder_ssl_t
 {
@@ -139,7 +138,6 @@ bool is_ssl_ip4_address(char* str)
             nbindex++;
             continue;
         }
-
     }
 
     return true;

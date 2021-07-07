@@ -359,6 +359,15 @@ void test_base64(void)
         rewind(fp);
 
         unsigned char* old_image = (char*)calloc(1, sz);
+
+        if(!old_image)
+        {
+            free(old_fname);
+            free(new_fname);
+            fclose(fp);
+            return;
+        }
+
         fread(old_image, sz, 1, fp);
         fclose(fp);
 

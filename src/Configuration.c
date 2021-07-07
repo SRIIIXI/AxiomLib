@@ -68,6 +68,11 @@ configuration_t* configuration_allocate_default(void)
 {
     char* filename = (char*)calloc(1024, sizeof(char));
 
+    if (!filename)
+    {
+        return NULL;
+    }
+
     if(strcmp(getenv("USER"), "root") == 0)
     {
         strcat(filename, "/etc/");
@@ -79,6 +84,13 @@ configuration_t* configuration_allocate_default(void)
     }
 
     char* proces_name = (char*)calloc(1025, sizeof(char));
+
+    if (!proces_name)
+    {
+        free(filename);
+        return NULL;
+    }
+
     proces_name = env_get_current_process_name(proces_name);
     strcat(filename, proces_name);
     strcat(filename, ".conf");
