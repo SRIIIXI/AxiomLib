@@ -58,8 +58,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	#endif
 
 	/*Object aliases*/
-	#if defined (_WIN32) || defined (_WIN64)
-		typedef unsigned __int64    ssize_t;
+    #if defined (_WIN32) || defined (_WIN64)
+        #if defined (_MSC_VER)
+            typedef unsigned __int64    ssize_t;
+        #endif
 		#define thread_t HANDLE
 		#define lock_t CRITICAL_SECTION
 		#define socket_t SOCKET

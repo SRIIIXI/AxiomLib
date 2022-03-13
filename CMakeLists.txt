@@ -4,6 +4,6 @@ set(Project Core)
 project(${Project})
 
 add_subdirectory(CoreLib)
-add_subdirectory(CoreLibNetwork)
-add_subdirectory(CoreTest)
+#add_subdirectory(CoreLibNetwork)
+#add_subdirectory(CoreTest)
 
