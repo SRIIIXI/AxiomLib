@@ -28,19 +28,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "List.h"
 #include "Buffer.h"
+#include "Node.h"
 
 #include <string.h>
 #include <memory.h>
 #include <stdlib.h>
 #include <limits.h>
-
-typedef struct node_t
-{
-    void* data;
-    size_t size;
-    struct node_t* next;
-    struct node_t* previous;
-}node_t;
 
 typedef struct list_t
 {
