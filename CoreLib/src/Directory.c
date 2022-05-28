@@ -260,7 +260,6 @@ char* dir_get_config_directory(char *dirname)
             strcpy(dirname, config_dir);
         }
 
-        free(config_dir);
     #endif
 
     return dirname;
