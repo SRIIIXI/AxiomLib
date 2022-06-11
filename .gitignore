@@ -149,3 +149,5 @@ packages/
 .directory/
 temp/
 tmp/
+debug/
+release/
