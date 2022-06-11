@@ -28,7 +28,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "Environment.h"
 #include "StringEx.h"
-#include "StringList.h"
 #include "Directory.h"
 
 #include <stdlib.h>

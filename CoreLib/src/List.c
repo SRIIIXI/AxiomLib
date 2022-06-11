@@ -40,7 +40,6 @@ typedef struct node_t
     void* data;
     size_t size;
     struct node_t* next;
-    struct node_t* previous;
 }node_t;
 
 typedef struct list_t
@@ -52,8 +51,8 @@ typedef struct list_t
     lock_t lock;
 }list_t;
 
-void* list_internal_remove_from_head(list_t* lptr);
-void* list_internal_remove_from_tail(list_t* lptr);
+void list_internal_remove_from_head(list_t* lptr);
+void list_internal_remove_from_tail(list_t* lptr);
 void list_internal_add_to_head(list_t* lptr, node_t *ptr);
 void list_internal_add_to_tail(list_t* lptr, node_t* ptr);
 
@@ -83,8 +82,7 @@ void list_clear(list_t* lptr)
     {
         while(lptr->count > 0)
         {
-            void* ptr = list_internal_remove_from_tail(lptr);
-            free(ptr);
+            list_internal_remove_from_tail(lptr);
         }
     }
 }
@@ -99,8 +97,7 @@ void list_free(list_t* lptr)
     {
         while(lptr->count > 0)
         {
-            void* ptr = list_internal_remove_from_tail(lptr);
-            free(ptr);
+            list_internal_remove_from_tail(lptr);
         }
 
         lock_destroy(lptr->lock);
@@ -182,14 +179,10 @@ void list_insert(list_t* lptr, void* data, size_t sz, long pos)
     {
         if(pos == idx)
         {
-            node_t* prev = curptr->previous;
-            node_t* next = curptr->next;
+            node_t* oldnext = curptr->next;
 
-            prev->next = ptr;
-            ptr->previous = prev;
-
-            next->previous = ptr;
-            ptr->next = next;
+            curptr->next = ptr;
+            ptr->next = oldnext;
 
             lptr->count++;
             break;
@@ -209,38 +202,30 @@ void list_remove_from_tail(list_t* lptr)
     list_remove_at(lptr, LONG_MAX);
 }
 
-void list_remove(list_t* lptr, const void *node)
+void list_remove(list_t* lptr, const void *data)
 {
-    if(lptr == NULL || node == NULL)
+    if(lptr == NULL || data == NULL)
     {
         return;
     }
 
     for(node_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next)
     {
-        if(node == curptr->data)
+        if(memcmp(data, curptr->data, curptr->size) == 0)
         {
             if(curptr->next == NULL)
             {
-                void* ptr = list_internal_remove_from_tail(lptr);
-                free(ptr);
+                list_internal_remove_from_tail(lptr);
+                break;
             }
 
-            if(curptr->previous == NULL)
+            if(curptr == lptr->head)
             {
-                void* ptr = list_internal_remove_from_head(lptr);
-                free(ptr);
+                list_internal_remove_from_head(lptr);
+                break;
             }
 
-            node_t* prev = curptr->previous;
-            node_t* next = curptr->next;
-
-			if (prev != NULL)
-			{
-                prev->next = next;
-			}
-
-            next->previous = prev;
+            node_t* targetnode = curptr->next;
 
             free(curptr->data);
             free(curptr);
@@ -265,15 +250,13 @@ void list_remove_at(list_t* lptr, long pos)
 
     if(pos >= lptr->count -1)
     {
-        void* ptr = list_internal_remove_from_tail(lptr);
-        free(ptr);
+        list_internal_remove_from_tail(lptr);
     }
     else
     {
         if(pos == 0)
         {
-            void* ptr = list_internal_remove_from_head(lptr);
-            free(ptr);
+            list_internal_remove_from_head(lptr);
         }
         else
         {
@@ -323,15 +306,13 @@ void list_remove_value(list_t* lptr, void* data, size_t sz)
         {
             if(idx >= lptr->count - 1)
             {
-                void* ptr = list_internal_remove_from_tail(lptr);
-                free(ptr);
+                list_internal_remove_from_tail(lptr);
                 break;
             }
 
             if(idx == 0)
             {
-                void* ptr = list_internal_remove_from_head(lptr);
-                free(ptr);
+                list_internal_remove_from_head(lptr);
                 break;
             }
 
@@ -563,40 +544,30 @@ list_t* list_join(list_t* lptrFirst, list_t* lptrSecond)
     return NULL;
 }
 
-void* list_internal_remove_from_head(list_t* lptr)
+void list_internal_remove_from_head(list_t* lptr)
 {
     node_t* oldhead = lptr->head;
-    void* ptr = oldhead->data;
     lptr->head = lptr->head->next;
-
-    if(lptr->head != NULL)
-    {
-        lptr->head->previous = NULL;
-    }
 
     free(oldhead->data);
     free(oldhead);
 
     lptr->count--;
-    return ptr;
 }
 
-void* list_internal_remove_from_tail(list_t* lptr)
+void list_internal_remove_from_tail(list_t* lptr)
 {
     node_t* oldtail = lptr->tail;
-    void* ptr = oldtail->data;
-
-    lptr->tail = oldtail->previous;
 
     if(lptr->tail != NULL)
     {
         lptr->tail->next = NULL;
     }
 
+    free(oldtail->data);
     free(oldtail);
+    oldtail = NULL;
     lptr->count--;
-
-    return ptr;
 }
 
 void list_internal_add_to_head(list_t* lptr, node_t* ptr)
@@ -607,7 +578,6 @@ void list_internal_add_to_head(list_t* lptr, node_t* ptr)
     }
     else
     {
-        lptr->head->previous = ptr;
         ptr->next = lptr->head;
         lptr->head = ptr;
     }
@@ -624,7 +594,6 @@ void list_internal_add_to_tail(list_t* lptr, node_t* ptr)
     else
     {
         lptr->tail->next = ptr;
-        ptr->previous = lptr->tail;
         lptr->tail = ptr;
     }
 

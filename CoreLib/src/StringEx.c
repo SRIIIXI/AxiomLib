@@ -621,7 +621,7 @@ void strsplitkeyvaluechar(const char* str, const char delimiter, char **key, cha
     strcpy(*value, &str[val_start]);
 }
 
-extern char** strsplitsubstr(const char* str, const char* delimiter)
+char** strsplitsubstr(const char* str, const char* delimiter)
 {
 	if(str == NULL || delimiter == NULL)
 	{
@@ -686,23 +686,39 @@ extern char** strsplitsubstr(const char* str, const char* delimiter)
 	return buffer;
 }
 
-extern char** strsplitchar(const char* str, const char delimiter)
+char** strsplitchar(const char* str, const char delimiter)
 {
 	char temp_delimiter[2] = {delimiter, 0};
 
     return strsplitsubstr(str, temp_delimiter);
 }
 
-extern char* strjoinwithsubstr(const char** strlist, const char* delimiter)
+char* strjoinlistwithsubstr(const char** strlist, const char* delimiter)
 {
 	return NULL;
 }
 
-extern char* strjoinwithchar(const char** strlist, const char delimiter)
+char* strjoinlistwithchar(const char** strlist, const char delimiter)
 {
 	char temp_delimiter[2] = { delimiter, 0 };
 
-	return strjoinwithsubstr(strlist, temp_delimiter);
+    return strjoinlistwithsubstr(strlist, temp_delimiter);
+}
+
+char* strmergelistwithsubstr(const char **strlist, const char* delimiter)
+{
+    return NULL;
+
+}
+
+char* strmergelistwithchar(const char** strlist, const char delimite)
+{
+    return NULL;
+}
+
+void  strsortlist(char** strlist)
+{
+
 }
 
 void strfreelist(char** strlist)

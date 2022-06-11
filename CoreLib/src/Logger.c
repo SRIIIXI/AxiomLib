@@ -30,7 +30,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Directory.h"
 #include "File.h"
 #include "StringEx.h"
-#include "StringList.h"
 #include "Environment.h"
 
 #include <stdio.h>

@@ -51,7 +51,7 @@ char *base64_encode(const unsigned char *data, unsigned long inputlength, char *
 
 	if (encodedString == NULL)
 	{
-		outputlength = 0;
+        *outputlength = 0;
         return NULL;
 	}
 

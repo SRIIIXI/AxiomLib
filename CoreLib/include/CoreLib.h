@@ -43,7 +43,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Queue.h"
 #include "Stack.h"
 #include "StringEx.h"
-#include "StringList.h"
 #include "Configuration.h"
 #include "Environment.h"
 

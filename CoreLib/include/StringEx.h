@@ -77,8 +77,11 @@ extern LIBRARY_EXPORT void strsplitkeyvaluechar(const char* str, const char deli
 extern LIBRARY_EXPORT void strsplitkeyvaluesubstr(const char* str, const char* delimiter, char **key, char **value);
 extern LIBRARY_EXPORT char** strsplitsubstr(const char* str, const char* delimiter);
 extern LIBRARY_EXPORT char** strsplitchar(const char* str, const char delimiter);
-extern LIBRARY_EXPORT char* strjoinwithsubstr(const char **strlist, const char* delimiter);
-extern LIBRARY_EXPORT char* strjoinwithchar(const char** strlist, const char delimiter);
+extern LIBRARY_EXPORT char* strjoinlistwithsubstr(const char **strlist, const char* delimiter);
+extern LIBRARY_EXPORT char* strjoinlistwithchar(const char** strlist, const char delimiter);
+extern LIBRARY_EXPORT char* strmergelistwithsubstr(const char **strlist, const char* delimiter);
+extern LIBRARY_EXPORT char* strmergelistwithchar(const char** strlist, const char delimiter);
+extern LIBRARY_EXPORT void  strsortlist(char** strlist);
 extern LIBRARY_EXPORT void  strfreelist(char** strlist);
 
 #ifdef __cplusplus
