@@ -37,6 +37,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
+typedef struct date_time_t date_time_t;
+
 extern LIBRARY_EXPORT char* date_time_get_default_string(char* ptr);
 
 /*

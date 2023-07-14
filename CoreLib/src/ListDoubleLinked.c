@@ -26,7 +26,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "List.h"
+#include "ListDoubleLinked.h"
 #include "Buffer.h"
 
 #include <string.h>
@@ -35,30 +35,31 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <limits.h>
 
 
-typedef struct node_t
+typedef struct node_double_linked_t
 {
     void* data;
     size_t size;
-    struct node_t* next;
-}node_t;
+    struct node_double_linked_t* next;
+    struct node_double_linked_t* previous;
+}node_double_linked_t;
 
-typedef struct list_t
+typedef struct list_double_linked_t
 {
     long count;
-    node_t* head;
-    node_t* tail;
-    node_t* iterator;
+    node_double_linked_t* head;
+    node_double_linked_t* tail;
+    node_double_linked_t* iterator;
     lock_t lock;
-}list_t;
+}list_double_linked_t;
 
-void list_internal_remove_from_head(list_t* lptr);
-void list_internal_remove_from_tail(list_t* lptr);
-void list_internal_add_to_head(list_t* lptr, node_t *ptr);
-void list_internal_add_to_tail(list_t* lptr, node_t* ptr);
+void list_double_linked_internal_remove_from_head(list_double_linked_t* lptr);
+void list_double_linked_internal_remove_from_tail(list_double_linked_t* lptr);
+void list_double_linked_internal_add_to_head(list_double_linked_t* lptr, node_double_linked_t *ptr);
+void list_double_linked_internal_add_to_tail(list_double_linked_t* lptr, node_double_linked_t* ptr);
 
-list_t * list_allocate(list_t* lptr)
+list_double_linked_t * list_double_linked_allocate(list_double_linked_t* lptr)
 {
-    lptr = (list_t*)calloc(1, sizeof(list_t));
+    lptr = (list_double_linked_t*)calloc(1, sizeof(list_double_linked_t));
 
     if (!lptr)
     {
@@ -72,7 +73,7 @@ list_t * list_allocate(list_t* lptr)
     return lptr;
 }
 
-void list_clear(list_t* lptr)
+void list_double_linked_clear(list_double_linked_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -82,12 +83,12 @@ void list_clear(list_t* lptr)
     {
         while(lptr->count > 0)
         {
-            list_internal_remove_from_tail(lptr);
+            list_double_linked_internal_remove_from_tail(lptr);
         }
     }
 }
 
-void list_free(list_t* lptr)
+void list_double_linked_free(list_double_linked_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -97,7 +98,7 @@ void list_free(list_t* lptr)
     {
         while(lptr->count > 0)
         {
-            list_internal_remove_from_tail(lptr);
+            list_double_linked_internal_remove_from_tail(lptr);
         }
 
         lock_destroy(lptr->lock);
@@ -105,7 +106,7 @@ void list_free(list_t* lptr)
     }
 }
 
-void list_lock(list_t* lptr)
+void list_double_linked_lock(list_double_linked_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -115,7 +116,7 @@ void list_lock(list_t* lptr)
     lock_acquire(lptr->lock);
 }
 
-void list_unlock(list_t* lptr)
+void list_double_linked_unlock(list_double_linked_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -125,26 +126,26 @@ void list_unlock(list_t* lptr)
     lock_release(lptr->lock);
 }
 
-void list_add_to_head(list_t* lptr, void* data, size_t sz)
+void list_double_linked_add_to_head(list_double_linked_t* lptr, void* data, size_t sz)
 {
-    list_insert(lptr, data, sz, 0);
+    list_double_linked_insert(lptr, data, sz, 0);
 }
 
-void list_add_to_tail(list_t* lptr, void* data, size_t sz)
+void list_double_linked_add_to_tail(list_double_linked_t* lptr, void* data, size_t sz)
 {
-    list_insert(lptr, data, sz, LONG_MAX);
+    list_double_linked_insert(lptr, data, sz, LONG_MAX);
 }
 
-void list_insert(list_t* lptr, void* data, size_t sz, long pos)
+void list_double_linked_insert(list_double_linked_t* lptr, void* data, size_t sz, long pos)
 {
 	if (lptr == NULL)
 	{
         return;
 	}
 
-    node_t* ptr = NULL;
+    node_double_linked_t* ptr = NULL;
 
-    ptr = (node_t*)calloc(1, sizeof(node_t));
+    ptr = (node_double_linked_t*)calloc(1, sizeof(node_double_linked_t));
 
     if (!ptr)
     {
@@ -164,22 +165,22 @@ void list_insert(list_t* lptr, void* data, size_t sz, long pos)
 
     if(pos <= 0)
     {
-        list_internal_add_to_head(lptr, ptr);
+        list_double_linked_internal_add_to_head(lptr, ptr);
         return;
     }
 
     if (pos >= lptr->count)
     {
-        list_internal_add_to_tail(lptr, ptr);
+        list_double_linked_internal_add_to_tail(lptr, ptr);
         return;
     }
 
     int idx = 1;
-    for(node_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next, idx++)
+    for(node_double_linked_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next, idx++)
     {
         if(pos == idx)
         {
-            node_t* oldnext = curptr->next;
+            node_double_linked_t* oldnext = curptr->next;
 
             curptr->next = ptr;
             ptr->next = oldnext;
@@ -192,40 +193,40 @@ void list_insert(list_t* lptr, void* data, size_t sz, long pos)
     }
 }
 
-void list_remove_from_head(list_t* lptr)
+void list_double_linked_remove_from_head(list_double_linked_t* lptr)
 {
-    list_remove_at(lptr, 0);
+    list_double_linked_remove_at(lptr, 0);
 }
 
-void list_remove_from_tail(list_t* lptr)
+void list_double_linked_remove_from_tail(list_double_linked_t* lptr)
 {
-    list_remove_at(lptr, LONG_MAX);
+    list_double_linked_remove_at(lptr, LONG_MAX);
 }
 
-void list_remove(list_t* lptr, const void *data)
+void list_double_linked_remove(list_double_linked_t* lptr, const void *data)
 {
     if(lptr == NULL || data == NULL)
     {
         return;
     }
 
-    for(node_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next)
+    for(node_double_linked_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next)
     {
         if(memcmp(data, curptr->data, curptr->size) == 0)
         {
             if(curptr->next == NULL)
             {
-                list_internal_remove_from_tail(lptr);
+                list_double_linked_internal_remove_from_tail(lptr);
                 break;
             }
 
             if(curptr == lptr->head)
             {
-                list_internal_remove_from_head(lptr);
+                list_double_linked_internal_remove_from_head(lptr);
                 break;
             }
 
-            node_t* targetnode = curptr->next;
+            node_double_linked_t* targetnode = curptr->next;
 
             free(curptr->data);
             free(curptr);
@@ -236,7 +237,7 @@ void list_remove(list_t* lptr, const void *data)
     }
 }
 
-void list_remove_at(list_t* lptr, long pos)
+void list_double_linked_remove_at(list_double_linked_t* lptr, long pos)
 {
     if(lptr == NULL || pos < 0)
     {
@@ -250,22 +251,26 @@ void list_remove_at(list_t* lptr, long pos)
 
     if(pos >= lptr->count -1)
     {
-        list_internal_remove_from_tail(lptr);
+        list_double_linked_internal_remove_from_tail(lptr);
     }
     else
     {
         if(pos == 0)
         {
-            list_internal_remove_from_head(lptr);
+            list_double_linked_internal_remove_from_head(lptr);
         }
         else
         {
             int idx = 1;
-            for(node_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next, idx++)
+            for(node_double_linked_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next, idx++)
             {
                 if(idx == pos)
                 {
-                    node_t* next = curptr->next;
+                    node_double_linked_t* prev = curptr->previous;
+                    node_double_linked_t* next = curptr->next;
+
+                    prev->next = next;
+                    next->previous = prev;
 
                     free(curptr->data);
                     free(curptr);
@@ -278,14 +283,14 @@ void list_remove_at(list_t* lptr, long pos)
     }
 }
 
-void list_remove_value(list_t* lptr, void* data, size_t sz)
+void list_double_linked_remove_value(list_double_linked_t* lptr, void* data, size_t sz)
 {
     if(lptr == NULL)
     {
         return;
     }
 
-    node_t* ptr = NULL;
+    node_double_linked_t* ptr = NULL;
 
     ptr = lptr->head;
 
@@ -302,17 +307,22 @@ void list_remove_value(list_t* lptr, void* data, size_t sz)
         {
             if(idx >= lptr->count - 1)
             {
-                list_internal_remove_from_tail(lptr);
+                list_double_linked_internal_remove_from_tail(lptr);
                 break;
             }
 
             if(idx == 0)
             {
-                list_internal_remove_from_head(lptr);
+                list_double_linked_internal_remove_from_head(lptr);
                 break;
             }
 
-            node_t* next = ptr->next;
+            node_double_linked_t* prev = ptr->previous;
+            node_double_linked_t* next = ptr->next;
+
+            prev->next = next;
+            next->previous = prev;
+
             free(ptr->data);
             free(ptr);
 
@@ -327,7 +337,7 @@ void list_remove_value(list_t* lptr, void* data, size_t sz)
     return;
 }
 
-long list_item_count(list_t* lptr)
+long list_double_linked_item_count(list_double_linked_t* lptr)
 {
     if(lptr != NULL)
     {
@@ -337,14 +347,14 @@ long list_item_count(list_t* lptr)
     return 0;
 }
 
-long list_index_of(list_t *lptr, const void *node)
+long list_double_linked_index_of(list_double_linked_t *lptr, const void *node)
 {
     if(lptr == NULL)
     {
         return -1;
     }
 
-    node_t* ptr = NULL;
+    node_double_linked_t* ptr = NULL;
 
     ptr = lptr->head;
 
@@ -374,14 +384,14 @@ long list_index_of(list_t *lptr, const void *node)
     return -1;
 }
 
-long list_index_of_value(list_t* lptr, void* data, size_t sz)
+long list_double_linked_index_of_value(list_double_linked_t* lptr, void* data, size_t sz)
 {
     if(lptr == NULL)
     {
         return -1;
     }
 
-    node_t* ptr = NULL;
+    node_double_linked_t* ptr = NULL;
 
     ptr = lptr->head;
 
@@ -412,7 +422,7 @@ long list_index_of_value(list_t* lptr, void* data, size_t sz)
     return -1;
 }
 
-void *list_get_at(list_t* lptr, long atpos)
+void *list_double_linked_get_at(list_double_linked_t* lptr, long atpos)
 {
     if(lptr == NULL)
     {
@@ -424,7 +434,7 @@ void *list_get_at(list_t* lptr, long atpos)
         return NULL;
     }
 
-    node_t* ptr = NULL;
+    node_double_linked_t* ptr = NULL;
 
     ptr = lptr->head;
 
@@ -439,7 +449,7 @@ void *list_get_at(list_t* lptr, long atpos)
     return ptr->data;
 }
 
-void* list_get_first(list_t* lptr)
+void* list_double_linked_get_first(list_double_linked_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -450,7 +460,7 @@ void* list_get_first(list_t* lptr)
     return lptr->iterator->data;
 }
 
-void* list_get_next(list_t* lptr)
+void* list_double_linked_get_next(list_double_linked_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -467,7 +477,7 @@ void* list_get_next(list_t* lptr)
     return lptr->iterator->data;
 }
 
-void* list_get_last(list_t* lptr)
+void* list_double_linked_get_last(list_double_linked_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -478,24 +488,24 @@ void* list_get_last(list_t* lptr)
     return lptr->iterator->data;
 }
 
-void* list_get_previous(list_t* lptr)
+void* list_double_linked_get_previous(list_double_linked_t* lptr)
 {
     if(lptr == NULL)
     {
         return NULL;
     }
 
-    //if(lptr->iterator->previous == NULL)
+    if(lptr->iterator->previous == NULL)
     {
         return NULL;
     }
 
-    //lptr->iterator = lptr->iterator->previous;
+    lptr->iterator = lptr->iterator->previous;
 
     return lptr->iterator->data;
 }
 
-list_t* list_sort(list_t* lptr)
+list_double_linked_t* list_double_linked_sort(list_double_linked_t* lptr)
 {
     if(lptr == NULL)
     {
@@ -505,7 +515,7 @@ list_t* list_sort(list_t* lptr)
     return NULL;
 }
 
-list_t* list_merge(list_t* lptrFirst, list_t* lptrSecond)
+list_double_linked_t* list_double_linked_merge(list_double_linked_t* lptrFirst, list_double_linked_t* lptrSecond)
 {
     if(lptrFirst == NULL)
     {
@@ -520,7 +530,7 @@ list_t* list_merge(list_t* lptrFirst, list_t* lptrSecond)
     return NULL;
 }
 
-list_t* list_join(list_t* lptrFirst, list_t* lptrSecond)
+list_double_linked_t* list_double_linked_join(list_double_linked_t* lptrFirst, list_double_linked_t* lptrSecond)
 {
     if(lptrFirst == NULL)
     {
@@ -535,9 +545,9 @@ list_t* list_join(list_t* lptrFirst, list_t* lptrSecond)
     return NULL;
 }
 
-void list_internal_remove_from_head(list_t* lptr)
+void list_double_linked_internal_remove_from_head(list_double_linked_t* lptr)
 {
-    node_t* oldhead = lptr->head;
+    node_double_linked_t* oldhead = lptr->head;
     lptr->head = lptr->head->next;
 
     free(oldhead->data);
@@ -546,9 +556,9 @@ void list_internal_remove_from_head(list_t* lptr)
     lptr->count--;
 }
 
-void list_internal_remove_from_tail(list_t* lptr)
+void list_double_linked_internal_remove_from_tail(list_double_linked_t* lptr)
 {
-    node_t* oldtail = lptr->tail;
+    node_double_linked_t* oldtail = lptr->tail;
 
     if(lptr->tail != NULL)
     {
@@ -561,7 +571,7 @@ void list_internal_remove_from_tail(list_t* lptr)
     lptr->count--;
 }
 
-void list_internal_add_to_head(list_t* lptr, node_t* ptr)
+void list_double_linked_internal_add_to_head(list_double_linked_t* lptr, node_double_linked_t* ptr)
 {
     if(lptr->count == 0)
     {
@@ -576,7 +586,7 @@ void list_internal_add_to_head(list_t* lptr, node_t* ptr)
     lptr->count++;
 }
 
-void list_internal_add_to_tail(list_t* lptr, node_t* ptr)
+void list_double_linked_internal_add_to_tail(list_double_linked_t* lptr, node_double_linked_t* ptr)
 {
     if(lptr->count == 0)
     {

@@ -33,6 +33,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <stdio.h>
 
+typedef struct date_time_t
+{
+    struct tm timeinfo;
+
+}date_time_t;
+
 char* date_time_get_default_string(char* ptr)
 {
     if(!ptr)
