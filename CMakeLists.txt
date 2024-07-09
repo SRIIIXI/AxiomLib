@@ -1,9 +1,103 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.5.0)
 
-set(Project Core)
+set(Project CoreLib)
 project(${Project})
 
-add_subdirectory(CoreLib)
-#add_subdirectory(CoreLibNetwork)
-#add_subdirectory(CoreTest)
+set(LIB_VERSION_MAJOR 1)
+set(LIB_VERSION_MINOR 0)
+set(LIB_VERSION_PATCH 0)
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(PROJECT_CORE_SOURCE_DIR ./CoreLib/src)
+set(PROJECT_CORE_INCLUDE_DIR ./CoreLib/include)
+set(PROJECT_NETWORK_SOURCE_DIR ./CoreLibNetwork/src)
+set(PROJECT_NETWORK_INCLUDE_DIR ./CoreLibNetwork/include)
+
+include_directories(${PROJECT_CORE_INCLUDE_DIR} ${PROJECT_NETWORK_INCLUDE_DIR} /usr/include/ /usr/local/include/)
+link_libraries(rt pthread dl)
+link_directories(/usr/local/lib/ /usr/lib/ /lib/)
+
+set(SOURCES
+${SOURCES}
+${PROJECT_CORE_SOURCE_DIR}/Base64.c
+${PROJECT_CORE_SOURCE_DIR}/Buffer.c
+${PROJECT_CORE_SOURCE_DIR}/KeyValue.c
+${PROJECT_CORE_SOURCE_DIR}/List.c
+${PROJECT_CORE_SOURCE_DIR}/ListDoubleLinked.c
+${PROJECT_CORE_SOURCE_DIR}/Queue.c
+${PROJECT_CORE_SOURCE_DIR}/Stack.c
+${PROJECT_CORE_SOURCE_DIR}/StringEx.c
+${PROJECT_CORE_SOURCE_DIR}/File.c
+${PROJECT_CORE_SOURCE_DIR}/Directory.c
+${PROJECT_CORE_SOURCE_DIR}/Logger.c
+${PROJECT_CORE_SOURCE_DIR}/SignalHandler.c
+${PROJECT_CORE_SOURCE_DIR}/Environment.c
+${PROJECT_CORE_SOURCE_DIR}/Configuration.c
+${PROJECT_CORE_SOURCE_DIR}/DateTime.c
+${PROJECT_CORE_SOURCE_DIR}/Variant.c
+${PROJECT_CORE_SOURCE_DIR}/Dictionary.c
+${PROJECT_CORE_SOURCE_DIR}/CoreLib.c
+)
+
+set(HEADERS
+${HEADERS}
+${PROJECT_CORE_INCLUDE_DIR}/Defines.h
+${PROJECT_CORE_INCLUDE_DIR}/Base64.h
+${PROJECT_CORE_INCLUDE_DIR}/Buffer.h
+${PROJECT_CORE_INCLUDE_DIR}/KeyValue.h
+${PROJECT_CORE_INCLUDE_DIR}/List.h
+${PROJECT_CORE_INCLUDE_DIR}/ListDoubleLinked.h
+${PROJECT_CORE_INCLUDE_DIR}/Queue.h
+${PROJECT_CORE_INCLUDE_DIR}/Stack.h
+${PROJECT_CORE_INCLUDE_DIR}/StringEx.h
+${PROJECT_CORE_INCLUDE_DIR}/File.h
+${PROJECT_CORE_INCLUDE_DIR}/Directory.h
+${PROJECT_CORE_INCLUDE_DIR}/Logger.h
+${PROJECT_CORE_INCLUDE_DIR}/SignalHandler.h
+${PROJECT_CORE_INCLUDE_DIR}/Environment.h
+${PROJECT_CORE_INCLUDE_DIR}/Configuration.h
+${PROJECT_CORE_INCLUDE_DIR}/DateTime.h
+${PROJECT_CORE_INCLUDE_DIR}/Variant.h
+${PROJECT_CORE_INCLUDE_DIR}/Dictionary.h
+${PROJECT_CORE_INCLUDE_DIR}/CoreLib.h
+)
+
+set(NETWORK_SOURCES
+${NETWORK_SOURCES}
+${PROJECT_NETWORK_SOURCE_DIR}/Responder.c
+${PROJECT_NETWORK_SOURCE_DIR}/ResponderSsl.c
+${PROJECT_NETWORK_SOURCE_DIR}/Mail.c
+${PROJECT_NETWORK_SOURCE_DIR}/Imap.c
+${PROJECT_NETWORK_SOURCE_DIR}/Smtp.c
+)
+
+set(NETWORK_HEADERS
+${NETWORK_HEADERS}
+${PROJECT_NETWORK_INCLUDE_DIR}/Responder.h
+${PROJECT_NETWORK_INCLUDE_DIR}/ResponderSsl.h
+${PROJECT_NETWORK_INCLUDE_DIR}/Mail.h
+${PROJECT_NETWORK_INCLUDE_DIR}/Mime.h
+${PROJECT_NETWORK_INCLUDE_DIR}/SecurityType.h
+${PROJECT_NETWORK_INCLUDE_DIR}/Imap.h
+${PROJECT_NETWORK_INCLUDE_DIR}/Smtp.h
+)
+
+add_library(${Project} SHARED ${SOURCES} ${HEADERS})
+add_library(${Project}Network SHARED ${SOURCES} ${HEADERS} ${NETWORK_SOURCES} ${NETWORK_HEADERS})
+
+add_executable(${Project}.bin ${SOURCES} ${HEADERS} ./CoreTest/main.c)
+add_executable(${Project}Network.bin ${SOURCES} ${HEADERS} ${NETWORK_SOURCES} ${NETWORK_HEADERS} ./CoreTest/netmain.c)
+
+set(CPACK_PACKAGE_FILE_NAME ${Project}.${CMAKE_SYSTEM_PROCESSOR}.${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}.${LIB_VERSION_PATCH})
+set(CPACK_PACKAGE_DESCRIPTION, "Core C Utilities")
+
+set(CPACK_GENERATOR "DEB")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Subrato Roy")
+install(TARGETS ${Project} DESTINATION local/lib)
+install(FILES ${HEADERS} DESTINATION local/include/CoreLib)
+
+include(CPack)
+
+
+
 
