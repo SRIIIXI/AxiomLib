@@ -83,6 +83,9 @@ extern LIBRARY_EXPORT char* strmergelistwithsubstr(const char **strlist, const c
 extern LIBRARY_EXPORT char* strmergelistwithchar(const char** strlist, const char delimiter);
 extern LIBRARY_EXPORT void  strsortlist(char** strlist);
 extern LIBRARY_EXPORT void  strfreelist(char** strlist);
+extern LIBRARY_EXPORT void  straddtolist(char** strlist, const char* str);
+extern LIBRARY_EXPORT char*  strgetfirstfromlist(const char** strlist);
+extern LIBRARY_EXPORT char*  strgetnextfromlist(const char** strlist);
 
 #ifdef __cplusplus
 }

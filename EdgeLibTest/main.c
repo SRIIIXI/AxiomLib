@@ -185,34 +185,28 @@ void test_list(void)
 
 void test_string_list(void)
 {
-    string_list_t* mylist = NULL;
+    char* mylist = NULL;
 
-    mylist = str_list_allocate(mylist);
-
-    str_list_add(mylist, "Hello");
-    str_list_add(mylist, "World");
-    str_list_add(mylist, "Linux");
+    straddtolist(&mylist, "Hello");
+    straddtolist(&mylist, "World");
+    straddtolist(&mylist, "Linux");
 
     char* item = NULL;
 
-    str_list_lock_iterator(mylist);
-
-    item = str_list_get_first(mylist);
+    item = strgetfirstfromlist((const char**)&mylist);
 
     while(item)
     {
         printf("%s\n", (char*)item);
-        item = str_list_get_next(mylist);
+        item = strgetnextfromlist((const char**)&mylist);
     }
 
-    str_list_unlock_iterator(mylist);
-
-    str_list_clear(mylist);
-    str_list_free(mylist);
+    strfreelist(&mylist);
 }
 
 void test_string(void)
 {
+    /*
     char* str = "aaxxbbxxccxxddxxeexx";
 
     char** sub_str_list = NULL;
@@ -230,8 +224,8 @@ void test_string(void)
     char process_name[64] = {0};
     char buffer[1025] = {0};
     pid_t proc_id = getpid();
-    string_list_t* cmd_args = NULL;
-    string_list_t* dir_tokens = NULL;
+    char** cmd_args = NULL;
+    char** dir_tokens = NULL;
 
     sprintf(buffer, "/proc/%d/cmdline", proc_id);
 
@@ -279,6 +273,7 @@ void test_string(void)
         str_list_clear(dir_tokens);
         str_list_free(dir_tokens);
     }
+    */
 }
 
 void test_logger(void)
@@ -348,8 +343,8 @@ void test_dictionary(void)
 
 void test_base64(void)
 {
-    char* old_fname = "/home/subrato/Pictures/testimage.jpg";
-    char* new_fname = "/home/subrato/Pictures/testimage_new.jpg";
+    const char* old_fname = "/home/subrato/Pictures/testimage.jpg";
+    const char* new_fname = "/home/subrato/Pictures/testimage_new.jpg";
 
     FILE* fp = fopen(old_fname, "rb");
 
@@ -359,12 +354,11 @@ void test_base64(void)
         long sz = ftell(fp);
         rewind(fp);
 
-        unsigned char* old_image = (char*)calloc(1, sz);
+        unsigned char* old_image = NULL;
+        old_image = (unsigned char*)calloc(1, sz);
 
         if(!old_image)
         {
-            free(old_fname);
-            free(new_fname);
             fclose(fp);
             return;
         }

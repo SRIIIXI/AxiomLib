@@ -733,3 +733,18 @@ void strfreelist(char** strlist)
 
 	free(strlist);
 }
+
+void  straddtolist(char** strlist, const char* str)
+{
+
+}
+
+char*  strgetfirstfromlist(const char** strlist)
+{
+    return NULL;
+}
+
+char*  strgetnextfromlist(const char** strlist)
+{
+    return NULL;
+}
