@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "Defines.h"
 #include "Dictionary.h"
-#include "StringList.h"
+#include "StringEx.h"
 #include "List.h"
 
 #ifdef __cplusplus
