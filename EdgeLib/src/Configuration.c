@@ -129,7 +129,7 @@ configuration_t* configuration_allocate(const char* filename)
 
             if(fgets(buffer, 1024, fp))
             {
-                stralltrim(buffer);
+                string_all_trim(buffer);
 
                 if(buffer[0] == 0 || buffer[0] == ';' || buffer[0] == '#')
                 {
@@ -138,8 +138,8 @@ configuration_t* configuration_allocate(const char* filename)
 
                 if(buffer[0] == '[')
                 {
-                    strremcharfirst(buffer, '[');
-                    strremcharfirst(buffer, ']');
+                    string_remove_char_first(buffer, '[');
+                    string_remove_char_first(buffer, ']');
                     configuration_internal_add_section(ptr, buffer);
                     memset(current_section, 0, 65);
                     strcpy(current_section, buffer);
@@ -149,9 +149,9 @@ configuration_t* configuration_allocate(const char* filename)
                 char* key = NULL;
                 char* value = NULL;
 
-                strsplitkeyvaluechar(buffer, '=', &key, &value);
-                stralltrim(key);
-                stralltrim(value);
+                string_split_key_value_by_char(buffer, '=', &key, &value);
+                string_all_trim(key);
+                string_all_trim(value);
 
                 configuration_internal_add_key_value(ptr, current_section, key, value);
                 free(key);

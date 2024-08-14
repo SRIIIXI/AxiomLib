@@ -187,21 +187,21 @@ void test_string_list(void)
 {
     char* mylist = NULL;
 
-    straddtolist(&mylist, "Hello");
-    straddtolist(&mylist, "World");
-    straddtolist(&mylist, "Linux");
+    string_add_to_list(&mylist, "Hello");
+    string_add_to_list(&mylist, "World");
+    string_add_to_list(&mylist, "Linux");
 
     char* item = NULL;
 
-    item = strgetfirstfromlist((const char**)&mylist);
+    item = string_get_first_from_list((const char**)&mylist);
 
     while(item)
     {
         printf("%s\n", (char*)item);
-        item = strgetnextfromlist((const char**)&mylist);
+        item = string_get_next_from_list((const char**)&mylist);
     }
 
-    strfreelist(&mylist);
+    string_free_list(&mylist);
 }
 
 void test_string(void)
@@ -306,10 +306,10 @@ void test_configuration(void)
             printf("Key %s Value %s\n", key_str, configuration_get_value_as_string(conf, sec_str, key_str));
         }
 
-        strfreelist(keys);
+        string_free_list(keys);
     }
 
-    strfreelist(sections);
+    string_free_list(sections);
 
     configuration_release(conf);
 }

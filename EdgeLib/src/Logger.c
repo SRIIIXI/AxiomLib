@@ -312,7 +312,7 @@ void normalize_function_name(char* func_name)
 
     long pos = 0;
 
-    pos = strindexofchar(func_name, '(');
+    pos = string_index_of_char(func_name, '(');
 
     if(pos > -1)
     {
@@ -328,7 +328,7 @@ void normalize_function_name(char* func_name)
         }
     }
 
-    pos = strindexofchar(func_name, ' ');
+    pos = string_index_of_char(func_name, ' ');
 
     if(pos > -1)
     {
@@ -340,5 +340,5 @@ void normalize_function_name(char* func_name)
         }
     }
 
-    strlefttrim(func_name);
+    string_left_trim(func_name);
 }

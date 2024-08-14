@@ -93,7 +93,7 @@ char* env_get_current_process_name(char* ptr)
 
             if(fgets(buffer, 1024, fp))
             {
-                long dir_sep_pos = strindexofchar(buffer, '/');
+                long dir_sep_pos = string_index_of_char(buffer, '/');
 
                 if(dir_sep_pos < 0)
                 {
@@ -103,15 +103,15 @@ char* env_get_current_process_name(char* ptr)
                     return ptr;
                 }
 
-                cmd_args = strsplitchar(buffer, ' ');
+                cmd_args = string_split_by_char(buffer, ' ');
 
                 if(cmd_args != NULL)
                 {
-                    dir_tokens = strsplitchar(cmd_args[0], '/');
+                    dir_tokens = string_split_by_char(cmd_args[0], '/');
                 }
                 else
                 {
-                    dir_tokens = strsplitchar(buffer, '/');
+                    dir_tokens = string_split_by_char(buffer, '/');
                 }
 
                 if(dir_tokens != NULL)
@@ -130,12 +130,12 @@ char* env_get_current_process_name(char* ptr)
 
                 if(cmd_args)
                 {
-                    strfreelist(cmd_args);
+                    string_free_list(cmd_args);
                 }
 
                 if(dir_tokens)
                 {
-                    strfreelist(dir_tokens);
+                    string_free_list(dir_tokens);
                 }
             }
             else
