@@ -92,6 +92,20 @@ buffer_t* buffer_allocate_default(void)
     return nd;
 }
 
+buffer_t* buffer_allocate_length(size_t len)
+{
+    buffer_t* nd = (buffer_t*)calloc(1, sizeof(buffer_t));
+
+    if(nd != NULL)
+    {
+        nd->memory_size = len;
+        nd->data_size = 0;
+        nd->data = (char*)calloc(len, sizeof (char));
+    }
+    return nd;
+}
+
+
 buffer_t* buffer_copy(buffer_t* dest, buffer_t* orig)
 {
     if(orig != NULL && dest != NULL)
@@ -137,74 +151,6 @@ buffer_t *buffer_append(buffer_t* dest, const void *data, size_t sz)
     }
 
     return dest;
-}
-
-buffer_t* buffer_append_string(buffer_t* dest, const char* data)
-{
-    return buffer_append(dest, data, strlen(data));
-}
-
-buffer_t* buffer_append_integer(buffer_t* dest, const long data)
-{
-    char buffer[17] = {0};
-    sprintf(buffer, "%ld", data);
-    return buffer_append(dest, buffer, strlen(buffer));
-}
-
-buffer_t* buffer_append_real(buffer_t* dest, const double data)
-{
-    char buffer[17] = {0};
-    sprintf(buffer, "%f", data);
-    return buffer_append(dest, buffer, strlen(buffer));
-}
-
-buffer_t* buffer_append_real_scientific(buffer_t* dest, const double data)
-{
-    char buffer[17] = {0};
-    sprintf(buffer, "%.3e", data);
-    return buffer_append(dest, buffer, strlen(buffer));
-}
-
-buffer_t* buffer_append_char(buffer_t* dest, const char data)
-{
-    char buffer[2] = {data, 0};
-    return buffer_append(dest, buffer, strlen(buffer));
-}
-
-buffer_t* buffer_append_boolean(buffer_t* dest, const bool data)
-{
-    char buffer[6] = {0};
-
-    if(data)
-    {
-        strcpy(buffer, "true");
-    }
-    else
-    {
-        strcpy(buffer, "false");
-    }
-
-    return buffer_append(dest, buffer, strlen(buffer));
-}
-
-buffer_t* buffer_append_curr_timestamp(buffer_t* dest)
-{
-    if(dest == NULL)
-    {
-        return NULL;
-    }
-
-    char buffer[15] = {0};
-    time_t t ;
-    struct tm *tmp ;
-    time(&t);
-    tmp = localtime(&t);
-
-    sprintf(buffer, "%04d%02d%02d%02d%02d%02d",
-             (tmp->tm_year+1900), (tmp->tm_mon+1), tmp->tm_mday,
-             tmp->tm_hour, tmp->tm_min, tmp->tm_sec);
-
-    return buffer_append(dest, buffer, strlen(buffer));
 }
 
 void buffer_remove(buffer_t* ptr, size_t start, size_t len)
