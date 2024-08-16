@@ -272,7 +272,7 @@ void buffer_clear(buffer_t* ptr)
 
     if(ptr->data)
     {
-        for(size_t i = 0; i < sizeof ptr->data; ++i)
+        for(size_t i = 0; i <  ptr->data_size; ++i)
           ptr->data[i] = 0;
     }
     ptr->data_size = 0;

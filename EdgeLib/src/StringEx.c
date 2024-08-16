@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
 
 #if defined (_WIN32) || defined (_WIN64)
 #include <windows.h>
@@ -97,10 +98,124 @@ string_t* string_allocate_default(void)
     return nd;
 }
 
+string_t* string_allocate_length(size_t len)
+{
+    string_t* nd = (string_t*)calloc(1, sizeof(string_t));
+    nd->data_size = 0;
+    nd->memory_size = len;
+    nd->data = (char*)calloc(len, sizeof (char));
+    return nd;
+}
+
+
 void string_free(string_t* str)
 {
     free(str);
     str = NULL;
+}
+
+void string_clear(string_t* str)
+{
+    if(str == NULL)
+    {
+        return;
+    }
+
+    if(str->data)
+    {
+        for(size_t i = 0; i < str->data_size; ++i)
+            str->data[i] = 0;
+    }
+    str->data_size = 0;
+}
+
+bool string_is_equal(string_t* first, string_t* second)
+{
+    if(first != NULL && second != NULL)
+    {
+        if (first->data != NULL && second->data != NULL)
+        {
+            if(first->data_size != second->data_size)
+            {
+                return false;
+            }
+
+            if(memcmp(first->data, second->data, first->data_size) == 0)
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool string_is_greater(string_t* first, string_t* second)
+{
+    if(first != NULL && second != NULL)
+    {
+        if(first->data != NULL && second->data != NULL)
+        {
+            if(first->data_size != second->data_size)
+            {
+                return false;
+            }
+
+            if(memcmp(first->data, second->data, first->data_size) > 0)
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool string_is_less(string_t* first, string_t* second)
+{
+    if(first != NULL && second != NULL)
+    {
+        if(first->data != NULL && second->data != NULL)
+        {
+            if(first->data_size != second->data_size)
+            {
+                return false;
+            }
+
+            if(memcmp(first->data, second->data, first->data_size) < 0)
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool string_is_null(string_t* ptr)
+{
+    if(ptr == NULL)
+    {
+        return true;
+    }
+    else
+    {
+        if(ptr->data == NULL)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    return false;
+}
+
+size_t string_get_length(string_t* str)
+{
+    return str->data_size;
 }
 
 const char* string_c_str(string_t* str)
@@ -113,7 +228,7 @@ wchar_t *string_to_wstr(const char *str)
     return NULL;
 }
 
-char* string_from_wstr(const wchar_t* wstr)
+string_t *string_from_wstr(const wchar_t *wstr)
 {
 	if(wstr == NULL)
 	{
@@ -135,7 +250,11 @@ char* string_from_wstr(const wchar_t* wstr)
         }
     }
 
-    return str;
+    string_t* ptr = string_allocate(str);
+
+    free(str);
+
+    return ptr;
 }
 
 char* string_from_int(long num)
@@ -195,31 +314,132 @@ char* string_from_double(double num)
 	return NULL;
 }
 
-char* string_reverse(char* ptr)
+string_t* string_copy(string_t* dest, string_t* orig)
+{
+    if(orig->data_size > dest->data_size)
+    {
+        string_internal_adjust_storage(dest, orig->data_size);
+    }
+
+    for(int x = 0; x < dest->memory_size; x++)
+    {
+        dest->data[x] = 0;
+    }
+
+    for(int x = 0; x < dest->memory_size; x++)
+    {
+        dest->data[x] = orig->data[x];
+    }
+
+    return NULL;
+}
+
+string_t* string_append(string_t* dest, const char *data)
+{
+    if(data == NULL)
+    {
+        return NULL;
+    }
+
+    if(strlen(data) < 1)
+    {
+        return NULL;
+    }
+
+    if(dest == NULL)
+    {
+        dest = string_allocate(data);
+        return dest;
+    }
+    else
+    {
+        dest = string_internal_adjust_storage(dest, strlen(data));
+        memcpy(&dest->data[dest->data_size], data, strlen(data));
+        dest->data_size = dest->data_size + strlen(data);
+    }
+
+    return dest;
+}
+
+string_t* string_append_string(string_t* dest, const string_t *str)
+{
+    return string_append(dest, str->data);
+}
+
+string_t* string_append_integer(string_t* dest, const long data)
+{
+    char buffer[17] = {0};
+    sprintf(buffer, "%ld", data);
+    return string_append(dest, buffer);
+}
+
+string_t* string_append_real(string_t* dest, const double data)
+{
+    char buffer[17] = {0};
+    sprintf(buffer, "%f", data);
+    return string_append(dest, buffer);
+}
+
+string_t* string_append_real_scientific(string_t* dest, const double data)
+{
+    char buffer[17] = {0};
+    sprintf(buffer, "%.3e", data);
+    return string_append(dest, buffer);
+}
+
+string_t* string_append_char(string_t* dest, const char data)
+{
+    char buffer[2] = {data, 0};
+    return string_append(dest, buffer);
+}
+
+string_t* string_append_boolean(string_t* dest, const bool data)
+{
+    char buffer[6] = {0};
+
+    if(data)
+    {
+        strcpy(buffer, "true");
+    }
+    else
+    {
+        strcpy(buffer, "false");
+    }
+
+    return string_append(dest, buffer);
+}
+
+string_t* string_append_curr_timestamp(string_t* dest)
+{
+    if(dest == NULL)
+    {
+        return NULL;
+    }
+
+    char buffer[15] = {0};
+    time_t t ;
+    struct tm *tmp ;
+    time(&t);
+    tmp = localtime(&t);
+
+    sprintf(buffer, "%04d%02d%02d%02d%02d%02d",
+            (tmp->tm_year+1900), (tmp->tm_mon+1), tmp->tm_mday,
+            tmp->tm_hour, tmp->tm_min, tmp->tm_sec);
+
+    return string_append(dest, buffer);
+}
+
+string_t *string_reverse(string_t *str)
 {
 	size_t start = 0;
 
-	size_t term = strlen(ptr) - 1;
+    size_t term = strlen(str->data) - 1;
 
 	while (start < term)
 	{
-		char temp = ptr[start];
-		ptr[start] = ptr[term];
-		ptr[term] = temp;
-		start++;
-		term--;
-	}
-
-	return ptr;
-}
-
-char* string_segment_reverse(char* str, long start, long term)
-{
-	while (start < term)
-	{
-        char temp = str[start];
-        str[start] = str[term];
-        str[term] = temp;
+        char temp = str->data[start];
+        str->data[start] = str->data[term];
+        str->data[term] = temp;
 		start++;
 		term--;
 	}
@@ -227,27 +447,41 @@ char* string_segment_reverse(char* str, long start, long term)
     return str;
 }
 
-long string_index_of_substr(const char* str, const char* substr)
+string_t *string_segment_reverse(string_t *str, long start, long term)
+{
+	while (start < term)
+	{
+        char temp = str->data[start];
+        str->data[start] = str->data[term];
+        str->data[term] = temp;
+		start++;
+		term--;
+	}
+
+    return str;
+}
+
+long string_index_of_substr(const string_t *str, const string_t *substr)
 {
     long result = -1;
 
-    char* pdest = (char*)strstr( str, substr);
+    char* pdest = (char*)strstr( str->data, substr->data);
 
     if(pdest == 0)
     {
         return -1;
     }
 
-    result = (long)(pdest - str);
+    result = (long)(pdest - str->data);
 
     return result;
 }
 
-long string_index_of_char(const char* str, const char ch)
+long string_index_of_char(const string_t *str, const char ch)
 {
-    for (int ctr = 0; str[ctr] != '\0'; ctr++)
+    for (int ctr = 0; str->data[ctr] != '\0'; ctr++)
     {
-        if (str[ctr] == ch)
+        if (str->data[ctr] == ch)
         {
             return ctr;
         }
@@ -256,19 +490,19 @@ long string_index_of_char(const char* str, const char ch)
     return -1;
 }
 
-long string_count_substr(const char* str, const char* substr)
+long string_count_substr(const string_t *str, const string_t *substr)
 {
     long ctr = 0;
 
-    long offset = (long)strlen(substr);
+    long offset = (long)strlen(substr->data);
 
-    const char* ptr = str;
+    const char* ptr = str->data;
 
 	bool contiue_scan = true;
 
 	while (contiue_scan)
 	{
-        long long index = string_index_of_substr(ptr, substr);
+        long long index = string_index_of_substr(str, substr);
 
 		if (index > -1)
 		{
@@ -285,13 +519,13 @@ long string_count_substr(const char* str, const char* substr)
     return ctr;
 }
 
-long string_count_char(char* str, const char ch)
+long string_count_char(const string_t *str, const char ch)
 {
     long ctr = 0;
 
-    for (long index = 0; str[index] != '\0'; index++)
+    for (long index = 0; str->data[index] != '\0'; index++)
 	{
-		if (str[index] == ch)
+        if (str->data[index] == ch)
 		{
 			ctr++;
 		}
@@ -300,35 +534,35 @@ long string_count_char(char* str, const char ch)
 	return ctr;
 }
 
-extern char* string_to_lower(char* str)
+string_t *string_to_lower(string_t *str)
 {
-    for (long ctr = 0; str[ctr] != '\0'; ctr++)
+    for (long ctr = 0; str->data[ctr] != '\0'; ctr++)
     {
-        if (str[ctr] >= 65 && str[ctr] <= 90)
+        if (str->data[ctr] >= 65 && str->data[ctr] <= 90)
         {
-            str[ctr] = str[ctr] + 32;
+            str->data[ctr] = str->data[ctr] + 32;
         }
     }
 
     return str;
 }
 
-extern char* string_to_upper(char* str)
+extern string_t *string_to_upper(string_t *str)
 {
-    for (long ctr = 0; str[ctr] != '\0'; ctr++)
+    for (long ctr = 0; str->data[ctr] != '\0'; ctr++)
     {
-        if (str[ctr] >= 97 && str[ctr] <= 122)
+        if (str->data[ctr] >= 97 && str->data[ctr] <= 122)
         {
-            str[ctr] = str[ctr] - 32;
+            str->data[ctr] = str->data[ctr] - 32;
         }
     }
 
     return str;
 }
 
-char* string_left_trim(char* str)
+string_t *string_left_trim(string_t *str)
 {
-    char *ptr = str;
+    char *ptr = str->data;
 
     long ctr = 0;
 
@@ -339,29 +573,29 @@ char* string_left_trim(char* str)
 
     while (*ptr)
     {
-        str[ctr] = *ptr;
+        str->data[ctr] = *ptr;
         ctr++;
         ptr++;
     }
 
-	while (str[ctr] != '\0')
+    while (str->data[ctr] != '\0')
 	{
-		str[ctr] = '\0';
+        str->data[ctr] = '\0';
 		ctr++;
 	}
 
     return str;
 }
 
-char* string_right_trim(char* str)
+string_t *string_right_trim(string_t *str)
 {
-    long len = (long)strlen(str);
+    long len = (long)strlen(str->data);
 
     for (long ctr = len - 1; ctr > -1; ctr--)
     {
-        if (isspace(str[ctr]))
+        if (isspace(str->data[ctr]))
         {
-            str[ctr] = '\0';
+            str->data[ctr] = '\0';
         }
         else
         {
@@ -372,55 +606,65 @@ char* string_right_trim(char* str)
     return str;
 }
 
-char* string_all_trim(char* str)
+string_t *string_all_trim(string_t *str)
 {
     string_right_trim(str);
     string_left_trim(str);
     return str;
 }
 
-char* string_remove_substr_first(char* str, const char* substr)
+string_t *string_remove_substr_first(string_t *str, const string_t *substr)
 {
     long pos = -1;
-    long offset = (long)strlen(substr);
+    long offset = (long)strlen(substr->data);
 
     pos = string_index_of_substr(str, substr);
 
     if(pos >= 0)
     {
-        strcpy(str+pos, str+pos+offset);
-        str[strlen(str) - (unsigned long)offset] = 0;
+        strcpy(str->data + pos, str->data + pos + offset);
+        str->data[strlen(str->data) - (unsigned long)offset] = 0;
     }
     return str;
 }
 
-char* string_remove_substr_all(char* str, const char* substr)
+string_t *string_remove_substr_all(string_t *str, const string_t *substr)
 {
     long pos = -1;
-    long offset = (long)strlen(substr);
+    long offset = (long)strlen(substr->data);
 
     pos = string_index_of_substr(str, substr);
 
     while(pos >= 0)
     {
-        strcpy(str+pos, str+pos+offset);
-        str[strlen(str) - (unsigned long)offset] = 0;
+        strcpy(str->data + pos, str->data + pos + offset);
+        str->data[strlen(str->data) - (unsigned long)offset] = 0;
         pos = string_index_of_substr(str, substr);
     }
     return str;
 }
 
-char* string_remove_substr_at(char* str, long pos, long len)
+string_t* string_remove_substr_at(string_t *str, long pos, long len)
 {
-    if(pos >= 0 && pos <= (long)(strlen(str)-1) )
+    if(pos >= 0 && pos <= (long)(strlen(str->data)-1) )
     {
-        strcpy(str+pos, str+pos+len);
-        str[strlen(str) - (unsigned long)len] = 0;
+        strcpy(str->data + pos, str->data + pos + len);
+        str->data[strlen(str->data) - (unsigned long)len] = 0;
     }
     return str;
 }
 
-char* string_remove_char_first(char* str, const char oldchar)
+void string_remove_end(string_t* ptr, size_t len)
+{
+
+}
+
+void string_remove_start(string_t* ptr, size_t len)
+{
+
+}
+
+string_t *string_remove_char_first(string_t *str, const char oldchar)
 {
     long pos = string_index_of_char(str, oldchar);
 
@@ -429,41 +673,41 @@ char* string_remove_char_first(char* str, const char oldchar)
         return str;
     }
 
-    size_t oldlen = strlen(str);
+    size_t oldlen = strlen(str->data);
 
-    strcpy(str+pos, str+pos+1);
-    str[oldlen] = 0;
+    strcpy(str->data+pos, str->data+pos+1);
+    str->data[oldlen] = 0;
     return str;
 }
 
-char* string_remove_char_all(char* str, const char oldchar)
+string_t *string_remove_char_all(string_t *str, const char oldchar)
 {
     long pos = string_index_of_char(str, oldchar);
 
     while(pos >= 0)
     {
-        strcpy(str+pos, str+pos+1);
-        str[strlen(str) - 1] = 0;
+        strcpy(str->data + pos, str->data+pos + 1);
+        str->data[strlen(str->data) - 1] = 0;
         pos = string_index_of_char(str, oldchar);
     }
     return str;
 }
 
-char* string_remove_char_at(char* str, long pos)
+string_t *string_remove_char_at(string_t *str, long pos)
 {
-    strcpy(str+pos, str+pos+1);
-    str[strlen(str) - 1] = 0;
+    strcpy(str->data + pos, str->data + pos + 1);
+    str->data[strlen(str->data) - 1] = 0;
     return str;
 }
 
-char* string_replace_substr_first(char* str, const char* oldsubstr, const char* newsubstr)
+string_t *string_replace_substr_first(string_t *str, const string_t *oldsubstr, const string_t *newsubstr)
 {
     if(str == NULL || oldsubstr == NULL || newsubstr == NULL)
     {
         return NULL;
     }
 
-    char* buffer = NULL;
+    string_t* buffer = NULL;
 
     long pos = string_index_of_substr(str, oldsubstr);
 
@@ -472,9 +716,9 @@ char* string_replace_substr_first(char* str, const char* oldsubstr, const char* 
         return NULL;
     }
 
-    long slen = (long)strlen(str);
-    long oldslen = (long)strlen(oldsubstr);
-    long newslen = (long)strlen(newsubstr);
+    long slen = (long)strlen(str->data);
+    long oldslen = (long)strlen(oldsubstr->data);
+    long newslen = (long)strlen(newsubstr->data);
 
     if(oldslen < 1 || newslen < 1)
     {
@@ -483,7 +727,7 @@ char* string_replace_substr_first(char* str, const char* oldsubstr, const char* 
 
     long new_buffer_len = slen + (newslen - oldslen);
 
-    buffer = (char*)calloc((unsigned long)(new_buffer_len + 1), sizeof(char));
+    buffer = string_allocate_length(new_buffer_len + 1);
 
     if(buffer == NULL)
     {
@@ -498,7 +742,7 @@ char* string_replace_substr_first(char* str, const char* oldsubstr, const char* 
 
     while(ctr < pos)
     {
-        buffer[copy_pos] = str[ctr];
+        buffer->data[copy_pos] = str->data[ctr];
         copy_pos++;
         ctr++;
     }
@@ -507,16 +751,16 @@ char* string_replace_substr_first(char* str, const char* oldsubstr, const char* 
 
     while(ctr < newslen)
     {
-        buffer[copy_pos] = newsubstr[ctr];
+        buffer->data[copy_pos] = newsubstr->data[ctr];
         copy_pos++;
         ctr++;
     }
 
     ctr = pos + oldslen;
 
-    while(str[ctr] != 0)
+    while(str->data[ctr] != 0)
     {
-        buffer[copy_pos] = str[ctr];
+        buffer->data[copy_pos] = str->data[ctr];
         copy_pos++;
         ctr++;
     }
@@ -524,18 +768,18 @@ char* string_replace_substr_first(char* str, const char* oldsubstr, const char* 
     return buffer;
 }
 
-char* string_replace_substr_all(char* str, const char* oldsubstr, const char* newsubstr)
+string_t *string_replace_substr_all(string_t *str, const string_t *oldsubstr, const string_t *newsubstr)
 {
-	char* buffer = NULL;
+    string_t* buffer = NULL;
 
 	if(str == NULL || oldsubstr == NULL || newsubstr == NULL)
 	{
 		return NULL;
 	}
 
-    long slen = (long)strlen(str);
-    long oldslen = (long)strlen(oldsubstr);
-    long newslen = (long)strlen(newsubstr);
+    long slen = (long)strlen(str->data);
+    long oldslen = (long)strlen(oldsubstr->data);
+    long newslen = (long)strlen(newsubstr->data);
 
 	if(oldslen < 1 || newslen < 1)
 	{
@@ -551,7 +795,7 @@ char* string_replace_substr_all(char* str, const char* oldsubstr, const char* ne
 
 	if(newslen > oldslen)
 	{
-        buffer = (char*)calloc((unsigned long)(slen + (newslen - oldslen)*numsubstr + 1), sizeof(char));
+        buffer = string_allocate_length(slen + (newslen - oldslen)*numsubstr + 1);
 
 		if(buffer == NULL)
 		{
@@ -596,15 +840,15 @@ char* string_replace_substr_all(char* str, const char* oldsubstr, const char* ne
 	return buffer;
 }
 
-char* string_replace_char_first(char* str, const char oldchar, const char newchar)
+string_t *string_replace_char_first(string_t *str, const char oldchar, const char newchar)
 {
 	if(str != NULL)
 	{
-		for(size_t pos = 0; str[pos] != 0; pos++)
+        for(size_t pos = 0; str->data[pos] != 0; pos++)
 		{
-			if(str[pos] == oldchar)
+            if(str->data[pos] == oldchar)
 			{
-				str[pos] = newchar;
+                str->data[pos] = newchar;
 				return str;
 			}
 		}
@@ -613,15 +857,15 @@ char* string_replace_char_first(char* str, const char oldchar, const char newcha
 	return NULL;
 }
 
-char* string_replace_char_all(char* str, const char oldchar, const char newchar)
+string_t *string_replace_char_all(string_t *str, const char oldchar, const char newchar)
 {
     if(str != NULL)
     {
-        for(size_t pos = 0; str[pos] != 0; pos++)
+        for(size_t pos = 0; str->data[pos] != 0; pos++)
         {
-            if(str[pos] == oldchar)
+            if(str->data[pos] == oldchar)
             {
-                str[pos] = newchar;
+                str->data[pos] = newchar;
             }
         }
         return str;
@@ -629,13 +873,13 @@ char* string_replace_char_all(char* str, const char oldchar, const char newchar)
     return NULL;
 }
 
-char* string_replace_char_at(char* str, const char newchar, long pos)
+string_t *string_replace_char_at(string_t *str, const char newchar, long pos)
 {
     if(str != NULL)
     {
-        if(pos < (long)strlen(str))
+        if(pos < (long)strlen(str->data))
         {
-            str[pos] = newchar;
+            str->data[pos] = newchar;
             return str;
         }
     }
