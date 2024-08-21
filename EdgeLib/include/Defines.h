@@ -33,67 +33,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	extern "C" {
 	#endif
 
-	/*Common headers*/
+    #define LIBRARY_EXPORT __attribute__((visibility("default")))
+
+    /*Common headers*/
 	#include <stddef.h>
 	#include <stdint.h>
 	#include <stdbool.h>
-
-	/*Operating system specific headers*/
-	#if defined (_WIN32) || defined (_WIN64)
-		#include <WinSock2.h>
-		#include <ws2tcpip.h>
-		#include <Windows.h>
-		#include <process.h>
-		#include <direct.h>
-	#else
-		#include <unistd.h>
-		#include <pthread.h>
-	#endif
-
-	/*Symbol export directive*/
-	#if defined (_WIN32) || defined (_WIN64)
-		#define LIBRARY_EXPORT __declspec( dllexport )
-	#else
-		#define LIBRARY_EXPORT __attribute__((visibility("default")))
-	#endif
-
-	/*Object aliases*/
-    #if defined (_WIN32) || defined (_WIN64)
-        #if defined (_MSC_VER)
-            typedef unsigned __int64    ssize_t;
-        #endif
-		#define thread_t HANDLE
-		#define lock_t CRITICAL_SECTION
-		#define socket_t SOCKET
-		#define pid_t long
-	#else
-		#define lock_t pthread_mutex_t
-		#define thread_t pthread_t
-		#define socket_t int
-		#define LPSOCKADDR sockaddr*
-		#define INVALID_SOCKET (-1)
-		#define SOCKET_ERROR	 (-1)
-		#define closesocket(s) close(s)
-	#endif
-
-	/*Function aliases*/
-	#if defined (_WIN32) || defined (_WIN64)
-		#define lock_create(l) InitializeCriticalSection(&l)
-		#define lock_destroy(l) DeleteCriticalSection(&l)
-		#define lock_acquire(l) EnterCriticalSection(&l)
-		#define lock_try_acquire(l) TryEnterCriticalSection(&l)
-		#define lock_release(l) LeaveCriticalSection(&l)
-		#define strtoull(str, endptr, base) _strtoui64(str, endptr, base)
-		#define getpid() _getpid()
-		#define mkdir(s) _mkdir(s)
-		#define getcwd(p, l) _getcwd(p, l)
-	#else
-		#define lock_create(l) pthread_mutex_init(&l, NULL)
-		#define lock_destroy(l) pthread_mutex_destroy(&l)
-		#define lock_acquire(l) pthread_mutex_lock(&l)
-		#define lock_try_acquire(l) pthread_mutex_trylock(&l)
-		#define lock_release(l) pthread_mutex_unlock(&l)
-	#endif
 
 	#ifdef __cplusplus
 	}

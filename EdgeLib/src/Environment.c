@@ -51,107 +51,79 @@ char* env_get_current_process_name(char* ptr)
 
     pid_t proc_id = getpid();
 
-    #if defined (_WIN32) || defined (_WIN64)
+    char* buffer = (char*)calloc(1, 32);
+    char** cmd_args = NULL;
+    char** dir_tokens = NULL;
 
-    TCHAR szProcessName[MAX_PATH] = TEXT("<unknown>");
+    sprintf(buffer, "/proc/%d/cmdline", proc_id);
 
-    // Get a handle to the process.
+    FILE* fp = fopen(buffer, "r");
+    free(buffer);
+    buffer = NULL;
 
-    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, proc_id);
-
-    // Get the process name.
-
-    if (NULL != hProcess)
+    if(fp)
     {
-        HMODULE hMod;
-        DWORD cbNeeded;
+        buffer = (char*)calloc(1, 1025);
 
-        if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded))
+        if(fgets(buffer, 1024, fp))
         {
-            GetModuleBaseName(hProcess, hMod, szProcessName, sizeof(szProcessName) / sizeof(TCHAR));
-            strcpy(ptr, szProcessName);
-        }
+            long dir_sep_pos = string_index_of_char(buffer, '/');
 
-        CloseHandle(hProcess);
-    }
-
-    #else
-
-        char* buffer = (char*)calloc(1, 32);
-        char** cmd_args = NULL;
-        char** dir_tokens = NULL;
-
-        sprintf(buffer, "/proc/%d/cmdline", proc_id);
-
-        FILE* fp = fopen(buffer, "r");
-        free(buffer);
-        buffer = NULL;
-
-        if(fp)
-        {
-            buffer = (char*)calloc(1, 1025);
-
-            if(fgets(buffer, 1024, fp))
+            if(dir_sep_pos < 0)
             {
-                long dir_sep_pos = string_index_of_char(buffer, '/');
+                strcpy(ptr, buffer);
+                free(buffer);
+                fclose(fp);
+                return ptr;
+            }
 
-                if(dir_sep_pos < 0)
-                {
-                    strcpy(ptr, buffer);
-                    free(buffer);
-                    fclose(fp);
-                    return ptr;
-                }
+            cmd_args = string_split_by_char(buffer, ' ');
 
-                cmd_args = string_split_by_char(buffer, ' ');
-
-                if(cmd_args != NULL)
-                {
-                    dir_tokens = string_split_by_char(cmd_args[0], '/');
-                }
-                else
-                {
-                    dir_tokens = string_split_by_char(buffer, '/');
-                }
-
-                if(dir_tokens != NULL)
-                {
-                    char* last_str = NULL;
-                    for(int index = 0; dir_tokens[index] != 0; index++)
-                    {
-                        last_str = dir_tokens[index];
-                    }
-
-                    if (last_str != NULL)
-                    {
-                        strcpy(ptr, last_str);
-                    }
-                }
-
-                if(cmd_args)
-                {
-                    string_free_list(cmd_args);
-                }
-
-                if(dir_tokens)
-                {
-                    string_free_list(dir_tokens);
-                }
+            if(cmd_args != NULL)
+            {
+                dir_tokens = string_split_by_char(cmd_args[0], '/');
             }
             else
             {
-                printf("Could not read process commandline\n");
+                dir_tokens = string_split_by_char(buffer, '/');
             }
 
-            fclose(fp);
-        }    
-        
-        if(buffer)
+            if(dir_tokens != NULL)
+            {
+                char* last_str = NULL;
+                for(int index = 0; dir_tokens[index] != 0; index++)
+                {
+                    last_str = dir_tokens[index];
+                }
+
+                if (last_str != NULL)
+                {
+                    strcpy(ptr, last_str);
+                }
+            }
+
+            if(cmd_args)
+            {
+                string_free_list(cmd_args);
+            }
+
+            if(dir_tokens)
+            {
+                string_free_list(dir_tokens);
+            }
+        }
+        else
         {
-            free(buffer);
+            printf("Could not read process commandline\n");
         }
 
-    #endif
+        fclose(fp);
+    }
+
+    if(buffer)
+    {
+        free(buffer);
+    }
 
     return ptr;
 }
@@ -163,19 +135,7 @@ char* env_get_current_user_name(char* ptr)
         return NULL;
     }
 
-    #if defined (_WIN32) || defined (_WIN64)
-
-        TCHAR szUserName[65] = { 0 };
-        DWORD slen = 64;
-
-        if (GetUserNameA(szUserName, &slen))
-        {
-            strcpy(ptr, szUserName);
-        }
-
-    #else
-        strcpy(ptr, getenv("USER"));
-    #endif
+    strcpy(ptr, getenv("USER"));
 
     return ptr;
 }

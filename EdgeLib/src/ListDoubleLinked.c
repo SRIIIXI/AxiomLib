@@ -49,7 +49,6 @@ typedef struct list_double_linked_t
     node_double_linked_t* head;
     node_double_linked_t* tail;
     node_double_linked_t* iterator;
-    lock_t lock;
 }list_double_linked_t;
 
 void list_double_linked_internal_remove_from_head(list_double_linked_t* lptr);
@@ -69,7 +68,6 @@ list_double_linked_t * list_double_linked_allocate(list_double_linked_t* lptr)
     lptr->count = 0;
     lptr->head = lptr->tail = NULL;
     lptr->iterator = NULL;
-    lock_create(lptr->lock);
     return lptr;
 }
 
@@ -100,8 +98,6 @@ void list_double_linked_free(list_double_linked_t* lptr)
         {
             list_double_linked_internal_remove_from_tail(lptr);
         }
-
-        lock_destroy(lptr->lock);
         free(lptr);
     }
 }
@@ -112,8 +108,6 @@ void list_double_linked_lock(list_double_linked_t* lptr)
     {
         return;
     }
-
-    lock_acquire(lptr->lock);
 }
 
 void list_double_linked_unlock(list_double_linked_t* lptr)
@@ -122,8 +116,6 @@ void list_double_linked_unlock(list_double_linked_t* lptr)
     {
         return;
     }
-
-    lock_release(lptr->lock);
 }
 
 void list_double_linked_add_to_head(list_double_linked_t* lptr, void* data, size_t sz)
@@ -414,7 +406,6 @@ long list_double_linked_index_of_value(list_double_linked_t* lptr, void* data, s
 
         if(memcmp(ptr->data, data, ptr->size) == 0)
         {
-            lock_release(lptr->lock);
             return idx;
         }
     }

@@ -34,13 +34,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory.h>
 #include <stdio.h>
 #include <string.h>
-
-#if defined (_WIN32) || defined (_WIN64)
-#else
 #include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
-#endif
 
 bool file_is_exists(const char* filename)
 {

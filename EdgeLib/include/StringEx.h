@@ -41,7 +41,7 @@ typedef struct string_list_t string_list_t;
 
 extern LIBRARY_EXPORT string_t* string_allocate(const char* data);
 extern LIBRARY_EXPORT string_t* string_allocate_default(void);
-extern LIBRARY_EXPORT string_t* string_allocate_length(size_t len);
+extern LIBRARY_EXPORT string_t* string_allocate_length(size_t slen);
 extern LIBRARY_EXPORT void string_free(string_t* str);
 extern LIBRARY_EXPORT void string_clear(string_t* str);
 
@@ -53,11 +53,9 @@ extern LIBRARY_EXPORT bool string_is_null(string_t* ptr);
 extern LIBRARY_EXPORT size_t string_get_length(string_t* str);
 extern LIBRARY_EXPORT const char* string_c_str(string_t* str);
 
-extern LIBRARY_EXPORT wchar_t* string_to_wstr(const char* str);
+extern LIBRARY_EXPORT wchar_t* string_c_to_wstr(const char* str);
+extern LIBRARY_EXPORT wchar_t* string_to_wstr(const string_t* str);
 extern LIBRARY_EXPORT string_t* string_from_wstr(const wchar_t* wstr);
-
-extern LIBRARY_EXPORT char* string_from_int(long num);
-extern LIBRARY_EXPORT char* string_from_double(double num);
 
 extern LIBRARY_EXPORT string_t* string_copy(string_t* dest, string_t* orig);
 extern LIBRARY_EXPORT string_t* string_append(string_t* dest, const char* data);
@@ -71,7 +69,7 @@ extern LIBRARY_EXPORT string_t* string_append_boolean(string_t* dest, const bool
 extern LIBRARY_EXPORT string_t* string_append_curr_timestamp(string_t* dest);
 
 extern LIBRARY_EXPORT string_t* string_reverse(string_t* str);
-extern LIBRARY_EXPORT string_t* string_segment_reverse(string_t* str, long start, long term);
+extern LIBRARY_EXPORT string_t* string_segment_reverse(string_t* str, size_t start, size_t term);
 
 extern LIBRARY_EXPORT long string_index_of_substr(const string_t* str, const string_t* substr);
 extern LIBRARY_EXPORT long string_index_of_char(const string_t* str, const char ch);
@@ -88,34 +86,34 @@ extern LIBRARY_EXPORT string_t* string_all_trim(string_t* str);
 
 extern LIBRARY_EXPORT string_t* string_remove_substr_first(string_t* str, const string_t* substr);
 extern LIBRARY_EXPORT string_t* string_remove_substr_all(string_t* str, const string_t* substr);
-extern LIBRARY_EXPORT string_t *string_remove_substr_at(string_t* str, long pos, long len);
+extern LIBRARY_EXPORT string_t *string_remove_substr_at(string_t* str, size_t pos, size_t len);
 extern LIBRARY_EXPORT void string_remove_end(string_t* ptr, size_t len);
 extern LIBRARY_EXPORT void string_remove_start(string_t* ptr, size_t len);
 
 extern LIBRARY_EXPORT string_t* string_remove_char_first(string_t* str, const char oldchar);
 extern LIBRARY_EXPORT string_t* string_remove_char_all(string_t* str, const char oldchar);
-extern LIBRARY_EXPORT string_t* string_remove_char_at(string_t* str, long pos);
+extern LIBRARY_EXPORT string_t* string_remove_char_at(string_t* str, size_t pos);
 
 extern LIBRARY_EXPORT string_t* string_replace_substr_first(string_t* str, const string_t* oldsubstr, const string_t* newsubstr);
 extern LIBRARY_EXPORT string_t* string_replace_substr_all(string_t* str, const string_t* oldsubstr, const string_t* newsubstr);
 
 extern LIBRARY_EXPORT string_t* string_replace_char_first(string_t* str, const char oldchar, const char newchar);
 extern LIBRARY_EXPORT string_t* string_replace_char_all(string_t* str, const char oldchar, const char newchar);
-extern LIBRARY_EXPORT string_t* string_replace_char_at(string_t* str, const char newchar, long pos);
+extern LIBRARY_EXPORT string_t* string_replace_char_at(string_t* str, const char newchar, size_t pos);
 
-extern LIBRARY_EXPORT void string_split_key_value_by_char(const char* str, const char delimiter, char **key, char **value);
-extern LIBRARY_EXPORT void string_split_key_value_by_substr(const char* str, const char* delimiter, char **key, char **value);
-extern LIBRARY_EXPORT char** string_split_by_substr(const char* str, const char* delimiter);
-extern LIBRARY_EXPORT char** string_split_by_char(const char* str, const char delimiter);
+extern LIBRARY_EXPORT void string_split_key_value_by_char(const string_t* str, const char delimiter, string_t **key, string_t **value);
+extern LIBRARY_EXPORT void string_split_key_value_by_substr(const string_t* str, const char* delimiter, string_t **key, string_t **value);
+extern LIBRARY_EXPORT string_list_t* string_split_by_substr(const string_t* str, const char* delimiter);
+extern LIBRARY_EXPORT string_list_t* string_split_by_char(const string_t* str, const char delimiter);
 extern LIBRARY_EXPORT char* string_join_list_with_substr(const char **strlist, const char* delimiter);
 extern LIBRARY_EXPORT char* string_join_list_with_char(const char** strlist, const char delimiter);
 extern LIBRARY_EXPORT char* string_merge_list_with_substr(const char **strlist, const char* delimiter);
 extern LIBRARY_EXPORT char* string_merge_list_with_char(const char** strlist, const char delimiter);
-extern LIBRARY_EXPORT void  string_sort_list(char** strlist);
-extern LIBRARY_EXPORT void  string_free_list(char** strlist);
-extern LIBRARY_EXPORT void  string_add_to_list(char** strlist, const char* str);
-extern LIBRARY_EXPORT char*  string_get_first_from_list(const char** strlist);
-extern LIBRARY_EXPORT char*  string_get_next_from_list(const char** strlist);
+extern LIBRARY_EXPORT void  string_sort_list(string_list_t* strlist);
+extern LIBRARY_EXPORT void  string_free_list(string_list_t* strlist);
+extern LIBRARY_EXPORT void  string_append_to_list(string_list_t* strlist, const string_t* str);
+extern LIBRARY_EXPORT string_t*  string_get_first_from_list(string_list_t* strlist);
+extern LIBRARY_EXPORT string_t*  string_get_next_from_list(string_list_t* strlist);
 
 #ifdef __cplusplus
 }

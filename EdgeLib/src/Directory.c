@@ -33,14 +33,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdlib.h>
 #include <memory.h>
-
-#if defined (_WIN32) || defined (_WIN64)
-#include <userenv.h>
-#else
 #include <dirent.h>
 #include <unistd.h>
 #include <sys/stat.h>
-#endif
 
 char* dir_get_parent_directory(const char* dirname)
 {
@@ -80,33 +75,19 @@ char* dir_get_parent_directory(const char* dirname)
 
 bool dir_is_exists(const char* dirname)
 {
-    #if defined (_WIN32) || defined (_WIN64)
+    DIR* dirp;
 
-        DWORD attr = GetFileAttributesA(dirname);
+    dirp = opendir(dirname);
 
-        if (attr == INVALID_FILE_ATTRIBUTES)
-        {
-            return false;
-        }
-        return true;
+    if(dirp == NULL)
+    {
+        closedir(dirp);
+        return false;
+    }
 
-    #else
+    closedir(dirp);
 
-	    DIR* dirp;
-
-	    dirp = opendir(dirname);
-
-	    if(dirp == NULL)
-	    {
-		    closedir(dirp);
-		    return false;
-	    }
-
-	    closedir(dirp);
-
-	    return true;
-
-    #endif
+    return true;
 }
 
 bool dir_create_directory(const char* dirname)
@@ -116,37 +97,17 @@ bool dir_create_directory(const char* dirname)
         return true;
     }
 
-    #if defined (_WIN32) || defined (_WIN64)
-        return mkdir(dirname);
-    #else
-        return mkdir(dirname, S_IRWXU);
-    #endif
+    return mkdir(dirname, S_IRWXU);
 }
 
 char* dir_get_temp_directory(char *dirname)
 {
-    #if defined (_WIN32) || defined (_WIN64)
+    if(!dirname)
+    {
+        return NULL;
+    }
 
-        HANDLE hToken = NULL;
-        DWORD len = MAX_PATH;
-
-        if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken)) 
-        {
-            GetUserProfileDirectory(hToken, dirname, &len);
-            CloseHandle(hToken);
-            strrepcharall(dirname, '\\', '/');
-            strcat(dirname, "/AppData/Local/Temp/");
-            dir_create_directory(dirname);
-        }
-
-    #else
-        if(!dirname)
-        {
-            return NULL;
-        }
-
-        strcpy(dirname, "/tmp");
-    #endif
+    strcpy(dirname, "/tmp");
 
     return dirname;
 }
@@ -158,44 +119,26 @@ char* dir_get_log_directory(char *dirname)
         return NULL;
     }
 
-    #if defined (_WIN32) || defined (_WIN64)
+    char wd_path[1025] = { 0 };
+    size_t wd_len = 1024;
+    char* temp_ptr = NULL;
 
-    HANDLE hToken = NULL;
-    DWORD len = MAX_PATH;
+    temp_ptr = getcwd(wd_path, wd_len);
 
-    if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken))
+    if (temp_ptr == NULL)
     {
-        GetUserProfileDirectory(hToken, dirname, &len);
-        CloseHandle(hToken);
-        strrepcharall(dirname, '\\', '/');
-        strcat(dirname, "/AppData/Local/Log/");
-        dir_create_directory(dirname);
+        return NULL;
     }
 
-    #else
-
-        char wd_path[1025] = { 0 };
-        size_t wd_len = 1024;
-        char* temp_ptr = NULL;
-
-        temp_ptr = getcwd(wd_path, wd_len);
-
-        if (temp_ptr == NULL)
-        {
-            return NULL;
-        }
-
-        if(strstr(wd_path, "/root"))
-        {
-            strcpy(dirname, "/var/log/");
-        }
-        else
-        {
-            strcat(dirname, getenv("HOME"));
-            strcat(dirname, "/log/");
-        }
-
-    #endif
+    if(strstr(wd_path, "/root"))
+    {
+        strcpy(dirname, "/var/log/");
+    }
+    else
+    {
+        strcat(dirname, getenv("HOME"));
+        strcat(dirname, "/log/");
+    }
 
     return dirname;
 }
@@ -207,60 +150,43 @@ char* dir_get_config_directory(char *dirname)
         return NULL;
     }
 
-    #if defined (_WIN32) || defined (_WIN64)
+    char config_dir[1025] = { 0 };
+    size_t wd_len = 1024;
+    char* temp_ptr = NULL;
 
-    HANDLE hToken = NULL;
-    DWORD len = MAX_PATH;
+    temp_ptr = getcwd(config_dir, wd_len);
 
-    if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken))
+    if (temp_ptr == NULL)
     {
-        GetUserProfileDirectory(hToken, dirname, &len);
-        CloseHandle(hToken);
-        strrepcharall(dirname, '\\', '/');
-        strcat(dirname, "/AppData/Local/Config/");
-        dir_create_directory(dirname);
+        return NULL;
     }
 
-    #else
-        char config_dir[1025] = { 0 };
-        size_t wd_len = 1024;
-        char* temp_ptr = NULL;
+    if(strstr(config_dir, "/root"))
+    {
+        strcpy(dirname, "/etc/");
+    }
+    else
+    {
+        size_t pos = 0;
+        pos = (size_t)strstr(config_dir, "/bin");
 
-        temp_ptr = getcwd(config_dir, wd_len);
-
-        if (temp_ptr == NULL)
+        if(pos < 1)
         {
-            return NULL;
-        }
-
-        if(strstr(config_dir, "/root"))
-        {
-            strcpy(dirname, "/etc/");
+            for(int idx = strlen(config_dir)-1; config_dir[idx] != '/'; idx--)
+            {
+                config_dir[idx] = 0;
+            }
         }
         else
         {
-            size_t pos = 0;
-            pos = (size_t)strstr(config_dir, "/bin");
-
-            if(pos < 1)
+            for(size_t idx = pos; idx <= 1024; idx++)
             {
-                for(int idx = strlen(config_dir)-1; config_dir[idx] != '/'; idx--)
-                {
-                    config_dir[idx] = 0;
-                }
+                config_dir[idx] = 0;
             }
-            else
-            {
-                for(size_t idx = pos; idx <= 1024; idx++)
-                {
-                    config_dir[idx] = 0;
-                }
-            }
-            strcat(config_dir, "etc/");
-            strcpy(dirname, config_dir);
         }
-
-    #endif
+        strcat(config_dir, "etc/");
+        strcpy(dirname, config_dir);
+    }
 
     return dirname;
 }

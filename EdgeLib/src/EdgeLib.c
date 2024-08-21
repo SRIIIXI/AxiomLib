@@ -30,47 +30,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 static unsigned long library_ref_count = 0;
 
-#if defined (_WIN32) || defined (_WIN64)
-
-BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
-{
-    switch (fdwReason)
-    {
-    case DLL_PROCESS_ATTACH:
-    {
-        if (library_ref_count == 0)
-        {
-            library_load();
-        }
-        library_ref_count++;
-        break;
-    }
-    case DLL_PROCESS_DETACH:
-    {
-        library_ref_count--;
-        if (library_ref_count < 1)
-        {
-            library_unload();
-        }
-        break;
-    }
-    default:
-    {
-        break;
-    }
-    }
-}
-
-void library_load(void)
-{
-
-}
-
-void library_unload(void)
-{
-
-}
-#else
 void __attribute__((constructor)) library_load(void)
 {
 
@@ -80,4 +39,4 @@ void __attribute__((destructor)) library_unload(void)
 {
 
 }
-#endif
+

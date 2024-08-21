@@ -37,17 +37,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <time.h>
 #include <stdint.h>
-
-#if !defined (_WIN32) && !defined (_WIN64)
 #include <unistd.h>
 #include <pthread.h>
-#endif
 
 #define END_OF_LINE "\n"
 #define MAX_LOGGERS 512
 
 static char log_level_names[5][16] = {"Information", "Error", "Warning", "Critical", "Panic"};
-lock_t lock;
 
 void normalize_function_name(char* func_name);
 
@@ -90,7 +86,6 @@ logger_t*  logger_allocate_file(size_t flszmb, const char* filename)
     logger_ptr->LogFileSizeMB = flszmb;
     strncpy(logger_ptr->FileName, filename, 1024);
 
-    lock_create(lock);
     logger_ptr->log_level = LOG_INFO;
     logger_ptr->console_out = false;
 
@@ -141,7 +136,6 @@ logger_t*	logger_allocate(size_t flszmb, const char* dirpath)
     strcat(logger_ptr->FileName, ".log");
     free(proces_name);
 
-    lock_create(lock);
     logger_ptr->log_level = LOG_INFO;
     logger_ptr->console_out = false;
 
@@ -165,16 +159,11 @@ void logger_release(logger_t* loggerptr)
         return;
     }
 
-    lock_acquire(lock);
-
     if(loggerptr->FileHandle)
     {
         fflush(loggerptr->FileHandle);
         fclose(loggerptr->FileHandle);
     }
-
-    lock_release(lock);
-    lock_destroy(lock);
 
     free(loggerptr);
 }
@@ -191,15 +180,12 @@ bool logger_write(logger_t* loggerptr, const char* logentry, LogLevel llevel, co
         return false;
     }
 
-    lock_acquire(lock);
-
     if(loggerptr->FileHandle == NULL)
     {
         loggerptr->FileHandle = fopen(loggerptr->FileName, "w");
 
         if(loggerptr->FileHandle == NULL)
         {
-            lock_release(lock);
             return false;
         }
     }
@@ -226,7 +212,6 @@ bool logger_write(logger_t* loggerptr, const char* logentry, LogLevel llevel, co
 
         if(loggerptr->FileHandle == NULL)
         {
-            lock_release(lock);
             return false;
         }
     }
@@ -274,7 +259,6 @@ bool logger_write(logger_t* loggerptr, const char* logentry, LogLevel llevel, co
 
     free(base_file_name);
     free(func_name);
-    lock_release(lock);
 
     return true;
 }

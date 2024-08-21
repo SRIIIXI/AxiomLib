@@ -48,7 +48,6 @@ typedef struct list_t
     node_t* head;
     node_t* tail;
     node_t* iterator;
-    lock_t lock;
 }list_t;
 
 void list_internal_remove_from_head(list_t* lptr);
@@ -68,7 +67,6 @@ list_t * list_allocate(list_t* lptr)
     lptr->count = 0;
     lptr->head = lptr->tail = NULL;
     lptr->iterator = NULL;
-    lock_create(lptr->lock);
     return lptr;
 }
 
@@ -100,7 +98,6 @@ void list_free(list_t* lptr)
             list_internal_remove_from_tail(lptr);
         }
 
-        lock_destroy(lptr->lock);
         free(lptr);
     }
 }
@@ -111,8 +108,6 @@ void list_lock(list_t* lptr)
     {
         return;
     }
-
-    lock_acquire(lptr->lock);
 }
 
 void list_unlock(list_t* lptr)
@@ -121,8 +116,6 @@ void list_unlock(list_t* lptr)
     {
         return;
     }
-
-    lock_release(lptr->lock);
 }
 
 void list_add_to_head(list_t* lptr, void* data, size_t sz)
@@ -404,7 +397,6 @@ long list_index_of_value(list_t* lptr, void* data, size_t sz)
 
         if(memcmp(ptr->data, data, ptr->size) == 0)
         {
-            lock_release(lptr->lock);
             return idx;
         }
     }

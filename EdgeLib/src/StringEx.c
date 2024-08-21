@@ -32,12 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
-
-#if defined (_WIN32) || defined (_WIN64)
-#include <windows.h>
-#else
+#include <time.h>
 #include <unistd.h>
-#endif
 
 typedef struct string_t
 {
@@ -54,26 +50,37 @@ typedef struct string_list_t
 }string_list_t;
 
 string_t* string_internal_adjust_storage(string_t* string_ptr, size_t sz);
+char* string_internal_from_int(long num);
+char* string_internal_from_double(double num);
 
 string_t* string_allocate(const char* data)
 {
+    if(data == NULL)
+    {
+        return NULL;
+    }
+
     string_t* nd = (string_t*)calloc(1, sizeof(string_t));
 
     if(nd != NULL)
     {
-        #if defined (_WIN32) || defined (_WIN64)
-                SYSTEM_INFO siSysInfo;
-                GetSystemInfo(&siSysInfo);
-                nd->memory_size = siSysInfo.dwPageSize;
-        #else
-                nd->memory_size = sysconf(_SC_PAGESIZE);
-        #endif
-        nd->data_size = strlen(data);
+        size_t slen = strlen(data);
+        size_t psize = sysconf(_SC_PAGESIZE);
+
+        size_t pcount = slen/psize;
+
+        if(slen%psize != 0)
+        {
+            pcount++;
+        }
+
+        nd->memory_size = psize*pcount;
+        nd->data_size = slen;
         nd->data = (char*)calloc(nd->memory_size, sizeof (char));
 
         if(nd->data != NULL)
         {
-            memcpy(nd->data, data, strlen(data));
+            memcpy(nd->data, data, slen);
         }
     }
     return nd;
@@ -85,25 +92,32 @@ string_t* string_allocate_default(void)
 
     if(nd != NULL)
     {
-        #if defined (_WIN32) || defined (_WIN64)
-                SYSTEM_INFO siSysInfo;
-                GetSystemInfo(&siSysInfo);
-                nd->memory_size = siSysInfo.dwPageSize;
-        #else
-                nd->memory_size = sysconf(_SC_PAGESIZE);
-        #endif
+        nd->memory_size = sysconf(_SC_PAGESIZE);
         nd->data_size = 0;
         nd->data = (char*)calloc(nd->memory_size, sizeof (char));
     }
     return nd;
 }
 
-string_t* string_allocate_length(size_t len)
+string_t* string_allocate_length(size_t slen)
 {
     string_t* nd = (string_t*)calloc(1, sizeof(string_t));
-    nd->data_size = 0;
-    nd->memory_size = len;
-    nd->data = (char*)calloc(len, sizeof (char));
+    if(nd != NULL)
+    {
+        size_t psize = sysconf(_SC_PAGESIZE);
+
+        size_t pcount = slen/psize;
+
+        if(slen%psize != 0)
+        {
+            pcount++;
+        }
+
+        nd->memory_size = psize*pcount;
+
+        nd->data_size = 0;
+        nd->data = (char*)calloc(nd->memory_size, sizeof (char));
+    }
     return nd;
 }
 
@@ -223,7 +237,12 @@ const char* string_c_str(string_t* str)
     return str->data;
 }
 
-wchar_t *string_to_wstr(const char *str)
+wchar_t *string_c_to_wstr(const char *str)
+{
+    return NULL;
+}
+
+wchar_t* string_to_wstr(const string_t* str)
 {
     return NULL;
 }
@@ -257,62 +276,6 @@ string_t *string_from_wstr(const wchar_t *wstr)
     return ptr;
 }
 
-char* string_from_int(long num)
-{
-    char* ptr = (char*)calloc(1, (unsigned long)32);
-
-	if (ptr == NULL)
-	{
-		return NULL;
-	}
-
-	int sign = 1;
-    long remainder = 1;
-    long dividend = num;
-    long ctr = 0;
-
-	if (num < 1)
-	{
-		sign = -1;
-        dividend = dividend*(long)(-1);
-	}
-
-    while (dividend && ctr < 32)
-	{
-		remainder = dividend % 10;
-		dividend = dividend / 10;
-
-        ptr[ctr] = (char)(remainder + 48);
-		ctr++;
-	}
-
-	if (sign < 1)
-	{
-		ptr[ctr] = '-';
-	}
-	else
-	{
-		ctr--;
-	}
-
-    long start = 0;
-
-	while (start < ctr)
-	{
-		char temp = ptr[start];
-		ptr[start] = ptr[ctr];
-		ptr[ctr] = temp;
-		start++;
-		ctr--;
-	}
-
-	return ptr;
-}
-
-char* string_from_double(double num)
-{
-	return NULL;
-}
 
 string_t* string_copy(string_t* dest, string_t* orig)
 {
@@ -353,9 +316,10 @@ string_t* string_append(string_t* dest, const char *data)
     }
     else
     {
-        dest = string_internal_adjust_storage(dest, strlen(data));
-        memcpy(&dest->data[dest->data_size], data, strlen(data));
-        dest->data_size = dest->data_size + strlen(data);
+        size_t sz = strlen(data);
+        dest = string_internal_adjust_storage(dest, sz);
+        memcpy(&dest->data[dest->data_size], data, sz);
+        dest->data_size = dest->data_size + sz;
     }
 
     return dest;
@@ -433,7 +397,7 @@ string_t *string_reverse(string_t *str)
 {
 	size_t start = 0;
 
-    size_t term = strlen(str->data) - 1;
+    size_t term = str->data_size - 1;
 
 	while (start < term)
 	{
@@ -447,7 +411,7 @@ string_t *string_reverse(string_t *str)
     return str;
 }
 
-string_t *string_segment_reverse(string_t *str, long start, long term)
+string_t *string_segment_reverse(string_t *str, size_t start, size_t term)
 {
 	while (start < term)
 	{
@@ -494,7 +458,7 @@ long string_count_substr(const string_t *str, const string_t *substr)
 {
     long ctr = 0;
 
-    long offset = (long)strlen(substr->data);
+    long offset = substr->data_size;
 
     const char* ptr = str->data;
 
@@ -589,7 +553,7 @@ string_t *string_left_trim(string_t *str)
 
 string_t *string_right_trim(string_t *str)
 {
-    long len = (long)strlen(str->data);
+    long len = str->data_size;
 
     for (long ctr = len - 1; ctr > -1; ctr--)
     {
@@ -616,14 +580,14 @@ string_t *string_all_trim(string_t *str)
 string_t *string_remove_substr_first(string_t *str, const string_t *substr)
 {
     long pos = -1;
-    long offset = (long)strlen(substr->data);
+    long offset = substr->data_size;
 
     pos = string_index_of_substr(str, substr);
 
     if(pos >= 0)
     {
         strcpy(str->data + pos, str->data + pos + offset);
-        str->data[strlen(str->data) - (unsigned long)offset] = 0;
+        str->data[str->data_size - (unsigned long)offset] = 0;
     }
     return str;
 }
@@ -631,25 +595,25 @@ string_t *string_remove_substr_first(string_t *str, const string_t *substr)
 string_t *string_remove_substr_all(string_t *str, const string_t *substr)
 {
     long pos = -1;
-    long offset = (long)strlen(substr->data);
+    long offset = substr->data_size;
 
     pos = string_index_of_substr(str, substr);
 
     while(pos >= 0)
     {
         strcpy(str->data + pos, str->data + pos + offset);
-        str->data[strlen(str->data) - (unsigned long)offset] = 0;
+        str->data[str->data_size - (unsigned long)offset] = 0;
         pos = string_index_of_substr(str, substr);
     }
     return str;
 }
 
-string_t* string_remove_substr_at(string_t *str, long pos, long len)
+string_t* string_remove_substr_at(string_t *str, size_t pos, size_t len)
 {
-    if(pos >= 0 && pos <= (long)(strlen(str->data)-1) )
+    if(pos >= 0 && pos <= (str->data_size-1) )
     {
         strcpy(str->data + pos, str->data + pos + len);
-        str->data[strlen(str->data) - (unsigned long)len] = 0;
+        str->data[str->data_size - len] = 0;
     }
     return str;
 }
@@ -673,9 +637,9 @@ string_t *string_remove_char_first(string_t *str, const char oldchar)
         return str;
     }
 
-    size_t oldlen = strlen(str->data);
+    size_t oldlen = str->data_size;
 
-    strcpy(str->data+pos, str->data+pos+1);
+    strcpy(str->data + pos, str->data + pos + 1);
     str->data[oldlen] = 0;
     return str;
 }
@@ -687,16 +651,16 @@ string_t *string_remove_char_all(string_t *str, const char oldchar)
     while(pos >= 0)
     {
         strcpy(str->data + pos, str->data+pos + 1);
-        str->data[strlen(str->data) - 1] = 0;
+        str->data[str->data_size - 1] = 0;
         pos = string_index_of_char(str, oldchar);
     }
     return str;
 }
 
-string_t *string_remove_char_at(string_t *str, long pos)
+string_t *string_remove_char_at(string_t *str, size_t pos)
 {
     strcpy(str->data + pos, str->data + pos + 1);
-    str->data[strlen(str->data) - 1] = 0;
+    str->data[str->data_size - 1] = 0;
     return str;
 }
 
@@ -716,9 +680,9 @@ string_t *string_replace_substr_first(string_t *str, const string_t *oldsubstr, 
         return NULL;
     }
 
-    long slen = (long)strlen(str->data);
-    long oldslen = (long)strlen(oldsubstr->data);
-    long newslen = (long)strlen(newsubstr->data);
+    long slen = str->data_size;
+    long oldslen = oldsubstr->data_size;
+    long newslen = newsubstr->data_size;
 
     if(oldslen < 1 || newslen < 1)
     {
@@ -777,9 +741,9 @@ string_t *string_replace_substr_all(string_t *str, const string_t *oldsubstr, co
 		return NULL;
 	}
 
-    long slen = (long)strlen(str->data);
-    long oldslen = (long)strlen(oldsubstr->data);
-    long newslen = (long)strlen(newsubstr->data);
+    long slen = str->data_size;
+    long oldslen = oldsubstr->data_size;
+    long newslen = newsubstr->data_size;
 
 	if(oldslen < 1 || newslen < 1)
 	{
@@ -873,11 +837,11 @@ string_t *string_replace_char_all(string_t *str, const char oldchar, const char 
     return NULL;
 }
 
-string_t *string_replace_char_at(string_t *str, const char newchar, long pos)
+string_t *string_replace_char_at(string_t *str, const char newchar, size_t pos)
 {
     if(str != NULL)
     {
-        if(pos < (long)strlen(str->data))
+        if(pos < str->data_size)
         {
             str->data[pos] = newchar;
             return str;
@@ -887,34 +851,7 @@ string_t *string_replace_char_at(string_t *str, const char newchar, long pos)
     return NULL;
 }
 
-void string_split_key_value_by_substr(const char* str, const char* delimiter, char **key, char **value)
-{
-    if(str == NULL || delimiter == NULL)
-    {
-        return;
-    }
-
-    long pos = string_index_of_substr(str, delimiter);
-
-    if(pos < 0)
-    {
-        return;
-    }
-
-    long val_start = pos + (long)strlen(delimiter);
-    long val_end = (long)strlen(str);
-
-    if(pos > 0)
-    {
-        *key = (char*)calloc(1, (unsigned long)(pos + 1));
-        memcpy(*key, str, pos);
-    }
-
-    *value = (char*)calloc(1, (unsigned long)(val_end - val_start + 1));
-    strcpy(*value, &str[val_start]);
-}
-
-void string_split_key_value_by_char(const char* str, const char delimiter, char **key, char **value)
+void string_split_key_value_by_char(const string_t *str, const char delimiter, string_t **key, string_t **value)
 {
     if(str == NULL || delimiter == 0)
     {
@@ -929,41 +866,77 @@ void string_split_key_value_by_char(const char* str, const char delimiter, char 
     }
 
     long val_start = pos + 1;
-    long val_end = (long)strlen(str);
+    long val_end = str->data_size;
 
     if(pos > 0)
     {
-        *key = (char*)calloc(1, (unsigned long)(pos + 1));
-        memcpy(*key, str, pos);
+        *key = string_allocate_length(pos+1);
+        memcpy((*key)->data, str->data, pos);
     }
 
-    *value = (char*)calloc(1, (unsigned long)(val_end - val_start + 1));
-    strcpy(*value, &str[val_start]);
+    *value = (string_allocate_length(val_end - val_start + 1));
+    strcpy((*value)->data, &str->data[val_start]);
 }
 
-char** string_split_by_substr(const char* str, const char* delimiter)
+void string_split_key_value_by_substr(const string_t *str, const char* delimiter, string_t **key, string_t **value)
+{
+    if(str == NULL || delimiter == NULL)
+    {
+        return;
+    }
+
+    string_t* delimeter_data = string_allocate(delimiter);
+
+    long pos = string_index_of_substr(str, delimeter_data);
+
+    if(pos < 0)
+    {
+        string_free(delimeter_data);
+        return;
+    }
+
+    long val_start = pos + delimeter_data->data_size;
+    long val_end = str->data_size;
+
+    if(pos > 0)
+    {
+        *key = string_allocate_length(pos + 1);
+        memcpy((*key)->data, str, pos);
+    }
+
+    *value = string_allocate_length(val_end - val_start + 1);
+    strcpy((*value)->data, &str->data[val_start]);
+
+    string_free(delimeter_data);
+}
+
+string_list_t *string_split_by_substr(const string_t *str, const char *delimiter)
 {
 	if(str == NULL || delimiter == NULL)
 	{
 		return NULL;
 	}
 
-    long substr_count = string_count_substr(str, delimiter);
-    long str_len = (long)strlen(str);
+    string_t* delimeter_data = string_allocate(delimiter);
+
+    long substr_count = string_count_substr(str, delimeter_data);
+    long str_len = str->data_size;
 
 	if(substr_count < 1)
 	{
-		return NULL;
+        string_free(delimeter_data);
+        return NULL;
 	}
 
-    char* ptr = (char*)calloc(1, (unsigned long)str_len);
+    char* ptr = (char*)calloc(1, (unsigned long)str_len+1);
 
 	if(ptr == NULL)
 	{
-		return NULL;
+        string_free(delimeter_data);
+        return NULL;
 	}
 
-    memcpy(ptr, str, (unsigned long)str_len);
+    memcpy(ptr, str->data, (unsigned long)str_len);
 
 	char** buffer = NULL;
 
@@ -972,7 +945,8 @@ char** string_split_by_substr(const char* str, const char* delimiter)
 	if(buffer == NULL)
 	{
         free(ptr);
-		return NULL;
+        string_free(delimeter_data);
+        return NULL;
 	}
 
 	char* temp_ptr = NULL;
@@ -993,8 +967,9 @@ char** string_split_by_substr(const char* str, const char* delimiter)
 
 		if(buffer[index] == NULL)
 		{
-			return NULL;
-		}
+            string_free(delimeter_data);
+            return NULL;
+        }
 
         strcpy(buffer[index], temp_ptr);
 		temp_ptr = strtok(NULL, delimiter);
@@ -1002,11 +977,12 @@ char** string_split_by_substr(const char* str, const char* delimiter)
 	}
 
     free(ptr);
+    string_free(delimeter_data);
 
 	return buffer;
 }
 
-char** string_split_by_char(const char* str, const char delimiter)
+string_list_t* string_split_by_char(const string_t* str, const char delimiter)
 {
 	char temp_delimiter[2] = {delimiter, 0};
 
@@ -1036,36 +1012,55 @@ char* string_merge_list_with_char(const char** strlist, const char delimite)
     return NULL;
 }
 
-void  string_sort_list(char** strlist)
+void  string_sort_list(string_list_t *strlist)
 {
 
 }
 
-void string_free_list(char** strlist)
+void string_free_list(string_list_t *strlist)
 {
     long index = 0;
 
-    while(strlist[index] != NULL)
+    if(strlist != NULL)
     {
-        free(strlist[index]);
-        index++;
+        for(int x = 0; x < strlist->num_of_strings; x++)
+        {
+            string_free(&strlist->strings[x]);
+        }
+        free(strlist);
+    }
+}
+
+void  string_append_to_list(string_list_t *strlist, const string_t *str)
+{
+
+}
+
+string_t* string_get_first_from_list(string_list_t* strlist)
+{
+    if(strlist != NULL)
+    {
+        if(strlist->num_of_strings > 0)
+        {
+            strlist->current_index = 0;
+            return &strlist->strings[0];
+        }
     }
 
-	free(strlist);
-}
-
-void  string_add_to_list(char** strlist, const char* str)
-{
-
-}
-
-char*  string_get_first_from_list(const char** strlist)
-{
     return NULL;
 }
 
-char*  string_get_next_from_list(const char** strlist)
+string_t *string_get_next_from_list(string_list_t *strlist)
 {
+    if(strlist != NULL)
+    {
+        if(strlist->num_of_strings > 1)
+        {
+            strlist->current_index++;
+            return &strlist->strings[strlist->current_index];
+        }
+    }
+
     return NULL;
 }
 
@@ -1096,4 +1091,61 @@ string_t* string_internal_adjust_storage(string_t* string_ptr, size_t sz)
     }
 
     return  string_ptr;
+}
+
+char* string_internal_from_int(long num)
+{
+    char* ptr = (char*)calloc(1, (unsigned long)32);
+
+    if (ptr == NULL)
+    {
+        return NULL;
+    }
+
+    int sign = 1;
+    long remainder = 1;
+    long dividend = num;
+    long ctr = 0;
+
+    if (num < 1)
+    {
+        sign = -1;
+        dividend = dividend*(long)(-1);
+    }
+
+    while (dividend && ctr < 32)
+    {
+        remainder = dividend % 10;
+        dividend = dividend / 10;
+
+        ptr[ctr] = (char)(remainder + 48);
+        ctr++;
+    }
+
+    if (sign < 1)
+    {
+        ptr[ctr] = '-';
+    }
+    else
+    {
+        ctr--;
+    }
+
+    long start = 0;
+
+    while (start < ctr)
+    {
+        char temp = ptr[start];
+        ptr[start] = ptr[ctr];
+        ptr[ctr] = temp;
+        start++;
+        ctr--;
+    }
+
+    return ptr;
+}
+
+char* string_internal_from_double(double num)
+{
+    return NULL;
 }
