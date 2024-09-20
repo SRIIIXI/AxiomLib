@@ -35,12 +35,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <string.h>
 
-#if defined (_WIN32) || defined (_WIN64)
-#include <psapi.h>
-#else
 #include <fcntl.h>
 #include <unistd.h>
-#endif
 
 char* env_get_current_process_name(char* ptr)
 {
@@ -51,23 +47,23 @@ char* env_get_current_process_name(char* ptr)
 
     pid_t proc_id = getpid();
 
-    char* buffer = (char*)calloc(1, 32);
+    char* procfilename = (char*)calloc(1, 32);
     char** cmd_args = NULL;
     char** dir_tokens = NULL;
 
-    sprintf(buffer, "/proc/%d/cmdline", proc_id);
+    sprintf(procfilename, "/proc/%d/cmdline", proc_id);
 
-    FILE* fp = fopen(buffer, "r");
-    free(buffer);
-    buffer = NULL;
+    FILE* fp = fopen(procfilename, "r");
+    free(procfilename);
+    procfilename = NULL;
 
     if(fp)
     {
-        buffer = (char*)calloc(1, 1025);
+        char buffer[1025] = {0};
 
         if(fgets(buffer, 1024, fp))
         {
-            long dir_sep_pos = string_index_of_char(buffer, '/');
+            size_t dir_sep_pos = strcspn(buffer, '/');
 
             if(dir_sep_pos < 0)
             {
@@ -118,11 +114,6 @@ char* env_get_current_process_name(char* ptr)
         }
 
         fclose(fp);
-    }
-
-    if(buffer)
-    {
-        free(buffer);
     }
 
     return ptr;

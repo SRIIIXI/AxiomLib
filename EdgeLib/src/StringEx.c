@@ -380,7 +380,7 @@ string_t* string_append_curr_timestamp(string_t* dest)
         return NULL;
     }
 
-    char buffer[15] = {0};
+    char buffer[25] = {0};
     time_t t ;
     struct tm *tmp ;
     time(&t);
@@ -912,6 +912,8 @@ void string_split_key_value_by_substr(const string_t *str, const char* delimiter
 
 string_list_t *string_split_by_substr(const string_t *str, const char *delimiter)
 {
+    string_list_t* retval = NULL;
+
 	if(str == NULL || delimiter == NULL)
 	{
 		return NULL;
@@ -979,7 +981,7 @@ string_list_t *string_split_by_substr(const string_t *str, const char *delimiter
     free(ptr);
     string_free(delimeter_data);
 
-	return buffer;
+	return retval;
 }
 
 string_list_t* string_split_by_char(const string_t* str, const char delimiter)

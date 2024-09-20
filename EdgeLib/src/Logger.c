@@ -285,6 +285,8 @@ void logger_set_log_level(logger_t* loggerptr, LogLevel llevel)
 
 void normalize_function_name(char* func_name)
 {
+    string_t* func_name_str = string_allocate(func_name);
+
     int len = (int)strlen(func_name);
 
     if(len < 2)
@@ -296,7 +298,7 @@ void normalize_function_name(char* func_name)
 
     long pos = 0;
 
-    pos = string_index_of_char(func_name, '(');
+    pos = string_index_of_char(func_name_str, '(');
 
     if(pos > -1)
     {
@@ -312,7 +314,7 @@ void normalize_function_name(char* func_name)
         }
     }
 
-    pos = string_index_of_char(func_name, ' ');
+    pos = string_index_of_char(func_name_str, ' ');
 
     if(pos > -1)
     {
@@ -324,5 +326,9 @@ void normalize_function_name(char* func_name)
         }
     }
 
-    string_left_trim(func_name);
+    string_left_trim(func_name_str);
+
+    memset(func_name, 0, len + 1);
+    strcpy(func_name, string_c_str(func_name_str));
+    string_free(func_name_str);
 }

@@ -185,23 +185,31 @@ void test_list(void)
 
 void test_string_list(void)
 {
-    char* mylist = NULL;
+    string_t* mystr = NULL;
+    string_list_t* mylist = NULL;
+    string_t* item = NULL;
 
-    string_add_to_list(&mylist, "Hello");
-    string_add_to_list(&mylist, "World");
-    string_add_to_list(&mylist, "Linux");
+    mystr = string_allocate_default();
 
-    char* item = NULL;
+    string_append(mystr, "Hello");
+    string_append(mystr, "|");
+    string_append(mystr, "World");
+    string_append(mystr, "|");
+    string_append(mystr, "Linux");
 
-    item = string_get_first_from_list((const char**)&mylist);
+    mylist = string_split_by_substr(mystr, "|");
+
+    free(mystr);
+
+    item = string_get_first_from_list(mylist);
 
     while(item)
     {
-        printf("%s\n", (char*)item);
-        item = string_get_next_from_list((const char**)&mylist);
+        printf("%s\n", string_c_str(item));
+        item = string_get_next_from_list(mylist);
     }
 
-    string_free_list(&mylist);
+    string_free_list(mylist);
 }
 
 void test_string(void)
