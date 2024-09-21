@@ -297,24 +297,30 @@ void test_configuration(void)
 {
     configuration_t* conf = configuration_allocate_default();
 
-    char** sections = configuration_get_all_sections(conf);
+    string_list_t* sections = configuration_get_all_sections(conf);
 
-    for(int sindex = 0; sections[sindex] != 0; sindex++)
+    string_t* sec_str = NULL;
+    sec_str = string_get_first_from_list(sections);
+
+    while(sec_str)
     {
-        char* sec_str = NULL;
-        sec_str = sections[sindex];
-        printf("Section %s\n", sec_str);
+        printf("Section %s\n", string_c_str(sec_str));
+        
+        string_list_t* keys = NULL;
+        keys = configuration_get_all_keys(conf, string_c_str(sec_str));
 
-        char** keys = configuration_get_all_keys(conf, sections[sindex]);
+        string_t* key_str = NULL;
+        key_str = string_get_first_from_list(keys);
 
-        for(int kindex = 0; keys[kindex] != 0; kindex++)
+        while(key_str)
         {
-            char* key_str = NULL;
-            key_str = keys[kindex];
-            printf("Key %s Value %s\n", key_str, configuration_get_value_as_string(conf, sec_str, key_str));
+            printf("Key %s Value %s\n", string_c_str(key_str), configuration_get_value_as_string(conf, string_c_str(sec_str), string_c_str(key_str)));
+            key_str = string_get_next_from_list(keys);
         }
 
         string_free_list(keys);
+
+        sec_str = string_get_next_from_list(sections);
     }
 
     string_free_list(sections);

@@ -34,130 +34,112 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
-
+#include <ctype.h>
 #include <fcntl.h>
 #include <unistd.h>
 
-char* env_get_current_process_name(char* ptr)
+string_t* env_get_current_process_name()
 {
-    if(ptr == NULL)
-    {
-        return NULL;
-    }
+    string_t* retval = NULL;
+    size_t ln = 0;
+    bool fnd = false;
+    int ctr = 0;
+
 
     pid_t proc_id = getpid();
+    char buffer[1025] = {0};
 
     char* procfilename = (char*)calloc(1, 32);
-    char** cmd_args = NULL;
-    char** dir_tokens = NULL;
-
     sprintf(procfilename, "/proc/%d/cmdline", proc_id);
-
     FILE* fp = fopen(procfilename, "r");
     free(procfilename);
     procfilename = NULL;
 
     if(fp)
     {
-        char buffer[1025] = {0};
-
         if(fgets(buffer, 1024, fp))
         {
-            size_t dir_sep_pos = strcspn(buffer, '/');
+            ln = strlen(buffer);
+            fnd = false;
 
-            if(dir_sep_pos < 0)
+            for(ctr = 0; ctr < ln; ctr++)
             {
-                strcpy(ptr, buffer);
-                free(buffer);
-                fclose(fp);
-                return ptr;
-            }
 
-            cmd_args = string_split_by_char(buffer, ' ');
-
-            if(cmd_args != NULL)
-            {
-                dir_tokens = string_split_by_char(cmd_args[0], '/');
-            }
-            else
-            {
-                dir_tokens = string_split_by_char(buffer, '/');
-            }
-
-            if(dir_tokens != NULL)
-            {
-                char* last_str = NULL;
-                for(int index = 0; dir_tokens[index] != 0; index++)
+                if(fnd)
                 {
-                    last_str = dir_tokens[index];
+                    buffer[ctr] = 0;
                 }
-
-                if (last_str != NULL)
+                else
                 {
-                    strcpy(ptr, last_str);
+                    if(isspace(buffer[ctr]))
+                    {
+                        fnd = true;
+                        buffer[ctr] = 0;
+                    }                    
                 }
             }
 
-            if(cmd_args)
+            ln = strlen(buffer);
+            fnd = false;
+
+            for(ctr = ln -1 ; ctr > -1; ctr--)
             {
-                string_free_list(cmd_args);
+
+                if(fnd)
+                {
+                    buffer[ctr] = 32;
+                }
+                else
+                {
+                    if(buffer[ctr] == '/')
+                    {
+                        fnd = true;
+                        buffer[ctr] = 32;
+                    }                    
+                }
             }
 
-            if(dir_tokens)
-            {
-                string_free_list(dir_tokens);
-            }
-        }
-        else
-        {
-            printf("Could not read process commandline\n");
+            retval = string_allocate(buffer);
+            retval = string_all_trim(retval);
         }
 
         fclose(fp);
     }
 
+    return retval;
+}
+
+string_t* env_get_current_user_name()
+{
+    string_t* ptr = string_allocate(getenv("USER"));
     return ptr;
 }
 
-char* env_get_current_user_name(char* ptr)
+string_t* env_get_lock_filename()
 {
-    if (ptr == NULL)
-    {
-        return NULL;
-    }
-
-    strcpy(ptr, getenv("USER"));
-
-    return ptr;
-}
-
-char* env_get_lock_filename(char* ptr)
-{
-    if (ptr == NULL)
-    {
-        return NULL;
-    }
-
-    char* lock_filename = (char*)calloc(1, 1025);
+    string_t* lock_filename = string_allocate_default();
+    string_t* temp = NULL;
 
     if (lock_filename == NULL)
     {
         return NULL;
     }
+    
+    temp = dir_get_temp_directory();
+    string_append_string(lock_filename, temp);
+    free(temp);
+    string_append_char(lock_filename, '/');
 
-    char temp[65] = {0};
+    temp = env_get_current_process_name();
+    string_append_string(lock_filename, temp);
+    free(temp);
+    string_append_char(lock_filename, '.');
 
-    memset(temp, 0, 65);
-    strcat(lock_filename, dir_get_temp_directory(temp));
-    strcat(lock_filename, "/");
+    temp = env_get_current_user_name();
+    string_append_string(lock_filename, temp);
+    free(temp);
 
-    memset(temp, 0, 65);
-    strcat(lock_filename, env_get_current_process_name(temp));
-    strcat(lock_filename, ".");
-
-    memset(temp, 0, 65);
-    strcat(lock_filename, env_get_current_user_name(temp));
-    strcat(lock_filename, ".lock");
+    string_append(lock_filename, ".lock");
 
     return  lock_filename;
 }

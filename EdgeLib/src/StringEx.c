@@ -380,7 +380,7 @@ string_t* string_append_curr_timestamp(string_t* dest)
         return NULL;
     }
 
-    char buffer[25] = {0};
+    char buffer[129] = {0};
     time_t t ;
     struct tm *tmp ;
     time(&t);
@@ -910,6 +910,11 @@ void string_split_key_value_by_substr(const string_t *str, const char* delimiter
     string_free(delimeter_data);
 }
 
+ string_list_t* string_list_allocate_default(void)
+ {
+    string_list_t* retval = (string_list_t*)calloc(1, sizeof(string_list_t));
+ }
+
 string_list_t *string_split_by_substr(const string_t *str, const char *delimiter)
 {
     string_list_t* retval = NULL;
@@ -1033,7 +1038,12 @@ void string_free_list(string_list_t *strlist)
     }
 }
 
-void  string_append_to_list(string_list_t *strlist, const string_t *str)
+void  string_append_to_list(string_list_t *strlist, const char *str)
+{
+
+}
+
+void  string_append_string_to_list(string_list_t* strlist, const string_t* str)
 {
 
 }

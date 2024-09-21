@@ -80,7 +80,7 @@ configuration_t* configuration_allocate_default(void)
     else
     {
         strcat(filename, getenv("HOME"));
-        strcat(filename, "/etc/");
+        strcat(filename, "/.config/");
     }
 
     char* proces_name = (char*)calloc(1025, sizeof(char));
@@ -138,11 +138,13 @@ configuration_t* configuration_allocate(const char* filename)
 
                 if(buffer[0] == '[')
                 {
-                    string_remove_char_first(buffer, '[');
-                    string_remove_char_first(buffer, ']');
-                    configuration_internal_add_section(ptr, buffer);
+                    string_t* buffer_str = string_allocate(buffer);
+                    string_remove_char_first(buffer_str, '[');
+                    string_remove_char_first(buffer_str, ']');
+                    configuration_internal_add_section(ptr, string_c_str(buffer_str));
                     memset(current_section, 0, 65);
-                    strcpy(current_section, buffer);
+                    strcpy(current_section, string_c_str(buffer_str));
+                    string_free(buffer_str);
                     continue;
                 }
 
@@ -198,18 +200,16 @@ void  configuration_release(configuration_t* config)
     free(config);
 }
 
-char**  configuration_get_all_sections(const configuration_t* config)
+string_list_t*  configuration_get_all_sections(const configuration_t* config)
 {
     if(config == NULL)
     {
         return NULL;
     }
 
-    char** buffer = NULL;
+    string_list_t* buffer = string_list_allocate_default();
 
     long len = config->section_count + 1;
-
-    buffer = (char **)calloc(1, (long)(len * sizeof(char*)));
 
     if(buffer == NULL)
     {
@@ -218,7 +218,6 @@ char**  configuration_get_all_sections(const configuration_t* config)
 
     section_t* curr_section = NULL;
 
-    long index = 0;
     for(curr_section = config->section_list; curr_section != NULL; curr_section = curr_section->next)
     {
         long temp_str_len = (long)strlen(curr_section->section_name);
@@ -228,21 +227,13 @@ char**  configuration_get_all_sections(const configuration_t* config)
             continue;
         }
 
-        temp_str_len++;
-        buffer[index] = (char*)calloc(1, sizeof(char) * (unsigned long)(temp_str_len));
-
-        if(buffer[index] != NULL)
-        {
-            strcpy(buffer[index], curr_section->section_name);
-        }
-
-        index++;
+        string_append_to_list(buffer, curr_section->section_name);
     }
 
     return buffer;
 }
 
-char**  configuration_get_all_keys(const configuration_t *config, const char* section)
+string_list_t*  configuration_get_all_keys(const configuration_t *config, const char* section)
 {
     if(config == NULL || section == NULL)
     {
@@ -252,18 +243,15 @@ char**  configuration_get_all_keys(const configuration_t *config, const char* se
     const section_t* curr_section = configuration_internal_get_section(config, section);
     key_value_t* curr_kv = NULL;
 
-    char** buffer = NULL;
+    string_list_t* buffer = string_list_allocate_default();
 
     long len = curr_section->key_value_count + 1;
-
-    buffer = (char **)calloc(1, (long)(len) * sizeof(char*));
 
     if(buffer == NULL)
     {
         return NULL;
     }
 
-    long index = 0;
     for(curr_kv = curr_section->key_value_list; curr_kv != NULL; curr_kv = curr_kv->next)
     {
         long temp_str_len = (long)strlen(curr_kv->value);
@@ -273,16 +261,7 @@ char**  configuration_get_all_keys(const configuration_t *config, const char* se
             continue;
         }
 
-        temp_str_len++;
-
-        buffer[index] = (char*)calloc(1, sizeof(char) * (unsigned long)(temp_str_len));
-
-        if(buffer[index] != NULL)
-        {
-            strcpy(buffer[index], curr_kv->key);
-        }
-
-        index++;
+        string_append_to_list(buffer, curr_kv->key);
     }
 
     return buffer;

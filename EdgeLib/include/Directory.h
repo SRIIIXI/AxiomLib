@@ -30,17 +30,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define DIRECTORY_C
 
 #include "Defines.h"
+#include "StringEx.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern LIBRARY_EXPORT bool dir_is_exists(const char* dirname);
-extern LIBRARY_EXPORT bool dir_create_directory(const char* dirname);
-extern LIBRARY_EXPORT char* dir_get_parent_directory(const char* dirname);
-extern LIBRARY_EXPORT char* dir_get_temp_directory(char* dirname);
-extern LIBRARY_EXPORT char* dir_get_log_directory(char *dirname);
-extern LIBRARY_EXPORT char* dir_get_config_directory(char *dirname);
+extern LIBRARY_EXPORT bool dir_is_exists(const string_t* dirname);
+extern LIBRARY_EXPORT bool dir_create_directory(const string_t* dirname);
+extern LIBRARY_EXPORT string_t* dir_get_parent_directory(const string_t* dirname);
+extern LIBRARY_EXPORT string_t* dir_get_temp_directory();
+extern LIBRARY_EXPORT string_t* dir_get_log_directory();
+extern LIBRARY_EXPORT string_t* dir_get_config_directory();
 
 #ifdef __cplusplus
 }

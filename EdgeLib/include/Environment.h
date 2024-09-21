@@ -30,14 +30,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define ENVIRONMENT_C
 
 #include "Defines.h"
+#include "StringEx.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern LIBRARY_EXPORT char*   env_get_current_process_name(char* ptr);
-extern LIBRARY_EXPORT char*   env_get_current_user_name(char* ptr);
-extern LIBRARY_EXPORT char*   env_get_lock_filename(char* ptr);
+extern LIBRARY_EXPORT string_t*   env_get_current_process_name();
+extern LIBRARY_EXPORT string_t*   env_get_current_user_name();
+extern LIBRARY_EXPORT string_t*   env_get_lock_filename();
 /*
 extern LIBRARY_EXPORT bool    env_lock_process(const char* lock_filename);
 extern LIBRARY_EXPORT bool    env_unlock_process(const char* lock_filename);

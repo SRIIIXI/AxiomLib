@@ -30,6 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define CONFIGURATION_C
 
 #include "Defines.h"
+#include "StringEx.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,8 +42,8 @@ extern LIBRARY_EXPORT configuration_t* configuration_allocate_default(void);
 extern LIBRARY_EXPORT configuration_t* configuration_allocate(const char* filename);
 extern LIBRARY_EXPORT void  configuration_release(configuration_t* config);
 
-extern LIBRARY_EXPORT char**  configuration_get_all_sections(const configuration_t* config);
-extern LIBRARY_EXPORT char**  configuration_get_all_keys(const configuration_t* config, const char* section);
+extern LIBRARY_EXPORT string_list_t*  configuration_get_all_sections(const configuration_t* config);
+extern LIBRARY_EXPORT string_list_t*  configuration_get_all_keys(const configuration_t* config, const char* section);
 
 extern LIBRARY_EXPORT bool  configuration_has_section(const configuration_t* config, const char* section);
 extern LIBRARY_EXPORT bool  configuration_has_key(const configuration_t* config, const char* section, char* key);

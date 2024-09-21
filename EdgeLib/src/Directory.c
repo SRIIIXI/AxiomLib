@@ -29,17 +29,42 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Directory.h"
 #include "StringEx.h"
 
-#define DIRECTORY_SEPARATOR '/'
-
 #include <stdlib.h>
 #include <memory.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <sys/stat.h>
 
-char* dir_get_parent_directory(const char* dirname)
+bool dir_is_exists(const string_t* dirname)
 {
-	size_t origlen = strlen(dirname);
+    DIR* dirp;
+
+    dirp = opendir(string_c_str((string_t*)dirname));
+
+    if(dirp == NULL)
+    {
+        closedir(dirp);
+        return false;
+    }
+
+    closedir(dirp);
+
+    return true;
+}
+
+bool dir_create_directory(const string_t* dirname)
+{
+    if (dir_is_exists(dirname))
+    {
+        return true;
+    }
+
+    return mkdir(string_c_str((string_t*)dirname), S_IRWXU);
+}
+
+string_t* dir_get_parent_directory(const string_t* dirname)
+{
+	size_t origlen = string_get_length((string_t*)dirname);
 
 	char* parent_dir = (char*)calloc(1, sizeof(char) * (origlen + 1));
 
@@ -48,7 +73,7 @@ char* dir_get_parent_directory(const char* dirname)
 		return NULL;
 	}
 
-	memcpy(parent_dir, dirname, origlen);
+	memcpy(parent_dir, string_c_str((string_t*)dirname), origlen);
 
 	int len = (int)strlen(parent_dir);
 
@@ -70,123 +95,61 @@ char* dir_get_parent_directory(const char* dirname)
 		}
 	}
 
-	return parent_dir;
+    string_t* retval = string_allocate(parent_dir);
+
+	return retval;
 }
 
-bool dir_is_exists(const char* dirname)
+string_t* dir_get_temp_directory()
 {
-    DIR* dirp;
+    char* ptr = getenv("USER");
+    string_t* retval = NULL;
 
-    dirp = opendir(dirname);
-
-    if(dirp == NULL)
+    if(strcmp(ptr, "root") ==0)
     {
-        closedir(dirp);
-        return false;
-    }
-
-    closedir(dirp);
-
-    return true;
-}
-
-bool dir_create_directory(const char* dirname)
-{
-    if (dir_is_exists(dirname))
-    {
-        return true;
-    }
-
-    return mkdir(dirname, S_IRWXU);
-}
-
-char* dir_get_temp_directory(char *dirname)
-{
-    if(!dirname)
-    {
-        return NULL;
-    }
-
-    strcpy(dirname, "/tmp");
-
-    return dirname;
-}
-
-char* dir_get_log_directory(char *dirname)
-{
-    if(!dirname)
-    {
-        return NULL;
-    }
-
-    char wd_path[1025] = { 0 };
-    size_t wd_len = 1024;
-    char* temp_ptr = NULL;
-
-    temp_ptr = getcwd(wd_path, wd_len);
-
-    if (temp_ptr == NULL)
-    {
-        return NULL;
-    }
-
-    if(strstr(wd_path, "/root"))
-    {
-        strcpy(dirname, "/var/log/");
+        retval = string_allocate("/tmp/");
     }
     else
     {
-        strcat(dirname, getenv("HOME"));
-        strcat(dirname, "/log/");
+        retval = string_allocate(ptr);
+        string_append(retval, "/.tmp/");
     }
 
-    return dirname;
+    return retval;
 }
 
-char* dir_get_config_directory(char *dirname)
+string_t* dir_get_log_directory()
 {
-    if(!dirname)
+    char* ptr = getenv("USER");
+    string_t* retval = NULL;
+
+    if(strcmp(ptr, "root") ==0)
     {
-        return NULL;
-    }
-
-    char config_dir[1025] = { 0 };
-    size_t wd_len = 1024;
-    char* temp_ptr = NULL;
-
-    temp_ptr = getcwd(config_dir, wd_len);
-
-    if (temp_ptr == NULL)
-    {
-        return NULL;
-    }
-
-    if(strstr(config_dir, "/root"))
-    {
-        strcpy(dirname, "/etc/");
+        retval = string_allocate("/var/log/");
     }
     else
     {
-        size_t pos = 0;
-        pos = (size_t)strstr(config_dir, "/bin");
-
-        if(pos < 1)
-        {
-            for(int idx = strlen(config_dir)-1; config_dir[idx] != '/'; idx--)
-            {
-                config_dir[idx] = 0;
-            }
-        }
-        else
-        {
-            for(size_t idx = pos; idx <= 1024; idx++)
-            {
-                config_dir[idx] = 0;
-            }
-        }
-        strcat(config_dir, "etc/");
-        strcpy(dirname, config_dir);
+        retval = string_allocate(ptr);
+        string_append(retval, "/.local/log/");
     }
 
-    return dirname;
+    return retval;
+}
+
+string_t* dir_get_config_directory()
+{
+    char* ptr = getenv("USER");
+    string_t* retval = NULL;
+
+    if(strcmp(ptr, "root") ==0)
+    {
+        retval = string_allocate("/etc/");
+    }
+    else
+    {
+        retval = string_allocate(ptr);
+        string_append(retval, "/.config/");
+    }
+
+    return retval;
 }

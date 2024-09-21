@@ -125,16 +125,19 @@ logger_t*	logger_allocate(size_t flszmb, const char* dirpath)
         dir_get_log_directory(logger_ptr->FileName);
     }
 
-    if(!dir_is_exists(logger_ptr->FileName))
+    string_t* dir_t_str = string_allocate(logger_ptr->FileName);
+
+    if(!dir_is_exists(dir_t_str))
     {
-        dir_create_directory(logger_ptr->FileName);
+        dir_create_directory(dir_t_str);
     }
 
-    char* proces_name = (char*)calloc(1, 1025);;
-    proces_name = env_get_current_process_name(proces_name);
-    strcat(logger_ptr->FileName, proces_name);
+    string_free(dir_t_str);
+    
+    string_t* process_name = env_get_current_process_name();
+    strcat(logger_ptr->FileName, string_c_str(process_name));
     strcat(logger_ptr->FileName, ".log");
-    free(proces_name);
+    string_free(process_name);
 
     logger_ptr->log_level = LOG_INFO;
     logger_ptr->console_out = false;
