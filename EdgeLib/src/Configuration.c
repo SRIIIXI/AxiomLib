@@ -59,8 +59,8 @@ typedef struct configuration_t
     section_t* section_list;
 }configuration_t;
 
-void configuration_internal_add_section(configuration_t* conf_ptr, char* section_name);
-void configuration_internal_add_key_value(configuration_t* conf_ptr, char* section_name, char* key, char* value);
+void configuration_internal_add_section(configuration_t* conf_ptr, const char* section_name);
+void configuration_internal_add_key_value(configuration_t* conf_ptr, const char* section_name, const char* key, const char* value);
 const section_t* configuration_internal_get_section(const configuration_t* conf_ptr, const char *section_name);
 const char* configuration_internal_get_value(const configuration_t *conf_ptr, const section_t* section, const char *key);
 
@@ -83,7 +83,7 @@ configuration_t* configuration_allocate_default(void)
         strcat(filename, "/.config/");
     }
 
-    char* proces_name = (char*)calloc(1025, sizeof(char));
+    string_t* proces_name = NULL;
 
     if (!proces_name)
     {
@@ -92,7 +92,7 @@ configuration_t* configuration_allocate_default(void)
     }
 
     proces_name = env_get_current_process_name(proces_name);
-    strcat(filename, proces_name);
+    strcat(filename, string_c_str(proces_name));
     strcat(filename, ".conf");
     free(proces_name);
 
@@ -129,16 +129,21 @@ configuration_t* configuration_allocate(const char* filename)
 
             if(fgets(buffer, 1024, fp))
             {
-                string_all_trim(buffer);
+                string_t* buffer_str = string_allocate(buffer);
+                string_t* temp_buffer =  string_allocate(buffer);
+                string_all_trim(temp_buffer);
+                memset(buffer, 0, sizeof(buffer));
+                strcpy(buffer, string_c_str(temp_buffer));
+                free(temp_buffer);
 
                 if(buffer[0] == 0 || buffer[0] == ';' || buffer[0] == '#')
                 {
+                    string_free(buffer_str);
                     continue;
                 }
 
                 if(buffer[0] == '[')
                 {
-                    string_t* buffer_str = string_allocate(buffer);
                     string_remove_char_first(buffer_str, '[');
                     string_remove_char_first(buffer_str, ']');
                     configuration_internal_add_section(ptr, string_c_str(buffer_str));
@@ -148,16 +153,17 @@ configuration_t* configuration_allocate(const char* filename)
                     continue;
                 }
 
-                char* key = NULL;
-                char* value = NULL;
+                string_t* key = NULL;
+                string_t* value = NULL;
 
-                string_split_key_value_by_char(buffer, '=', &key, &value);
+                string_split_key_value_by_char(buffer_str, '=', &key, &value);
                 string_all_trim(key);
                 string_all_trim(value);
 
-                configuration_internal_add_key_value(ptr, current_section, key, value);
+                configuration_internal_add_key_value(ptr, current_section, string_c_str(key), string_c_str(value));
                 free(key);
                 free(value);
+                string_free(buffer_str);
             }
         }
         fclose(fp);
@@ -434,7 +440,7 @@ char configuration_get_value_as_char(const configuration_t* config, const char* 
     return value[0];
 }
 
-void configuration_internal_add_section(configuration_t* conf_ptr, char* section_name)
+void configuration_internal_add_section(configuration_t* conf_ptr, const char* section_name)
 {
     if(conf_ptr == NULL)
     {
@@ -475,7 +481,7 @@ void configuration_internal_add_section(configuration_t* conf_ptr, char* section
     conf_ptr->section_count++;
 }
 
-void configuration_internal_add_key_value(configuration_t* conf_ptr, char* section_name, char* key, char* value)
+void configuration_internal_add_key_value(configuration_t* conf_ptr, const char* section_name, const char* key, const char* value)
 {
     if(conf_ptr == NULL)
     {
