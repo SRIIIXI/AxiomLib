@@ -42,6 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define END_OF_LINE "\n"
 #define MAX_LOGGERS 512
+#define MAX_PATHLEN 1024
 
 static char log_level_names[5][16] = {"Information", "Error", "Warning", "Critical", "Panic"};
 
@@ -51,7 +52,7 @@ void normalize_function_name(char* func_name);
 typedef struct logger_t
 {
     size_t LogFileSizeMB;
-    char FileName[1025];
+    char FileName[MAX_PATHLEN+1];
     FILE* FileHandle;
     bool console_out;
     LogLevel log_level;
@@ -122,7 +123,10 @@ logger_t*	logger_allocate(size_t flszmb, const char* dirpath)
     }
     else
     {
-        dir_get_log_directory(logger_ptr->FileName);
+        string_t* logdir = dir_get_log_directory();
+        memset(&logger_ptr->FileName[0], 0, MAX_PATHLEN + 1);
+        strncpy(&logger_ptr->FileName[0], string_c_str(logdir), MAX_PATHLEN);
+        string_free(logdir);
     }
 
     string_t* dir_t_str = string_allocate(logger_ptr->FileName);

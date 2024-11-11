@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <memory.h>
+#include "StringEx.h"
 
 void test_list(void);
 void test_string_list(void);
@@ -15,28 +16,12 @@ void test_queue(void);
 
 int main(int argc, char* argv[])
 {
-    char user_name[64] = { 0 };
-
-    env_get_current_user_name(user_name);
-
-    char process_name[64] = { 0 };
-
-    env_get_current_process_name(process_name);
-
-    char lock_file_name[128] = { 0 };
-
-    env_get_lock_filename(lock_file_name);
-
-    char dirname[2048] = { 0 };
-
-    memset(dirname, 0, 2048);
-    dir_get_temp_directory(dirname);
-
-    memset(dirname, 0, 2048);
-    dir_get_log_directory(dirname);
-
-    memset(dirname, 0, 2048);
-    dir_get_config_directory(dirname);
+    string_t* user_name = env_get_current_user_name();
+    string_t* process_name = env_get_current_process_name();
+    string_t* lock_file_name = env_get_lock_filename();
+    string_t* tmpdirname = dir_get_temp_directory();
+    string_t* logdirname = dir_get_log_directory();
+    string_t* cfgdirname = dir_get_config_directory();
 
     if (argc == 2)
     {

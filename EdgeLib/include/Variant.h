@@ -49,59 +49,42 @@ typedef enum VariantType
     Raw = 9
 }VariantType;
 
-typedef struct variant_t
-{
-    VariantType DataType;
-    unsigned char RawBuffer[256];
-    size_t DataSize;
-}variant_t;
+typedef struct variant_t variant_t;
 
-/*
-	class Variant
-	{
-	public:
-		Variant();
-		~Variant();
-		Variant(const Variant& other);
-		Variant(const char val);
-		Variant(const unsigned char val);
-		Variant(const std::string &val);
-		Variant(const char*  val, size_t len);
-		Variant(const bool val);
-		Variant(const long val);
-		Variant(const unsigned long val);
-		Variant(const double val);
-		Variant(const std::chrono::system_clock::time_point& val);
+extern LIBRARY_EXPORT variant_t* variant_allocate_default();
+extern LIBRARY_EXPORT void variant_release(variant_t* varptr);
+extern LIBRARY_EXPORT variant_t* variant_allocate(variant_t* varptr);
+extern LIBRARY_EXPORT variant_t* variant_allocate_char(char ch);
+extern LIBRARY_EXPORT variant_t* variant_allocate_unsigned_char(unsigned char ch);
+extern LIBRARY_EXPORT variant_t* variant_allocate_string(const char* str, size_t ln);
+extern LIBRARY_EXPORT variant_t* variant_allocate_bool(bool fl);
+extern LIBRARY_EXPORT variant_t* variant_allocate_long(long val);
+extern LIBRARY_EXPORT variant_t* variant_allocate_unsigned_long(unsigned long val);
+extern LIBRARY_EXPORT variant_t* variant_allocate_double(double val);
+extern LIBRARY_EXPORT variant_t* variant_allocate_time_value(unsigned long val);
 
-		const void* getData();
-		void getString(std::string &str);
-		long getSignedNumber();
-		unsigned long getUnsignedNumber();
-		double getReal();
-		bool getBoolean();
-		std::chrono::system_clock::time_point getTimestamp();
-		char getSignedChar();
+extern LIBRARY_EXPORT void variant_set_variant(variant_t* varptr, variant_t* val);
+extern LIBRARY_EXPORT void variant_set_char(variant_t* varptr, char ch);
+extern LIBRARY_EXPORT void variant_set_unsigned_char(variant_t* varptr, unsigned char ch);
+extern LIBRARY_EXPORT void variant_set_string(variant_t* varptr, const char* str, size_t ln);
+extern LIBRARY_EXPORT void variant_set_bool(variant_t* varptr, bool fl);
+extern LIBRARY_EXPORT void variant_set_long(variant_t* varptr, long val);
+extern LIBRARY_EXPORT void variant_set_unsigned_long(variant_t* varptr, unsigned long val);
+extern LIBRARY_EXPORT void variant_set_double(variant_t* varptr, double val);
+extern LIBRARY_EXPORT void variant_set_time_value(variant_t* varptr, unsigned long val);
 
-		VariantType getType();
-		void setType(VariantType vtype);
-		unsigned int getSize();
+extern LIBRARY_EXPORT VariantType variant_get_data_type(variant_t* varptr);
+extern LIBRARY_EXPORT size_t variant_get_data_size(variant_t* varptr);
 
-		void setData(const char val);
-		void setData(const unsigned char val);
-		void setData(const std::string &val);
-		void setData(const char* val, size_t len);
-		void setData(const bool val);
-		void setData(const long val);
-		void setData(const unsigned long val);
-		void setData(const double val);
-		void setData(const std::chrono::system_clock::time_point& val);
-
-	private:
-		VariantType _DataType;
-		unsigned char _RawBuffer[256];
-		size_t _DataSize;
-	};
-*/
+extern LIBRARY_EXPORT variant_t* variant_get_variant(variant_t* varptr);
+extern LIBRARY_EXPORT char variant_get_char(variant_t* varptr);
+extern LIBRARY_EXPORT unsigned char variant_get_unsigned_char(variant_t* varptr);
+extern LIBRARY_EXPORT const char* variant_get_string(variant_t* varptr);
+extern LIBRARY_EXPORT bool variant_get_bool(variant_t* varptr);
+extern LIBRARY_EXPORT long variant_get_long(variant_t* varptr);
+extern LIBRARY_EXPORT unsigned long variant_get_unsigned_long(variant_t* varptr);
+extern LIBRARY_EXPORT double variant_get_double(variant_t* varptr);
+extern LIBRARY_EXPORT unsigned long variant_get_time_value(variant_t* varptr);
 
 #ifdef __cplusplus
 }

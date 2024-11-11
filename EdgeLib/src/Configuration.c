@@ -91,7 +91,7 @@ configuration_t* configuration_allocate_default(void)
         return NULL;
     }
 
-    proces_name = env_get_current_process_name(proces_name);
+    proces_name = env_get_current_process_name();
     strcat(filename, string_c_str(proces_name));
     strcat(filename, ".conf");
     free(proces_name);

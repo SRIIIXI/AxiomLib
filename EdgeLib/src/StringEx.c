@@ -913,6 +913,7 @@ void string_split_key_value_by_substr(const string_t *str, const char* delimiter
  string_list_t* string_list_allocate_default(void)
  {
     string_list_t* retval = (string_list_t*)calloc(1, sizeof(string_list_t));
+    return retval;
  }
 
 string_list_t *string_split_by_substr(const string_t *str, const char *delimiter)

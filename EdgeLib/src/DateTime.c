@@ -62,6 +62,216 @@ char* date_time_get_default_string(char* ptr)
     return ptr;
 }
 
+void date_time_release(date_time_t* ptr)
+{
+
+}
+
+date_time_t* date_time_allocate_default()
+{
+	date_time_t* retval = NULL;
+	return retval;
+}
+
+date_time_t* date_time_allocate_from_string(const char* strts, const char* strformat)
+{
+	date_time_t* retval = NULL;
+	return retval;
+}
+
+date_time_t* date_time_allocate_from_unix_epoch(const unsigned long long unixtsval)
+{
+	date_time_t* retval = NULL;
+	return retval;
+}
+
+date_time_t* date_time_allocate_from_time(const time_t tsval)
+{
+	date_time_t* retval = NULL;
+	return retval;
+}
+
+date_time_t* date_time_allocate_from_time_struct(const struct tm* tsval)
+{
+	date_time_t* retval = NULL;
+	return retval;
+}
+
+char* date_time_get_string(date_time_t* ptr)
+{
+	char* retval = NULL;
+	return retval;
+}
+
+char* date_time_get_formatted_string(date_time_t* ptr, const char* strformat)
+{
+	char* retval = NULL;
+	return retval;
+}
+
+unsigned long long date_time_get_unix_epoch(date_time_t* ptr)
+{
+	unsigned long long retval = 0;
+	return retval;
+}
+
+time_t date_time_get_time(date_time_t* ptr)
+{
+	time_t retval;
+	return retval;
+}
+
+date_time_t* date_time_add_days(date_time_t* ptr, unsigned long val)
+{
+	date_time_t* retval = NULL;
+	return retval;
+}
+
+date_time_t* date_time_add_hours(date_time_t* ptr, unsigned long val)
+{
+	date_time_t* retval = NULL;
+	return retval;
+}
+
+date_time_t* date_time_add_minutes(date_time_t* ptr, unsigned long val)
+{
+	date_time_t* retval = NULL;
+	return retval;
+}
+
+date_time_t* date_time_add_seconds(date_time_t* ptr, unsigned long val)
+{
+	date_time_t* retval = NULL;
+	return retval;
+}
+
+unsigned long date_time_get_years(date_time_t* ptr)
+{
+	unsigned long retval = 0;
+	return retval;
+}
+
+unsigned long date_time_get_months(date_time_t* ptr)
+{
+	unsigned long retval = 0;
+	return retval;
+}
+
+unsigned long date_time_get_days(date_time_t* ptr)
+{
+	unsigned long retval = 0;
+	return retval;
+}
+
+unsigned long date_time_get_hours(date_time_t* ptr)
+{
+	unsigned long retval = 0;
+	return retval;
+}
+
+unsigned long date_time_get_minutes(date_time_t* ptr)
+{
+	unsigned long retval = 0;
+	return retval;
+}
+
+unsigned long date_time_get_seconds(date_time_t* ptr)
+{
+	unsigned long retval = 0;
+	return retval;
+}
+
+unsigned long date_time_get_miliseconds(date_time_t* ptr)
+{
+	unsigned long retval = 0;
+	return retval;
+}
+
+unsigned long date_time_get_year(date_time_t* ptr)
+{
+	unsigned long retval = 0;
+	return retval;
+}
+
+unsigned long date_time_get_month(date_time_t* ptr)
+{
+	unsigned long retval = 0;
+	return retval;
+}
+
+unsigned long date_time_get_day_of_month(date_time_t* ptr)
+{
+	unsigned long retval = 0;
+	return retval;
+}
+
+unsigned long date_time_get_day_of_week(date_time_t* ptr)
+{
+	unsigned long retval = 0;
+	return retval;
+}
+
+unsigned long date_time_get_week_of_year(date_time_t* ptr)
+{
+	unsigned long retval = 0;
+	return retval;
+}
+
+void date_time_set_year(date_time_t* ptr, unsigned long val)
+{
+
+}
+
+void date_time_set_month(date_time_t* ptr, unsigned long val)
+{
+
+}
+
+void date_time_set_day(date_time_t* ptr, unsigned long val)
+{
+
+}
+
+void date_time_set_hour(date_time_t* ptr, unsigned long val)
+{
+
+}
+
+void date_time_set_minute(date_time_t* ptr, unsigned long val)
+{
+
+}
+
+void date_time_set_second(date_time_t* ptr, unsigned long val)
+{
+	
+}
+
+bool date_time_are_equal(date_time_t* first, date_time_t* second)
+{
+	bool retval = false;
+	return retval;
+}
+
+bool date_time_is_first_greater(date_time_t* first, date_time_t* second)
+{
+	bool retval = false;
+	return retval;
+}
+
+bool date_time_is_first_lower(date_time_t* first, date_time_t* second)
+{
+	bool retval = false;
+	return retval;
+}
+
+unsigned long date_time_diff_miliseconds(date_time_t* first, date_time_t* second)
+{
+	unsigned long retval = false;
+	return retval;
+}
+
+
 /*
 namespace CoreLib
 {

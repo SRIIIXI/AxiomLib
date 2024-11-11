@@ -40,62 +40,48 @@ extern "C" {
 typedef struct date_time_t date_time_t;
 
 extern LIBRARY_EXPORT char* date_time_get_default_string(char* ptr);
+extern LIBRARY_EXPORT void date_time_release(date_time_t* ptr);
+extern LIBRARY_EXPORT date_time_t* date_time_allocate_default();
+extern LIBRARY_EXPORT date_time_t* date_time_allocate_from_string(const char* strts, const char* strformat);
+extern LIBRARY_EXPORT date_time_t* date_time_allocate_from_unix_epoch(const unsigned long long unixtsval);
+extern LIBRARY_EXPORT date_time_t* date_time_allocate_from_time(const time_t tsval);
+extern LIBRARY_EXPORT date_time_t* date_time_allocate_from_time_struct(const struct tm* tsval);
+extern LIBRARY_EXPORT char* date_time_get_string(date_time_t* ptr);
+extern LIBRARY_EXPORT char* date_time_get_formatted_string(date_time_t* ptr, const char* strformat);
+extern LIBRARY_EXPORT unsigned long long date_time_get_unix_epoch(date_time_t* ptr);
+extern LIBRARY_EXPORT time_t date_time_get_time(date_time_t* ptr);
 
-/*
-namespace CoreLib
-{
-	class DateTime
-	{
-	public:
-		DateTime();
-		DateTime(const DateTime& other);
-		DateTime(const std::string &str, const std::string &format);
-		DateTime(long long tinfo);
-		~DateTime();
+extern LIBRARY_EXPORT date_time_t* date_time_add_days(date_time_t* ptr, unsigned long val);
+extern LIBRARY_EXPORT date_time_t* date_time_add_hours(date_time_t* ptr, unsigned long val);
+extern LIBRARY_EXPORT date_time_t* date_time_add_minutes(date_time_t* ptr, unsigned long val);
+extern LIBRARY_EXPORT date_time_t* date_time_add_seconds(date_time_t* ptr, unsigned long val);
 
-		void operator=(const DateTime& other);
-		bool operator!=(const DateTime& other);
-		bool operator==(const DateTime& other);
-		bool operator>=(const DateTime& other);
-		bool operator<=(const DateTime& other);
-		bool operator>(const DateTime& other);
-		bool operator<(const DateTime& other);
-		DateTime& operator+=(const DateTime& other);
-		DateTime operator+(const DateTime& other);
-		DateTime& operator-=(const DateTime& other);
-		DateTime operator-(const DateTime& other);
+extern LIBRARY_EXPORT unsigned long date_time_get_years(date_time_t* ptr);
+extern LIBRARY_EXPORT unsigned long date_time_get_months(date_time_t* ptr);
+extern LIBRARY_EXPORT unsigned long date_time_get_days(date_time_t* ptr);
+extern LIBRARY_EXPORT unsigned long date_time_get_hours(date_time_t* ptr);
+extern LIBRARY_EXPORT unsigned long date_time_get_minutes(date_time_t* ptr);
+extern LIBRARY_EXPORT unsigned long date_time_get_seconds(date_time_t* ptr);
+extern LIBRARY_EXPORT unsigned long date_time_get_miliseconds(date_time_t* ptr);
 
-		void BuildFromString(const std::string &str, const std::string &format);
-		void BuildFromTime(const time_t &tinfo);
+extern LIBRARY_EXPORT unsigned long date_time_get_year(date_time_t* ptr);
+extern LIBRARY_EXPORT unsigned long date_time_get_month(date_time_t* ptr);
+extern LIBRARY_EXPORT unsigned long date_time_get_day_of_month(date_time_t* ptr);
+extern LIBRARY_EXPORT unsigned long date_time_get_day_of_week(date_time_t* ptr);
+extern LIBRARY_EXPORT unsigned long date_time_get_week_of_year(date_time_t* ptr);
 
-		std::string GetDateString(const std::string& format);
-		std::string GetDateString();
-		time_t GetTime();
+extern LIBRARY_EXPORT void date_time_set_year(date_time_t* ptr, unsigned long val);
+extern LIBRARY_EXPORT void date_time_set_month(date_time_t* ptr, unsigned long val);
+extern LIBRARY_EXPORT void date_time_set_day(date_time_t* ptr, unsigned long val);
+extern LIBRARY_EXPORT void date_time_set_hour(date_time_t* ptr, unsigned long val);
+extern LIBRARY_EXPORT void date_time_set_minute(date_time_t* ptr, unsigned long val);
+extern LIBRARY_EXPORT void date_time_set_second(date_time_t* ptr, unsigned long val);
 
-		void AddDays(int val);
-		void AddHours(int val);
-		void AddMinutes(int val);
-		void AddSeconds(int val);
+extern LIBRARY_EXPORT bool date_time_are_equal(date_time_t* first, date_time_t* second);
+extern LIBRARY_EXPORT bool date_time_is_first_greater(date_time_t* first, date_time_t* second);
+extern LIBRARY_EXPORT bool date_time_is_first_lower(date_time_t* first, date_time_t* second);
 
-		int GetDays();
-		int GetMonths();
-		int GetYears();
-		int GetHours();
-		int GetMinutes();
-		int GetSeconds();
-
-		void SetDay(int val);
-		void SetMonth(int val);
-		void SetYear(int val);
-		void SetHour(int val);
-		void SetMinute(int val);
-		void SsetSecond(int val);
-
-	private:
-        struct tm timeinfo;
-	};
-}
-*/
+extern LIBRARY_EXPORT unsigned long date_time_diff_miliseconds(date_time_t* first, date_time_t* second);
 
 #ifdef __cplusplus
 }

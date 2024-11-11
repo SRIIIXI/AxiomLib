@@ -29,6 +29,212 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Variant.h"
 #include <memory.h>
 
+typedef struct variant_t
+{
+    VariantType DataType;
+    unsigned char RawBuffer[256];
+    size_t DataSize;
+}variant_t;
+
+variant_t*  variant_allocate_default()
+{
+	variant_t* retval = NULL;
+
+	return retval;
+}
+
+void variant_release(variant_t* varptr)
+{
+
+}
+
+variant_t* variant_allocate(variant_t* varptr)
+{
+	variant_t* retval = NULL;
+
+	return retval;
+}
+
+variant_t* variant_allocate_char(char ch)
+{
+	variant_t* retval = NULL;
+
+	return retval;
+}
+
+variant_t* variant_allocate_unsigned_char(unsigned char ch)
+{
+	variant_t* retval = NULL;
+
+	return retval;
+}
+
+variant_t* variant_allocate_string(const char* str, size_t ln)
+{
+	variant_t* retval = NULL;
+
+	return retval;
+}
+
+variant_t* variant_allocate_bool(bool fl)
+{
+	variant_t* retval = NULL;
+
+	return retval;
+}
+
+variant_t* variant_allocate_long(long val)
+{
+	variant_t* retval = NULL;
+
+	return retval;
+}
+
+variant_t* variant_allocate_unsigned_long(unsigned long val)
+{
+	variant_t* retval = NULL;
+
+	return retval;
+}
+
+variant_t* variant_allocate_double(double val)
+{
+	variant_t* retval = NULL;
+
+	return retval;
+}
+
+variant_t* variant_allocate_time_value(unsigned long val)
+{
+	variant_t* retval = NULL;
+
+	return retval;
+}
+
+
+void variant_set_variant(variant_t* varptr, variant_t* val)
+{
+
+}
+
+void variant_set_char(variant_t* varptr, char ch)
+{
+
+}
+
+void variant_set_unsigned_char(variant_t* varptr, unsigned char ch)
+{
+
+}
+
+void variant_set_string(variant_t* varptr, const char* str, size_t ln)
+{
+
+}
+
+void variant_set_bool(variant_t* varptr, bool fl)
+{
+
+}
+
+void variant_set_long(variant_t* varptr, long val)
+{
+
+}
+
+void variant_set_unsigned_long(variant_t* varptr, unsigned long val)
+{
+
+}
+
+void variant_set_double(variant_t* varptr, double val)
+{
+
+}
+
+void variant_set_time_value(variant_t* varptr, unsigned long val)
+{
+
+}
+
+
+VariantType variant_get_data_type(variant_t* varptr)
+{
+	VariantType retval = Void;
+
+	return retval;
+}
+
+size_t variant_get_data_size(variant_t* varptr)
+{
+	size_t retval = 0;
+
+	return retval;
+}
+
+variant_t* variant_get_variant(variant_t* varptr)
+{
+	variant_t* retval = NULL;
+
+	return retval;
+}
+
+char variant_get_char(variant_t* varptr)
+{
+	char retval = 0;
+
+	return retval;
+}
+
+unsigned char variant_get_unsigned_char(variant_t* varptr)
+{
+	unsigned char retval = 0;
+
+	return retval;
+}
+
+const char* variant_get_string(variant_t* varptr)
+{
+	char* retval = NULL;
+
+	return retval;
+}
+
+bool variant_get_bool(variant_t* varptr)
+{
+	bool retval = false;
+
+	return retval;
+}
+
+long variant_get_long(variant_t* varptr)
+{
+	long retval = 0;
+
+	return retval;
+}
+
+unsigned long variant_get_unsigned_long(variant_t* varptr)
+{
+	unsigned long retval = 0;
+
+	return retval;
+}
+
+double variant_get_double(variant_t* varptr)
+{
+	double retval = 0;
+
+	return retval;
+}
+
+unsigned long variant_get_time_value(variant_t* varptr)
+{
+	unsigned long retval = 0;
+
+	return retval;
+}
+
 /*
 namespace CoreLib
 {
