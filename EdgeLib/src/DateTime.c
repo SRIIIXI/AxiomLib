@@ -64,36 +64,57 @@ char* date_time_get_default_string(char* ptr)
 
 void date_time_release(date_time_t* ptr)
 {
-
+	free(ptr);
+	ptr = NULL;
 }
 
 date_time_t* date_time_allocate_default()
 {
-	date_time_t* retval = NULL;
+	date_time_t* retval = (date_time_t*)calloc(1, sizeof(date_time_t));
+
 	return retval;
 }
 
 date_time_t* date_time_allocate_from_string(const char* strts, const char* strformat)
 {
 	date_time_t* retval = NULL;
+
 	return retval;
 }
 
 date_time_t* date_time_allocate_from_unix_epoch(const unsigned long long unixtsval)
 {
-	date_time_t* retval = NULL;
+	date_time_t* retval = (date_time_t*)calloc(1, sizeof(date_time_t));
+
+	if(retval == NULL)
+	{
+		return NULL;
+	}
+
+	struct tm *tmp ;
+    time(&unixtsval);
+    tmp = localtime(&unixtsval);
+	memcpy(&retval->timeinfo, tmp, sizeof(struct tm));
+
 	return retval;
 }
 
 date_time_t* date_time_allocate_from_time(const time_t tsval)
 {
-	date_time_t* retval = NULL;
-	return retval;
+	return date_time_allocate_from_unix_epoch(tsval);
 }
 
 date_time_t* date_time_allocate_from_time_struct(const struct tm* tsval)
 {
-	date_time_t* retval = NULL;
+	date_time_t* retval = (date_time_t*)calloc(1, sizeof(date_time_t));
+
+	if(retval == NULL)
+	{
+		return NULL;
+	}
+
+	memcpy(&retval->timeinfo, tsval, sizeof(struct tm));
+
 	return retval;
 }
 
