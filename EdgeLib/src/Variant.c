@@ -38,33 +38,57 @@ typedef struct variant_t
 
 variant_t*  variant_allocate_default()
 {
-	variant_t* retval = NULL;
+	variant_t* retval = (variant_t*)calloc(1, sizeof(variant_t));
 
 	return retval;
 }
 
 void variant_release(variant_t* varptr)
 {
+	if(varptr == NULL)
+	{
+		return;
+	}
 
+	free(varptr);
+	varptr = NULL;
 }
 
 variant_t* variant_allocate(variant_t* varptr)
 {
-	variant_t* retval = NULL;
+	variant_t* varptr = (variant_t*)calloc(1, sizeof(variant_t));
 
-	return retval;
+	return varptr;
 }
 
 variant_t* variant_allocate_char(char ch)
 {
-	variant_t* retval = NULL;
+	variant_t* retval = (variant_t*)calloc(1, sizeof(variant_t));
+
+	if(retval == NULL)
+	{
+		return;
+	}
+
+	retval->DataSize = sizeof(char);
+	retval->DataType = Char;
+	retval->RawBuffer[0] = ch;
 
 	return retval;
 }
 
 variant_t* variant_allocate_unsigned_char(unsigned char ch)
 {
-	variant_t* retval = NULL;
+	variant_t* retval = (variant_t*)calloc(1, sizeof(variant_t));
+
+	if(retval == NULL)
+	{
+		return;
+	}
+
+	retval->DataSize = sizeof(unsigned char);
+	retval->DataType = UnsignedChar;
+	retval->RawBuffer[0] = ch;
 
 	return retval;
 }
@@ -78,35 +102,80 @@ variant_t* variant_allocate_string(const char* str, size_t ln)
 
 variant_t* variant_allocate_bool(bool fl)
 {
-	variant_t* retval = NULL;
+	variant_t* retval = (variant_t*)calloc(1, sizeof(variant_t));
+
+	if(retval == NULL)
+	{
+		return;
+	}
+
+	retval->DataSize = sizeof(char);
+	retval->DataType = Boolean;
+	retval->RawBuffer[0] = fl;
 
 	return retval;
 }
 
 variant_t* variant_allocate_long(long val)
 {
-	variant_t* retval = NULL;
+	variant_t* retval = (variant_t*)calloc(1, sizeof(variant_t));
+
+	if(retval == NULL)
+	{
+		return;
+	}
+
+	retval->DataSize = sizeof(long);
+	retval->DataType = Number;
+	memcpy(&retval->RawBuffer[0], &val, sizeof(long));
 
 	return retval;
 }
 
 variant_t* variant_allocate_unsigned_long(unsigned long val)
 {
-	variant_t* retval = NULL;
+	variant_t* retval = (variant_t*)calloc(1, sizeof(variant_t));
+
+	if(retval == NULL)
+	{
+		return;
+	}
+
+	retval->DataSize = sizeof(unsigned long);
+	retval->DataType = UnsignedNumber;
+	memcpy(&retval->RawBuffer[0], &val, sizeof(unsigned long));
 
 	return retval;
 }
 
 variant_t* variant_allocate_double(double val)
 {
-	variant_t* retval = NULL;
+	variant_t* retval = (variant_t*)calloc(1, sizeof(variant_t));
+
+	if(retval == NULL)
+	{
+		return;
+	}
+
+	retval->DataSize = sizeof(double);
+	retval->DataType = Decimal;
+	memcpy(&retval->RawBuffer[0], &val, sizeof(double));
 
 	return retval;
 }
 
 variant_t* variant_allocate_time_value(unsigned long val)
 {
-	variant_t* retval = NULL;
+	variant_t* retval = (variant_t*)calloc(1, sizeof(variant_t));
+
+	if(retval == NULL)
+	{
+		return;
+	}
+
+	retval->DataSize = sizeof(unsigned long);
+	retval->DataType = DateTimeStamp;
+	memcpy(&retval->RawBuffer[0], &val, sizeof(unsigned long));
 
 	return retval;
 }
@@ -114,76 +183,150 @@ variant_t* variant_allocate_time_value(unsigned long val)
 
 void variant_set_variant(variant_t* varptr, variant_t* val)
 {
+	if(varptr == NULL)
+	{
+		return;
+	}
 
+	memset(&varptr->RawBuffer[0], 0, sizeof(variant_t));
+	memcpy(&varptr->RawBuffer[0], &val->RawBuffer[0], val->DataSize);
+	varptr->DataSize = val->DataSize;
+	varptr->DataType = val->DataType;
 }
 
 void variant_set_char(variant_t* varptr, char ch)
 {
+	if(varptr == NULL)
+	{
+		return;
+	}
 
+	memset(&varptr->RawBuffer[0], 0, sizeof(variant_t));
+	varptr->RawBuffer[0] = ch;
+	varptr->DataSize = sizeof(char);
+	varptr->DataType = Char;
 }
 
 void variant_set_unsigned_char(variant_t* varptr, unsigned char ch)
 {
+	if(varptr == NULL)
+	{
+		return;
+	}
 
+	memset(&varptr->RawBuffer[0], 0, sizeof(variant_t));
+	varptr->RawBuffer[0] = ch;
+	varptr->DataSize = sizeof(unsigned char);
+	varptr->DataType = UnsignedChar;
 }
 
 void variant_set_string(variant_t* varptr, const char* str, size_t ln)
 {
+	if(varptr == NULL || str == NULL || ln < 1)
+	{
+		return;
+	}
 
+	memset(&varptr->RawBuffer[0], 0, sizeof(variant_t));
+	memcpy(&varptr->RawBuffer[0], str, ln > 255 ? 255 : ln);
+	varptr->DataSize = ln;
+	varptr->DataType = String;
 }
 
 void variant_set_bool(variant_t* varptr, bool fl)
 {
+	if(varptr == NULL)
+	{
+		return;
+	}
 
+	memset(&varptr->RawBuffer[0], 0, sizeof(variant_t));
+	varptr->RawBuffer[0] = fl;
+	varptr->DataSize = sizeof(bool);
+	varptr->DataType = Boolean;
 }
 
 void variant_set_long(variant_t* varptr, long val)
 {
+	if(varptr == NULL)
+	{
+		return;
+	}
 
+	memset(&varptr->RawBuffer[0], 0, sizeof(variant_t));
+	memcpy(&varptr->RawBuffer[0], &val, sizeof(long));
+	varptr->DataSize = sizeof(long);
+	varptr->DataType = Number;
 }
 
 void variant_set_unsigned_long(variant_t* varptr, unsigned long val)
 {
+	if(varptr == NULL)
+	{
+		return;
+	}
 
+	memset(&varptr->RawBuffer[0], 0, sizeof(variant_t));
+	memcpy(&varptr->RawBuffer[0], &val, sizeof(unsigned long));
+	varptr->DataSize = sizeof(unsigned long);
+	varptr->DataType = UnsignedNumber;
 }
 
 void variant_set_double(variant_t* varptr, double val)
 {
+	if(varptr == NULL)
+	{
+		return;
+	}
 
+	memset(&varptr->RawBuffer[0], 0, sizeof(variant_t));
+	memcpy(&varptr->RawBuffer[0], &val, sizeof(double));
+	varptr->DataSize = sizeof(double);
+	varptr->DataType = Decimal;
 }
 
 void variant_set_time_value(variant_t* varptr, unsigned long val)
 {
+	if(varptr == NULL)
+	{
+		return;
+	}
 
+	memset(&varptr->RawBuffer[0], 0, sizeof(variant_t));
+	memcpy(&varptr->RawBuffer[0], &val, sizeof(unsigned long));
+	varptr->DataSize = sizeof(unsigned long);
+	varptr->DataType = DateTimeStamp;
 }
 
 
 VariantType variant_get_data_type(variant_t* varptr)
 {
-	VariantType retval = Void;
+	if(varptr == NULL)
+	{
+		return Void;
+	}
 
-	return retval;
+	return varptr->DataType;
 }
 
 size_t variant_get_data_size(variant_t* varptr)
 {
-	size_t retval = 0;
+	if(varptr == NULL)
+	{
+		return 0;
+	}
 
-	return retval;
-}
-
-variant_t* variant_get_variant(variant_t* varptr)
-{
-	variant_t* retval = NULL;
-
-	return retval;
+	return varptr->DataSize;
 }
 
 char variant_get_char(variant_t* varptr)
 {
-	char retval = 0;
+	if(varptr == NULL)
+	{
+		return 0;
+	}
 
-	return retval;
+	return (char)varptr->RawBuffer[0];
 }
 
 unsigned char variant_get_unsigned_char(variant_t* varptr)
