@@ -76,7 +76,6 @@ extern LIBRARY_EXPORT void variant_set_time_value(variant_t* varptr, unsigned lo
 extern LIBRARY_EXPORT VariantType variant_get_data_type(variant_t* varptr);
 extern LIBRARY_EXPORT size_t variant_get_data_size(variant_t* varptr);
 
-extern LIBRARY_EXPORT variant_t* variant_get_variant(variant_t* varptr);
 extern LIBRARY_EXPORT char variant_get_char(variant_t* varptr);
 extern LIBRARY_EXPORT unsigned char variant_get_unsigned_char(variant_t* varptr);
 extern LIBRARY_EXPORT const char* variant_get_string(variant_t* varptr);
