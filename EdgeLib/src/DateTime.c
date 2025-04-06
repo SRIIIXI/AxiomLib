@@ -64,6 +64,11 @@ char* date_time_get_default_string(char* ptr)
 
 void date_time_release(date_time_t* ptr)
 {
+	if(!ptr)
+    {
+        return;
+    }
+
 	free(ptr);
 	ptr = NULL;
 }
@@ -71,6 +76,12 @@ void date_time_release(date_time_t* ptr)
 date_time_t* date_time_allocate_default()
 {
 	date_time_t* retval = (date_time_t*)calloc(1, sizeof(date_time_t));
+
+	time_t t ;
+    struct tm *tmp ;
+    time(&t);
+    tmp = localtime(&t);
+	retval->timeinfo = *tmp;
 
 	return retval;
 }
@@ -94,7 +105,7 @@ date_time_t* date_time_allocate_from_unix_epoch(const unsigned long long unixtsv
 	struct tm *tmp ;
     time(&unixtsval);
     tmp = localtime(&unixtsval);
-	memcpy(&retval->timeinfo, tmp, sizeof(struct tm));
+	retval->timeinfo = *tmp;
 
 	return retval;
 }
@@ -106,6 +117,11 @@ date_time_t* date_time_allocate_from_time(const time_t tsval)
 
 date_time_t* date_time_allocate_from_time_struct(const struct tm* tsval)
 {
+	if(tsval == NULL)
+	{
+		return NULL;
+	}
+
 	date_time_t* retval = (date_time_t*)calloc(1, sizeof(date_time_t));
 
 	if(retval == NULL)
@@ -113,7 +129,7 @@ date_time_t* date_time_allocate_from_time_struct(const struct tm* tsval)
 		return NULL;
 	}
 
-	memcpy(&retval->timeinfo, tsval, sizeof(struct tm));
+	retval->timeinfo = *tsval;
 
 	return retval;
 }
@@ -166,76 +182,99 @@ date_time_t* date_time_add_seconds(date_time_t* ptr, unsigned long val)
 	return retval;
 }
 
-unsigned long date_time_get_years(date_time_t* ptr)
-{
-	unsigned long retval = 0;
-	return retval;
-}
-
-unsigned long date_time_get_months(date_time_t* ptr)
-{
-	unsigned long retval = 0;
-	return retval;
-}
-
-unsigned long date_time_get_days(date_time_t* ptr)
-{
-	unsigned long retval = 0;
-	return retval;
-}
-
 unsigned long date_time_get_hours(date_time_t* ptr)
 {
-	unsigned long retval = 0;
-	return retval;
+	if(ptr == NULL)
+	{
+		return 0;
+	}
+
+	return ptr->timeinfo.tm_hour;
 }
 
 unsigned long date_time_get_minutes(date_time_t* ptr)
 {
-	unsigned long retval = 0;
-	return retval;
+	if(ptr == NULL)
+	{
+		return 0;
+	}
+
+	return ptr->timeinfo.tm_min;
 }
 
 unsigned long date_time_get_seconds(date_time_t* ptr)
 {
-	unsigned long retval = 0;
-	return retval;
+	if(ptr == NULL)
+	{
+		return 0;
+	}
+
+	return ptr->timeinfo.tm_sec;
 }
 
 unsigned long date_time_get_miliseconds(date_time_t* ptr)
 {
-	unsigned long retval = 0;
-	return retval;
+	if(ptr == NULL)
+	{
+		return 0;
+	}
+
+	return ptr->timeinfo.tm_sec;
 }
 
 unsigned long date_time_get_year(date_time_t* ptr)
 {
-	unsigned long retval = 0;
-	return retval;
+	if(ptr == NULL)
+	{
+		return 0;
+	}
+
+	return ptr->timeinfo.tm_year+1900;
 }
 
 unsigned long date_time_get_month(date_time_t* ptr)
 {
-	unsigned long retval = 0;
-	return retval;
+	if(ptr == NULL)
+	{
+		return 0;
+	}
+
+	return ptr->timeinfo.tm_mon+1;
+}
+
+unsigned long date_time_get_days(date_time_t* ptr)
+{
+	if(ptr == NULL)
+	{
+		return 0;
+	}
+
+	return ptr->timeinfo.tm_yday;
 }
 
 unsigned long date_time_get_day_of_month(date_time_t* ptr)
 {
-	unsigned long retval = 0;
-	return retval;
+	if(ptr == NULL)
+	{
+		return 0;
+	}
+
+	return ptr->timeinfo.tm_mday;
 }
 
 unsigned long date_time_get_day_of_week(date_time_t* ptr)
 {
-	unsigned long retval = 0;
-	return retval;
+	if(ptr == NULL)
+	{
+		return 0;
+	}
+
+	return ptr->timeinfo.tm_wday;
 }
 
 unsigned long date_time_get_week_of_year(date_time_t* ptr)
 {
-	unsigned long retval = 0;
-	return retval;
+	return 0;
 }
 
 void date_time_set_year(date_time_t* ptr, unsigned long val)

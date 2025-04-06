@@ -56,9 +56,6 @@ extern LIBRARY_EXPORT date_time_t* date_time_add_hours(date_time_t* ptr, unsigne
 extern LIBRARY_EXPORT date_time_t* date_time_add_minutes(date_time_t* ptr, unsigned long val);
 extern LIBRARY_EXPORT date_time_t* date_time_add_seconds(date_time_t* ptr, unsigned long val);
 
-extern LIBRARY_EXPORT unsigned long date_time_get_years(date_time_t* ptr);
-extern LIBRARY_EXPORT unsigned long date_time_get_months(date_time_t* ptr);
-extern LIBRARY_EXPORT unsigned long date_time_get_days(date_time_t* ptr);
 extern LIBRARY_EXPORT unsigned long date_time_get_hours(date_time_t* ptr);
 extern LIBRARY_EXPORT unsigned long date_time_get_minutes(date_time_t* ptr);
 extern LIBRARY_EXPORT unsigned long date_time_get_seconds(date_time_t* ptr);
@@ -66,6 +63,7 @@ extern LIBRARY_EXPORT unsigned long date_time_get_miliseconds(date_time_t* ptr);
 
 extern LIBRARY_EXPORT unsigned long date_time_get_year(date_time_t* ptr);
 extern LIBRARY_EXPORT unsigned long date_time_get_month(date_time_t* ptr);
+extern LIBRARY_EXPORT unsigned long date_time_get_days(date_time_t* ptr);
 extern LIBRARY_EXPORT unsigned long date_time_get_day_of_month(date_time_t* ptr);
 extern LIBRARY_EXPORT unsigned long date_time_get_day_of_week(date_time_t* ptr);
 extern LIBRARY_EXPORT unsigned long date_time_get_week_of_year(date_time_t* ptr);
