@@ -37,6 +37,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ctype.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/file.h>
+
+// Global lock file descriptor - module static
+static int g_lock_file_descriptor = -1;
 
 string_t* env_get_current_process_name()
 {
@@ -44,7 +48,6 @@ string_t* env_get_current_process_name()
     size_t ln = 0;
     bool fnd = false;
     int ctr = 0;
-
 
     pid_t proc_id = getpid();
     char buffer[1025] = {0};
@@ -127,60 +130,156 @@ string_t* env_get_lock_filename()
     
     temp = dir_get_temp_directory();
     string_append_string(lock_filename, temp);
-    free(temp);
+    string_free(temp);
     string_append_char(lock_filename, '/');
 
     temp = env_get_current_process_name();
     string_append_string(lock_filename, temp);
-    free(temp);
+    string_free(temp);
     string_append_char(lock_filename, '.');
 
     temp = env_get_current_user_name();
     string_append_string(lock_filename, temp);
-    free(temp);
+    string_free(temp);
 
     string_append(lock_filename, ".lock");
 
     return  lock_filename;
 }
 
-/*
-bool env_lock_process(const char* lock_filename)
+bool env_lock_process()
 {
-    int lock_file = 0;
-
-    if (lock_file != 0 && lock_file != -1)
+    string_t* lock_filename = NULL;
+    const char* lock_path = NULL;
+    
+    // Already locked
+    if (g_lock_file_descriptor != -1)
     {
-        //File is already open
         return false;
     }
 
-    lock_file = open(lock_filename, O_CREAT | O_RDWR, 0666);
-    if (lock_file != -1)
+    lock_filename = env_get_lock_filename();
+    if (lock_filename == NULL)
     {
-        off_t sz = 0;
-        int rc = lockf(lock_file, F_TLOCK, sz);
-        if (rc == -1)
+        return false;
+    }
+
+    lock_path = string_c_str(lock_filename);
+    string_free(lock_filename);
+    
+    if (lock_path == NULL)
+    {
+        return false;
+    }
+
+    // Create lock file with exclusive access
+    g_lock_file_descriptor = open(lock_path, O_CREAT | O_RDWR | O_EXCL, 0666);
+    
+    if (g_lock_file_descriptor == -1)
+    {
+        // File might already exist, try to open it
+        g_lock_file_descriptor = open(lock_path, O_RDWR);
+        
+        if (g_lock_file_descriptor == -1)
         {
-            close(lock_file);
-            lock_file = 0;
             return false;
         }
-
-        // Okay! We got a lock
-        return true;
     }
-    else
+
+    // Try to acquire exclusive lock
+    if (flock(g_lock_file_descriptor, LOCK_EX | LOCK_NB) == -1)
     {
-        lock_file = 0;
+        close(g_lock_file_descriptor);
+        g_lock_file_descriptor = -1;
         return false;
+    }
+
+    // Write our PID to the lock file
+    char pid_buffer[32] = {0};
+    sprintf(pid_buffer, "%d\n", getpid());
+    
+    if (write(g_lock_file_descriptor, pid_buffer, strlen(pid_buffer)) == -1)
+    {
+        // Writing failed, but we still have the lock
+        // This is not critical, continue
     }
 
     return true;
 }
 
-bool env_unlock_process(const char* lock_filename)
+bool env_unlock_process()
 {
+    string_t* lock_filename = NULL;
+    const char* lock_path = NULL;
+    
+    // Not locked
+    if (g_lock_file_descriptor == -1)
+    {
+        return false;
+    }
 
+    // Release the flock
+    flock(g_lock_file_descriptor, LOCK_UN);
+    
+    // Close the file descriptor
+    close(g_lock_file_descriptor);
+    g_lock_file_descriptor = -1;
+
+    // Remove the lock file
+    lock_filename = env_get_lock_filename();
+    if (lock_filename != NULL)
+    {
+        lock_path = string_c_str(lock_filename);
+        string_free(lock_filename);
+        
+        if (lock_path != NULL)
+        {
+            unlink(lock_path);
+        }
+    }
+
+    return true;
 }
-*/
+
+bool env_is_process_locked()
+{
+    return (g_lock_file_descriptor != -1);
+}
+
+pid_t env_get_lock_file_pid()
+{
+    string_t* lock_filename = NULL;
+    const char* lock_path = NULL;
+    FILE* fp = NULL;
+    char buffer[32] = {0};
+    pid_t locked_pid = 0;
+    
+    lock_filename = env_get_lock_filename();
+    if (lock_filename == NULL)
+    {
+        return 0;
+    }
+
+    lock_path = string_c_str(lock_filename);
+    string_free(lock_filename);
+    
+    if (lock_path == NULL)
+    {
+        return 0;
+    }
+
+    fp = fopen(lock_path, "r");
+    
+    if (fp == NULL)
+    {
+        return 0;
+    }
+
+    if (fgets(buffer, sizeof(buffer) - 1, fp) != NULL)
+    {
+        locked_pid = (pid_t)atoi(buffer);
+    }
+
+    fclose(fp);
+    return locked_pid;
+}

@@ -43,12 +43,12 @@ extern LIBRARY_EXPORT char* date_time_get_default_string(char* ptr);
 extern LIBRARY_EXPORT void date_time_release(date_time_t* ptr);
 extern LIBRARY_EXPORT date_time_t* date_time_allocate_default();
 extern LIBRARY_EXPORT date_time_t* date_time_allocate_from_string(const char* strts, const char* strformat);
-extern LIBRARY_EXPORT date_time_t* date_time_allocate_from_unix_epoch(const unsigned long long unixtsval);
+extern LIBRARY_EXPORT date_time_t* date_time_allocate_from_unix_epoch(const time_t unixtsval);
 extern LIBRARY_EXPORT date_time_t* date_time_allocate_from_time(const time_t tsval);
 extern LIBRARY_EXPORT date_time_t* date_time_allocate_from_time_struct(const struct tm* tsval);
 extern LIBRARY_EXPORT char* date_time_get_string(date_time_t* ptr);
 extern LIBRARY_EXPORT char* date_time_get_formatted_string(date_time_t* ptr, const char* strformat);
-extern LIBRARY_EXPORT unsigned long long date_time_get_unix_epoch(date_time_t* ptr);
+extern LIBRARY_EXPORT time_t date_time_get_unix_epoch(date_time_t* ptr);
 extern LIBRARY_EXPORT time_t date_time_get_time(date_time_t* ptr);
 
 extern LIBRARY_EXPORT date_time_t* date_time_add_days(date_time_t* ptr, unsigned long val);
@@ -80,6 +80,10 @@ extern LIBRARY_EXPORT bool date_time_is_first_greater(date_time_t* first, date_t
 extern LIBRARY_EXPORT bool date_time_is_first_lower(date_time_t* first, date_time_t* second);
 
 extern LIBRARY_EXPORT unsigned long date_time_diff_miliseconds(date_time_t* first, date_time_t* second);
+
+// Handrail functions for external epoch timestamps
+extern LIBRARY_EXPORT unsigned long long date_time_to_epoch_ll(date_time_t* ptr);
+extern LIBRARY_EXPORT date_time_t* date_time_from_epoch_ll(unsigned long long epoch);
 
 #ifdef __cplusplus
 }
