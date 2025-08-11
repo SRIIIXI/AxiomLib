@@ -28,7 +28,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "Imap.h"
 #include "StringEx.h"
-#include "ResponderSsl.h"
+#include "Responder.h"
+#include "Responder.h"
 
 #include <malloc.h>
 
@@ -43,7 +44,8 @@ typedef struct imap_t
     char currentDirectory[65];
     char errorStr[65];
 
-    responder_ssl_t* bearer;
+    //responder_ssl_t* bearer;
+    responder_t* bearer;
 }imap_t;
 
 unsigned long imap_internal_get_number(const char* str);
@@ -51,13 +53,13 @@ unsigned long imap_internal_get_number(const char* str);
 imap_t* imap_allocate(void)
 {
     imap_t* ptr = (imap_t*)calloc(1, sizeof (imap_t));
-    ptr->bearer = responder_ssl_allocate();
+    ptr->bearer = responder_allocate();
     return ptr;
 }
 
 void imap_free(imap_t* ptr)
 {
-    responder_ssl_free(ptr->bearer);
+    responder_free(ptr->bearer);
     free(ptr);
 }
 

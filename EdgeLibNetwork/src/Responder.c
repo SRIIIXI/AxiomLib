@@ -28,7 +28,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "Responder.h"
 #include "StringEx.h"
-#include "StringList.h"
 
 #include <memory.h>
 #include <fcntl.h>
@@ -38,13 +37,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <stdio.h>
 
-#if !defined (_WIN32) && !defined (_WIN64)
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#endif
+
+const int INVALID_SOCKET = -1;
+const int SOCKET_ERROR = -1;
 
 #pragma pack(1)
 typedef struct responder_t
@@ -59,72 +59,8 @@ typedef struct responder_t
     int             error_code;
 }responder_t;
 
-bool is_ip4_address(char* str);
-
-bool is_ip4_address(char* str)
-{
-    size_t slen = strlen(str);
-
-    // Check the string length, for the range ...
-    // 0.0.0.0 and 255.255.255.255
-    if(slen < 7 || slen > 15)
-    {
-        // Bail out
-        return false;
-    }
-
-    int ctr;
-    bool isdelimeter = false;
-    char nibble[4];
-    memset((char*)&nibble[0],0,4);
-    int nbindex = 0;
-    for(ctr = 0 ; str[ctr] != '\0' ; ctr++)
-    {
-        // Check for permitted characters
-        if(str[ctr] != '.' && isdigit(str[ctr]) <= 0)
-        {
-            // Bail out
-            return false;
-        }
-
-        // '.' Delimeter case
-        if(str[ctr] == '.')
-        {
-            if(isdelimeter)
-            {
-                // The flag was set in last iteration
-                // This means ".." type of expression was found
-                // Bail out
-                return false;
-            }
-
-            // We have read a complete nibble
-            // The characters in the nibble must represent a permissible value
-            int numval = atoi(nibble);
-            if(numval < 0 || numval > 255)
-            {
-                return false;
-            }
-
-            // Set the flag and continue
-            memset((char*)&nibble[0],0,4);
-            nbindex = 0;
-            isdelimeter = true;
-            continue;
-        }
-
-        if(isdigit(str[ctr])> 0)
-        {
-            isdelimeter = false;
-            nibble[nbindex] = str[ctr];
-            nbindex++;
-            continue;
-        }
-
-    }
-
-    return true;
-}
+bool responder_internal_is_ip4_address(char* str);
+void responder_internal_split_buffer(const char* orig, size_t orig_len, const char* delimeter, size_t delimeter_len, char** left, size_t* left_len, char** right, size_t* right_len);
 
 responder_t* responder_allocate()
 {
@@ -150,24 +86,25 @@ responder_t *responder_create_socket(responder_t *ptr, const char* servername, i
     ptr->server_address.sin_family = AF_INET;
     ptr->server_address.sin_port = htons(serverport);
 
-    u_long nRemoteAddr;
-
     char ipbuffer[32]={0};
     strncpy(ipbuffer, servername, 31);
 
-    bool ip = is_ip4_address(ipbuffer);
+    bool ip = responder_internal_is_ip4_address(ipbuffer);
 
     if(!ip)
     {
         struct hostent* pHE = gethostbyname(ptr->server_name);
         if (pHE == 0)
         {
-            nRemoteAddr = INADDR_NONE;
             free(ptr);
             return NULL;
         }
-        nRemoteAddr = *((u_long*)pHE->h_addr_list[0]);
-        ptr->server_address.sin_addr.s_addr = nRemoteAddr;
+
+        memset(&(ptr->server_address), 0, sizeof(struct sockaddr_in));
+        ptr->server_address.sin_family = AF_INET;
+        bcopy((char*)pHE->h_addr_list[0], (char*)&(ptr->server_address.sin_addr.s_addr), pHE->h_length);
+        ptr->server_address.sin_port = htons(serverport);
+
     }
     else
     {
@@ -217,7 +154,7 @@ bool responder_connect_socket(responder_t* ptr)
 	{
         ptr->error_code = errno;
         shutdown(ptr->socket, 2);
-        closesocket(ptr->socket);
+        close(ptr->socket);
         ptr->connected = false;
 		return false;
 	}
@@ -239,7 +176,7 @@ bool responder_close_socket(responder_t* ptr)
     }
 
     shutdown(ptr->socket, 2);
-    closesocket(ptr->socket);
+    close(ptr->socket);
 
     ptr->connected = false;
 
@@ -337,12 +274,15 @@ bool responder_receive_string(responder_t* ptr, char** iostr, const char* delime
     char*	data = NULL;
     char*   current_line = NULL;
     char*   next_line = NULL;
+    size_t delimeter_len = strlen(delimeter);
+    size_t current_len = 0;
+    size_t next_len = 0;
 
     if(ptr->prefetched_buffer_size > 0)
 	{
         if(strstr((char*)ptr->prefetched_buffer, delimeter) !=0 )
 		{
-            strsplitkeyvaluesubstr((const char*)ptr->prefetched_buffer, delimeter, &current_line, &next_line);
+            responder_internal_split_buffer((const char*)ptr->prefetched_buffer, ptr->prefetched_buffer_size, delimeter, delimeter_len, &current_line, &current_len, &next_line, &next_len);
 
             ptr->prefetched_buffer = NULL;
             free(ptr->prefetched_buffer);
@@ -398,7 +338,7 @@ bool responder_receive_string(responder_t* ptr, char** iostr, const char* delime
 
         if(strstr(data, delimeter) != 0)
 		{
-            strsplitkeyvaluesubstr((const char*)ptr->prefetched_buffer, delimeter, &current_line, &next_line);
+            responder_internal_split_buffer((const char*)ptr->prefetched_buffer, ptr->prefetched_buffer_size, delimeter, delimeter_len, &current_line, &current_len, &next_line, &next_len);
 
             if(next_line != NULL)
             {
@@ -487,4 +427,130 @@ socket_t responder_get_socket(responder_t *ptr)
 int  responder_get_error_code(responder_t* ptr)
 {
     return 0;
+}
+
+bool responder_internal_is_ip4_address(char* str)
+{
+    size_t slen = strlen(str);
+
+    // Check the string length, for the range ...
+    // 0.0.0.0 and 255.255.255.255
+    if(slen < 7 || slen > 15)
+    {
+        // Bail out
+        return false;
+    }
+
+    int ctr;
+    bool isdelimeter = false;
+    char nibble[4];
+    memset((char*)&nibble[0],0,4);
+    int nbindex = 0;
+    for(ctr = 0 ; str[ctr] != '\0' ; ctr++)
+    {
+        // Check for permitted characters
+        if(str[ctr] != '.' && isdigit(str[ctr]) <= 0)
+        {
+            // Bail out
+            return false;
+        }
+
+        // '.' Delimeter case
+        if(str[ctr] == '.')
+        {
+            if(isdelimeter)
+            {
+                // The flag was set in last iteration
+                // This means ".." type of expression was found
+                // Bail out
+                return false;
+            }
+
+            // We have read a complete nibble
+            // The characters in the nibble must represent a permissible value
+            int numval = atoi(nibble);
+            if(numval < 0 || numval > 255)
+            {
+                return false;
+            }
+
+            // Set the flag and continue
+            memset((char*)&nibble[0],0,4);
+            nbindex = 0;
+            isdelimeter = true;
+            continue;
+        }
+
+        if(isdigit(str[ctr])> 0)
+        {
+            isdelimeter = false;
+            nibble[nbindex] = str[ctr];
+            nbindex++;
+            continue;
+        }
+
+    }
+
+    return true;
+}
+
+void responder_internal_split_buffer(const char* orig, size_t orig_len, const char* delimeter, size_t delimeter_len, char** left, size_t* left_len, char** right, size_t* right_len)
+{
+    // Set output pointers to NULL and 0 initially to handle cases where the delimiter is not found.
+    *left = NULL;
+    *left_len = 0;
+    *right = NULL;
+    *right_len = 0;
+
+    if (delimeter_len == 0 || orig_len == 0 || delimeter_len > orig_len)
+    {
+        // If the delimiter is invalid or longer than the original buffer,
+        // treat the whole original buffer as the left part and the right part as empty.
+        *left = (char*)malloc(orig_len);
+        if (*left)
+        {
+            memcpy(*left, orig, orig_len);
+            *left_len = orig_len;
+        }
+        return;
+    }
+
+    // Find the first occurrence of the delimiter.
+    const char* p = orig;
+    const char* end = orig + orig_len - delimeter_len;
+    while (p <= end)
+    {
+        if (memcmp(p, delimeter, delimeter_len) == 0)
+        {
+            // Delimiter found.
+            size_t left_size = p - orig;
+            size_t right_size = orig_len - (left_size + delimeter_len);
+
+            // Allocate and copy the left part.
+            *left = (char*)malloc(left_size);
+            if (*left)
+            {
+                memcpy(*left, orig, left_size);
+                *left_len = left_size;
+            }
+
+            // Allocate and copy the right part.
+            *right = (char*)malloc(right_size);
+            if (*right)
+            {
+                memcpy(*right, p + delimeter_len, right_size);
+                *right_len = right_size;
+            }
+            return;
+        }
+        p++;
+    }
+
+    // If the delimiter is not found, the whole buffer is the "left" part.
+    *left = (char*)malloc(orig_len);
+    if (*left)
+    {
+        memcpy(*left, orig, orig_len);
+        *left_len = orig_len;
+    }
 }

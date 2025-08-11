@@ -28,7 +28,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "Smtp.h"
 #include "StringEx.h"
-#include "ResponderSsl.h"
+#include "Responder.h"
 #include "Dictionary.h"
 
 #include <memory.h>
@@ -45,7 +45,9 @@ typedef struct smtp_t
     char errorStr[65];
     dictionary_t* email_header;
     mail_body_t* email_body;
-    responder_ssl_t* bearer;
+    
+    //responder_ssl_t* bearer;
+    responder_t* bearer;
 }smtp_t;
 
 //SmtpClient::SmtpClient()

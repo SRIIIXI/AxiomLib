@@ -36,6 +36,7 @@ extern "C" {
 #endif
 
 typedef struct responder_t responder_t;
+typedef int socket_t;
 
 extern LIBRARY_EXPORT responder_t* responder_allocate();
 extern LIBRARY_EXPORT void responder_free(responder_t* ptr);
