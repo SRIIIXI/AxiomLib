@@ -239,12 +239,30 @@ const char* string_c_str(string_t* str)
 
 wchar_t *string_c_to_wstr(const char *str)
 {
-    return NULL;
+    if (!str)
+    {
+        return NULL;
+    }
+
+    size_t len = mbstowcs(NULL, str, 0);
+    if (len == (size_t)-1)
+    {
+        return NULL; // conversion failed
+    }
+
+    wchar_t *wstr = malloc((len + 1) * sizeof(wchar_t));
+    if (!wstr)
+    {
+        return NULL;
+    }
+
+    mbstowcs(wstr, str, len + 1);
+    return wstr;
 }
 
 wchar_t* string_to_wstr(const string_t* str)
 {
-    return NULL;
+    return string_c_to_wstr(str->data);
 }
 
 string_t *string_from_wstr(const wchar_t *wstr)
@@ -620,27 +638,101 @@ string_t* string_remove_substr_at(string_t *str, size_t pos, size_t len)
 
 void string_remove_end(string_t* ptr, size_t len)
 {
+    if (ptr == NULL || ptr->data == NULL)
+    {
+        return;
+    }
 
+    size_t cur_len = strlen(ptr->data);
+
+    if (len >= cur_len)
+    {
+        // Remove everything
+        memset(ptr->data, '\0', ptr->data_size);
+        return;
+    }
+
+    // Null terminate after removing 'len' chars
+    size_t new_len = cur_len - len;
+    ptr->data[new_len] = '\0';
+
+    // Zero out the remainder of the buffer
+    if (ptr->data_size > new_len + 1)
+    {
+        memset(ptr->data + new_len + 1, '\0',
+               ptr->data_size - (new_len + 1));
+    }
 }
 
 void string_remove_start(string_t* ptr, size_t len)
 {
+    if (ptr == NULL || ptr->data == NULL)
+    {
+        return;
+    }
 
+    size_t cur_len = strlen(ptr->data);
+
+    if (len == 0 || cur_len == 0)
+    {
+        return;
+    }
+
+    if (len >= cur_len)
+    {
+        // Remove everything
+        memset(ptr->data, '\0', ptr->data_size);
+        return;
+    }
+
+    // Shift remaining characters to the front
+    memmove(ptr->data, ptr->data + len, cur_len - len + 1);
+
+    // Zero out the remainder of the buffer
+    size_t new_len = strlen(ptr->data);
+    if (ptr->data_size > new_len + 1)
+    {
+        memset(ptr->data + new_len + 1, '\0',
+               ptr->data_size - (new_len + 1));
+    }
 }
 
 string_t *string_remove_char_first(string_t *str, const char oldchar)
 {
-    long pos = string_index_of_char(str, oldchar);
-
-    if(pos < 0)
+    if (str == NULL || str->data == NULL)
     {
         return str;
     }
 
-    size_t oldlen = str->data_size;
+    size_t i = 0;
+    size_t cur_len = 0;
+    int found = 0;
 
-    strcpy(str->data + pos, str->data + pos + 1);
-    str->data[oldlen] = 0;
+    // Loop over each character until null terminator
+    while (str->data[i] != '\0')
+    {
+        if (!found && str->data[i] == oldchar)
+        {
+            found = 1; // Mark first match
+        }
+
+        if (found)
+        {
+            // Shift next character into current position
+            str->data[i] = str->data[i + 1];
+        }
+
+        i++;
+    }
+
+    cur_len = i;
+
+    // Clear remaining unused space in buffer
+    for (size_t j = cur_len + 1; j < str->data_size; j++)
+    {
+        str->data[j] = '\0';
+    }
+
     return str;
 }
 
@@ -999,7 +1091,50 @@ string_list_t* string_split_by_char(const string_t* str, const char delimiter)
 
 char* string_join_list_with_substr(const char** strlist, const char* delimiter)
 {
-	return NULL;
+    if (strlist == NULL || delimiter == NULL)
+    {
+        return NULL;
+    }
+
+    size_t delimiter_len = strlen(delimiter);
+    size_t total_len = 0;
+    size_t count = 0;
+
+    // First, calculate total length needed
+    while (strlist[count] != NULL)
+    {
+        total_len += strlen(strlist[count]);
+        count++;
+    }
+
+    if (count == 0)
+    {
+        // Empty list
+        return NULL;
+    }
+
+    // Add space for delimiters between strings
+    total_len += delimiter_len * (count - 1);
+
+    // Allocate buffer for result + null terminator
+    char* result = (char*)calloc(total_len + 1, sizeof(char));
+    if (result == NULL)
+    {
+        return NULL;
+    }
+
+    // Concatenate strings with delimiter
+    for (size_t i = 0; i < count; i++)
+    {
+        strcat(result, strlist[i]);
+
+        if (i < count - 1)
+        {
+            strcat(result, delimiter);
+        }
+    }
+
+    return result;
 }
 
 char* string_join_list_with_char(const char** strlist, const char delimiter)
@@ -1011,18 +1146,133 @@ char* string_join_list_with_char(const char** strlist, const char delimiter)
 
 char* string_merge_list_with_substr(const char **strlist, const char* delimiter)
 {
-    return NULL;
+        if (strlist == NULL || delimiter == NULL)
+    {
+        return NULL;
+    }
 
+    size_t delimiter_len = strlen(delimiter);
+    size_t total_len = 0;
+    size_t count = 0;
+
+    // Count strings and total length
+    while (strlist[count] != NULL)
+    {
+        total_len += strlen(strlist[count]);
+        count++;
+    }
+
+    if (count == 0)
+    {
+        return NULL;
+    }
+
+    // Add space for delimiters
+    total_len += delimiter_len * (count - 1);
+
+    char* result = (char*)calloc(total_len + 1, sizeof(char));
+    if (result == NULL)
+    {
+        return NULL;
+    }
+
+    // Merge strings with delimiter
+    for (size_t i = 0; i < count; i++)
+    {
+        size_t len = strlen(strlist[i]);
+        memcpy(result + strlen(result), strlist[i], len);
+
+        if (i < count - 1)
+        {
+            memcpy(result + strlen(result), delimiter, delimiter_len);
+        }
+    }
+
+    return result;
 }
 
-char* string_merge_list_with_char(const char** strlist, const char delimite)
+char* string_merge_list_with_char(const char** strlist, const char delimiter)
 {
-    return NULL;
+    if (strlist == NULL)
+    {
+        return NULL;
+    }
+
+    // Calculate total length needed (including delimiters)
+    size_t total_length = 0;
+    size_t count = 0;
+
+    while (strlist[count] != NULL)
+    {
+        total_length += strlen(strlist[count]);
+        count++;
+    }
+
+    if (count == 0)
+    {
+        // Empty list, return empty string
+        char* empty_str = (char*)calloc(1, sizeof(char));
+        return empty_str;
+    }
+
+    // Add space for delimiters (count - 1) and terminating null
+    total_length += (count - 1) + 1;
+
+    char* merged_str = (char*)calloc(total_length, sizeof(char));
+    if (merged_str == NULL)
+    {
+        return NULL;
+    }
+
+    size_t pos = 0;
+    for (size_t i = 0; i < count; i++)
+    {
+        size_t len = strlen(strlist[i]);
+        memcpy(merged_str + pos, strlist[i], len);
+        pos += len;
+
+        // Add delimiter if not the last element
+        if (i < count - 1)
+        {
+            merged_str[pos] = delimiter;
+            pos++;
+        }
+    }
+
+    // Null-terminate (calloc zeroes already, but set explicitly)
+    merged_str[pos] = '\0';
+
+    return merged_str;
 }
 
 void  string_sort_list(string_list_t *strlist)
 {
+        if (strlist == NULL)
+    {
+        return;
+    }
 
+    if (strlist->num_of_strings < 2 || strlist->strings == NULL)
+    {
+        return;
+    }
+
+    for (size_t i = 0; i < strlist->num_of_strings - 1; ++i)
+    {
+        for (size_t j = i + 1; j < strlist->num_of_strings; ++j)
+        {
+            const char* a = strlist->strings[i].data ? strlist->strings[i].data : "";
+            const char* b = strlist->strings[j].data ? strlist->strings[j].data : "";
+
+            if (strcmp(a, b) > 0)
+            {
+                /* swap the whole string_t structs (shallow swap) */
+                string_t tmp = strlist->strings[i];
+                strlist->strings[i] = strlist->strings[j];
+                strlist->strings[j] = tmp;
+            }
+        }
+    }
 }
 
 void string_free_list(string_list_t *strlist)
@@ -1041,12 +1291,52 @@ void string_free_list(string_list_t *strlist)
 
 void  string_append_to_list(string_list_t *strlist, const char *str)
 {
+    if (strlist == NULL || str == NULL)
+    {
+        return;
+    }
 
+    string_t* new_string = string_allocate(str);
+
+    if (new_string == NULL)
+    {
+        return;
+    }
+
+    // Allocate or reallocate the strings array to hold one more string_t
+    if (strlist->strings == NULL)
+    {
+        strlist->strings = (string_t*)calloc(1, sizeof(string_t));
+    }
+    else
+    {
+        string_t* temp = (string_t*)realloc(strlist->strings, (strlist->num_of_strings + 1) * sizeof(string_t));
+        if (temp == NULL)
+        {
+            string_free(new_string);
+            return;
+        }
+        strlist->strings = temp;
+    }
+
+    // Copy the new string_t struct contents into the array at the next position
+    strlist->strings[strlist->num_of_strings] = *new_string;
+
+    // Free the temporary pointer but NOT the internal data (which was assigned)
+    free(new_string);
+
+    strlist->num_of_strings++;
 }
 
 void  string_append_string_to_list(string_list_t* strlist, const string_t* str)
 {
+    if (strlist == NULL || str == NULL)
+    {
+        return;
+    }
 
+    // Append the internal data of string_t 'str' to the list using existing function
+    string_append_to_list(strlist, str->data);
 }
 
 string_t* string_get_first_from_list(string_list_t* strlist)
@@ -1160,5 +1450,47 @@ char* string_internal_from_int(long num)
 
 char* string_internal_from_double(double num)
 {
-    return NULL;
+    char* ptr = (char*)calloc(1, 64);  // Enough buffer for sign, digits, decimal point, fraction
+    if(ptr == NULL)
+    {
+        return NULL;
+    }
+
+    long integral_part = (long)num;
+    double fractional_part = num - (double)integral_part;
+    if (fractional_part < 0)
+    {
+        fractional_part = -fractional_part;
+    }
+
+    // Convert integral part to string using existing int conversion logic
+    char* int_str = string_internal_from_int(integral_part);
+    if(int_str == NULL)
+    {
+        free(ptr);
+        return NULL;
+    }
+
+    // Copy integral part to ptr
+    int pos = 0;
+    for(int i = 0; int_str[i] != '\0'; i++)
+    {
+        ptr[pos++] = int_str[i];
+    }
+    free(int_str);
+
+    ptr[pos++] = '.';  // decimal point
+
+    // Convert fractional part, 6 digits precision
+    for(int i = 0; i < 6; i++)
+    {
+        fractional_part *= 10.0;
+        int digit = (int)fractional_part;
+        ptr[pos++] = (char)(digit + '0');
+        fractional_part -= digit;
+    }
+
+    ptr[pos] = '\0';
+
+    return ptr;
 }
