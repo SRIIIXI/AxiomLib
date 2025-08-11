@@ -63,9 +63,7 @@ void queue_clear(queue_t* qptr)
         return;
     }
 
-    list_lock(qptr->list);
     list_clear(qptr->list);
-    list_unlock(qptr->list);
 }
 
 void queue_free(queue_t* qptr)
@@ -96,12 +94,10 @@ void queue_enqueue(queue_t* qptr, void* data, size_t sz)
         return;
     }
 
-    list_lock(qptr->list);
     list_add_to_head(qptr->list, data, sz);
-    list_unlock(qptr->list);
 }
 
-void* queue_denqueue(queue_t* qptr)
+void* queue_dequeue(queue_t* qptr, size_t* out_size)
 {
     if (qptr == NULL)
     {
@@ -115,10 +111,11 @@ void* queue_denqueue(queue_t* qptr)
 
     void* ptr = NULL;
 
-    list_lock(qptr->list);
-    ptr = list_get_last(qptr->list);
+    size_t size = 0;
+    ptr = list_get_last(qptr->list, &size);
     list_remove_from_tail(qptr->list);
-    list_unlock(qptr->list);
+
+    *out_size = size;
 
     return ptr;
 }
@@ -136,3 +133,24 @@ long queue_item_count(queue_t* qptr)
     return -1;
 }
 
+void* queue_peek(queue_t* qptr, size_t* out_size)
+{
+    if (qptr == NULL)
+    {
+        return NULL;
+    }
+
+    if (qptr->list == NULL)
+    {
+        return NULL;
+    }
+
+    void* ptr = NULL;
+
+    size_t size = 0;
+    ptr = list_get_last(qptr->list, &size);
+
+    *out_size = size;
+
+    return ptr;
+}

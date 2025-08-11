@@ -63,9 +63,7 @@ void stack_clear(stack_t* sptr)
         return;
     }
 
-    list_lock(sptr->list);
     list_clear(sptr->list);
-    list_unlock(sptr->list);
 }
 
 void stack_free(stack_t* sptr)
@@ -96,12 +94,10 @@ void stack_push(stack_t* sptr, void* data, size_t sz)
         return;
     }
 
-    list_lock(sptr->list);
     list_add_to_tail(sptr->list, data, sz);
-    list_unlock(sptr->list);
 }
 
-void* stack_pop(stack_t* sptr)
+void* stack_pop(stack_t* sptr, size_t* out_size)
 {
     if (sptr == NULL)
     {
@@ -115,11 +111,18 @@ void* stack_pop(stack_t* sptr)
 
     void* ptr = NULL;
 
-    list_lock(sptr->list);
-    ptr = list_get_last(sptr->list);
+    size_t size = 0;
+    ptr = list_get_last(sptr->list, &size);
     list_remove_from_tail(sptr->list);
-    list_unlock(sptr->list);
+    if (ptr == NULL)
+    {
+        return NULL;
+    }
 
+    if (out_size != NULL)
+    {
+        *out_size = size;
+    }
     return ptr;
 }
 
@@ -134,4 +137,32 @@ long stack_item_count(stack_t* sptr)
     }
 
     return -1;
+}
+
+void* stack_peek(stack_t* sptr, size_t* out_size)
+{
+    if (sptr == NULL)
+    {
+        return NULL;
+    }
+
+    if (sptr->list == NULL)
+    {
+        return NULL;
+    }
+
+    void* ptr = NULL;
+
+    size_t size = 0;
+    ptr = list_get_last(sptr->list, &size);
+    if (ptr == NULL)
+    {
+        return NULL;
+    }
+
+    if (out_size != NULL)
+    {
+        *out_size = size;
+    }
+    return ptr;
 }

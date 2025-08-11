@@ -152,17 +152,15 @@ void test_list(void)
 
     void* item = NULL;
 
-    list_lock(mylist);
+    size_t size = 0;
 
-    item = list_get_first(mylist);
+    item = list_get_first(mylist, &size);
 
     while(item)
     {
         printf("%s\n", (char*)item);
-        item = list_get_next(mylist);
+        item = list_get_next(mylist, &size);
     }
-
-    list_unlock(mylist);
 
     list_clear(mylist);
     list_free(mylist);

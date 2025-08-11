@@ -41,9 +41,6 @@ extern LIBRARY_EXPORT list_t* list_allocate(list_t* lptr);
 extern LIBRARY_EXPORT void list_clear(list_t* lptr);
 extern LIBRARY_EXPORT void list_free(list_t* lptr);
 
-extern LIBRARY_EXPORT void list_lock(list_t* lptr);
-extern LIBRARY_EXPORT void list_unlock(list_t* lptr);
-
 extern LIBRARY_EXPORT void list_add_to_head(list_t* lptr, void* data, size_t sz);
 extern LIBRARY_EXPORT void list_add_to_tail(list_t* lptr, void* data, size_t sz);
 extern LIBRARY_EXPORT void list_insert(list_t* lptr, void* data, size_t sz, long pos);
@@ -59,10 +56,9 @@ extern LIBRARY_EXPORT long list_index_of(list_t* lptr, const void* node);
 extern LIBRARY_EXPORT long list_index_of_value(list_t* lptr, void* data, size_t sz);
 extern LIBRARY_EXPORT void* list_get_at(list_t* lptr, long atpos);
 
-extern LIBRARY_EXPORT void* list_get_first(list_t* lptr);
-extern LIBRARY_EXPORT void* list_get_next(list_t* lptr);
-extern LIBRARY_EXPORT void* list_get_last(list_t* lptr);
-extern LIBRARY_EXPORT void* list_get_previous(list_t* lptr);
+extern LIBRARY_EXPORT void* list_get_first(list_t* lptr, size_t* out_size);
+extern LIBRARY_EXPORT void* list_get_next(list_t* lptr, size_t* out_size);
+extern LIBRARY_EXPORT void* list_get_last(list_t* lptr, size_t* out_size);
 
 extern LIBRARY_EXPORT list_t* list_sort(list_t* lptr);
 extern LIBRARY_EXPORT list_t* list_merge(list_t* lptrFirst, list_t* lptrSecond);

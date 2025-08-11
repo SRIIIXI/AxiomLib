@@ -42,8 +42,9 @@ extern LIBRARY_EXPORT void stack_clear(stack_t* sptr);
 extern LIBRARY_EXPORT void stack_free(stack_t* sptr);
 
 extern LIBRARY_EXPORT void stack_push(stack_t* sptr, void* data, size_t sz);
-extern LIBRARY_EXPORT void* stack_pop(stack_t* sptr);
+extern LIBRARY_EXPORT void* stack_pop(stack_t* sptr, size_t* out_size);
 extern LIBRARY_EXPORT long stack_item_count(stack_t* sptr);
+extern LIBRARY_EXPORT void* stack_peek(stack_t* sptr, size_t* out_size);
 
 #ifdef __cplusplus
 }

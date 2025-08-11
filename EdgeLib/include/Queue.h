@@ -42,8 +42,9 @@ extern LIBRARY_EXPORT void queue_clear(queue_t* qptr);
 extern LIBRARY_EXPORT void queue_free(queue_t* qptr);
 
 extern LIBRARY_EXPORT void queue_enqueue(queue_t* qptr, void* data, size_t sz);
-extern LIBRARY_EXPORT void* queue_denqueue(queue_t* qptr);
+extern LIBRARY_EXPORT void* queue_dequeue(queue_t* qptr, size_t* out_size);
 extern LIBRARY_EXPORT long queue_item_count(queue_t* qptr);
+extern LIBRARY_EXPORT void* queue_peek(queue_t* qptr, size_t* out_size);
 
 #ifdef __cplusplus
 }
