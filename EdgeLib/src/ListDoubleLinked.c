@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <limits.h>
 
+typedef int (*list_double_linked_compare_fn)(const void* a, size_t a_sz, const void* b, size_t b_sz);
 
 typedef struct node_double_linked_t
 {
@@ -55,6 +56,15 @@ void list_double_linked_internal_remove_from_head(list_double_linked_t* lptr);
 void list_double_linked_internal_remove_from_tail(list_double_linked_t* lptr);
 void list_double_linked_internal_add_to_head(list_double_linked_t* lptr, node_double_linked_t *ptr);
 void list_double_linked_internal_add_to_tail(list_double_linked_t* lptr, node_double_linked_t* ptr);
+
+// Forward declarations
+static node_double_linked_t* list_double_linked_internal_merge_sorted(node_double_linked_t* left, node_double_linked_t* right, list_double_linked_compare_fn cmp);
+static void list_double_linked_internal_split(node_double_linked_t* source, node_double_linked_t** frontRef, node_double_linked_t** backRef);
+static list_double_linked_t* list_double_linked_internal_sort(list_double_linked_t* lptr, list_double_linked_compare_fn cmp);
+static node_double_linked_t* list_double_linked_internal_merge_sort_recursive(node_double_linked_t* head, list_double_linked_compare_fn cmp);
+static void list_double_linked_internal_split(node_double_linked_t* source,node_double_linked_t** frontRef,node_double_linked_t** backRef);
+static node_double_linked_t* list_double_linked_internal_merge_sorted( node_double_linked_t* left, node_double_linked_t* right, list_double_linked_compare_fn cmp);
+static int list_double_linked_internal_default_compare(const void* a, size_t a_sz, const void* b, size_t b_sz);
 
 list_double_linked_t * list_double_linked_allocate(list_double_linked_t* lptr)
 {
@@ -102,22 +112,6 @@ void list_double_linked_free(list_double_linked_t* lptr)
     }
 }
 
-void list_double_linked_lock(list_double_linked_t* lptr)
-{
-    if(lptr == NULL)
-    {
-        return;
-    }
-}
-
-void list_double_linked_unlock(list_double_linked_t* lptr)
-{
-    if(lptr == NULL)
-    {
-        return;
-    }
-}
-
 void list_double_linked_add_to_head(list_double_linked_t* lptr, void* data, size_t sz)
 {
     list_double_linked_insert(lptr, data, sz, 0);
@@ -130,59 +124,59 @@ void list_double_linked_add_to_tail(list_double_linked_t* lptr, void* data, size
 
 void list_double_linked_insert(list_double_linked_t* lptr, void* data, size_t sz, long pos)
 {
-	if (lptr == NULL)
-	{
+    if (lptr == NULL || data == NULL || sz == 0)
+    {
         return;
-	}
-
-    node_double_linked_t* ptr = NULL;
-
-    ptr = (node_double_linked_t*)calloc(1, sizeof(node_double_linked_t));
-
+    }
+    
+    node_double_linked_t* ptr = calloc(1, sizeof(node_double_linked_t));
+    
     if (!ptr)
     {
         return;
     }
-
+    
     ptr->data = calloc(1, sz);
-
+    
     if (!ptr->data)
     {
         free(ptr);
         return;
     }
-
+    
     memcpy(ptr->data, data, sz);
     ptr->size = sz;
-
-    if(pos <= 0)
+    
+    if (pos <= 0)
     {
         list_double_linked_internal_add_to_head(lptr, ptr);
         return;
     }
-
+    
     if (pos >= lptr->count)
     {
         list_double_linked_internal_add_to_tail(lptr, ptr);
         return;
     }
-
-    int idx = 1;
-    for(node_double_linked_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next, idx++)
+    
+    node_double_linked_t* current = lptr->head;
+    
+    for (long i = 0; i < pos - 1; i++)
     {
-        if(pos == idx)
-        {
-            node_double_linked_t* oldnext = curptr->next;
-
-            curptr->next = ptr;
-            ptr->next = oldnext;
-
-            lptr->count++;
-            break;
-        }
-
-        idx++;
+        current = current->next;
     }
+    
+    ptr->next = current->next;
+    ptr->previous = current;
+    
+    if (current->next != NULL)
+    {
+        current->next->previous = ptr;
+    }
+    
+    current->next = ptr;
+    
+    lptr->count++;
 }
 
 void list_double_linked_remove_from_head(list_double_linked_t* lptr)
@@ -197,136 +191,119 @@ void list_double_linked_remove_from_tail(list_double_linked_t* lptr)
 
 void list_double_linked_remove(list_double_linked_t* lptr, const void *data)
 {
-    if(lptr == NULL || data == NULL)
+    if (lptr == NULL || data == NULL)
     {
         return;
     }
 
-    for(node_double_linked_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next)
-    {
-        if(memcmp(data, curptr->data, curptr->size) == 0)
-        {
-            if(curptr->next == NULL)
-            {
-                list_double_linked_internal_remove_from_tail(lptr);
-                break;
-            }
+    node_double_linked_t* curptr = lptr->head;
 
-            if(curptr == lptr->head)
+    while (curptr != NULL)
+    {
+        if (memcmp(data, curptr->data, curptr->size) == 0)
+        {
+            if (curptr == lptr->head)
             {
                 list_double_linked_internal_remove_from_head(lptr);
-                break;
+                return;
             }
 
-            node_double_linked_t* targetnode = curptr->next;
+            if (curptr == lptr->tail)
+            {
+                list_double_linked_internal_remove_from_tail(lptr);
+                return;
+            }
+
+            // Middle node unlink
+            curptr->previous->next = curptr->next;
+            curptr->next->previous = curptr->previous;
 
             free(curptr->data);
             free(curptr);
 
             lptr->count--;
-            break;
+            return;
         }
+
+        curptr = curptr->next;
     }
 }
 
 void list_double_linked_remove_at(list_double_linked_t* lptr, long pos)
 {
-    if(lptr == NULL || pos < 0)
+    if (lptr == NULL || pos < 0 || pos >= lptr->count)
     {
         return;
     }
 
-    if(pos > lptr->count -1)
+    if (pos == 0)
     {
+        list_double_linked_internal_remove_from_head(lptr);
         return;
     }
 
-    if(pos >= lptr->count -1)
+    if (pos == lptr->count - 1)
     {
         list_double_linked_internal_remove_from_tail(lptr);
+        return;
     }
-    else
+
+    node_double_linked_t* curptr = lptr->head;
+
+    for (long idx = 0; idx < pos; idx++)
     {
-        if(pos == 0)
-        {
-            list_double_linked_internal_remove_from_head(lptr);
-        }
-        else
-        {
-            int idx = 1;
-            for(node_double_linked_t* curptr = lptr->head ; curptr->next != NULL; curptr = curptr->next, idx++)
-            {
-                if(idx == pos)
-                {
-                    node_double_linked_t* prev = curptr->previous;
-                    node_double_linked_t* next = curptr->next;
-
-                    prev->next = next;
-                    next->previous = prev;
-
-                    free(curptr->data);
-                    free(curptr);
-
-                    lptr->count--;
-                    break;
-                }
-            }
-        }
+        curptr = curptr->next;
     }
+
+    // Unlink node
+    curptr->previous->next = curptr->next;
+    curptr->next->previous = curptr->previous;
+
+    free(curptr->data);
+    free(curptr);
+
+    lptr->count--;
 }
 
 void list_double_linked_remove_value(list_double_linked_t* lptr, void* data, size_t sz)
 {
-    if(lptr == NULL)
+    if (lptr == NULL || data == NULL || sz == 0)
     {
         return;
     }
 
-    node_double_linked_t* ptr = NULL;
+    node_double_linked_t* ptr = lptr->head;
+    long idx = 0;
 
-    ptr = lptr->head;
-
-    int idx = 0;
-
-    while(true)
+    while (ptr != NULL)
     {
-        if(ptr == NULL)
+        if (ptr->size == sz && memcmp(ptr->data, data, sz) == 0)
         {
-            break;
-        }
-
-        if(memcmp(ptr->data, data, ptr->size) == 0 && ptr->size == sz)
-        {
-            if(idx >= lptr->count - 1)
-            {
-                list_double_linked_internal_remove_from_tail(lptr);
-                break;
-            }
-
-            if(idx == 0)
+            if (ptr == lptr->head)
             {
                 list_double_linked_internal_remove_from_head(lptr);
-                break;
+                return;
             }
 
-            node_double_linked_t* prev = ptr->previous;
-            node_double_linked_t* next = ptr->next;
+            if (ptr == lptr->tail)
+            {
+                list_double_linked_internal_remove_from_tail(lptr);
+                return;
+            }
 
-            prev->next = next;
-            next->previous = prev;
+            ptr->previous->next = ptr->next;
+            ptr->next->previous = ptr->previous;
 
             free(ptr->data);
             free(ptr);
 
             lptr->count--;
-            break;
+            return;
         }
 
         ptr = ptr->next;
         idx++;
     }
-
-    return;
 }
 
 long list_double_linked_item_count(list_double_linked_t* lptr)
@@ -453,12 +430,12 @@ void* list_double_linked_get_first(list_double_linked_t* lptr)
 
 void* list_double_linked_get_next(list_double_linked_t* lptr)
 {
-    if(lptr == NULL)
+    if (lptr == NULL || lptr->iterator == NULL)
     {
         return NULL;
     }
 
-    if(lptr->iterator->next == NULL)
+    if (lptr->iterator->next == NULL)
     {
         return NULL;
     }
@@ -470,7 +447,7 @@ void* list_double_linked_get_next(list_double_linked_t* lptr)
 
 void* list_double_linked_get_last(list_double_linked_t* lptr)
 {
-    if(lptr == NULL)
+    if(lptr == NULL|| lptr->iterator == NULL)
     {
         return NULL;
     }
@@ -503,91 +480,292 @@ list_double_linked_t* list_double_linked_sort(list_double_linked_t* lptr)
         return NULL;
     }
 
-    return NULL;
+    if (lptr == NULL)
+    {
+        return NULL;
+    }
+
+    return list_double_linked_internal_sort(lptr, list_double_linked_internal_default_compare);
 }
 
 list_double_linked_t* list_double_linked_merge(list_double_linked_t* lptrFirst, list_double_linked_t* lptrSecond)
 {
-    if(lptrFirst == NULL)
+    if (lptrFirst == NULL && lptrSecond == NULL)
     {
-        return lptrSecond;
+        return NULL;
     }
 
-    if(lptrSecond == NULL)
+    list_double_linked_t* lptrNew = list_double_linked_join(lptrFirst, lptrSecond);
+
+    if (lptrNew == NULL)
     {
-        return lptrFirst;
+        return NULL;
     }
 
-    return NULL;
+    // Call the sort stub here
+    return list_double_linked_sort(lptrNew);
 }
 
 list_double_linked_t* list_double_linked_join(list_double_linked_t* lptrFirst, list_double_linked_t* lptrSecond)
 {
-    if(lptrFirst == NULL)
+    if (lptrFirst == NULL && lptrSecond == NULL)
     {
-        return lptrSecond;
+        return NULL;
     }
 
-    if(lptrSecond == NULL)
+    list_double_linked_t* lptrNew = list_double_linked_allocate(NULL);
+    
+    if (lptrNew == NULL)
     {
-        return lptrFirst;
+        return NULL;
     }
 
-    return NULL;
+    // Helper to append all nodes from a list to lptrNew
+    void append_all(list_double_linked_t* dest, list_double_linked_t* src)
+    {
+        node_double_linked_t* ptr = src->head;
+        while (ptr != NULL)
+        {
+            list_double_linked_add_to_tail(dest, ptr->data, ptr->size);
+            ptr = ptr->next;
+        }
+    }
+
+    if (lptrFirst != NULL)
+    {
+        append_all(lptrNew, lptrFirst);
+    }
+
+    if (lptrSecond != NULL)
+    {
+        append_all(lptrNew, lptrSecond);
+    }
+
+    return lptrNew;
 }
 
 void list_double_linked_internal_remove_from_head(list_double_linked_t* lptr)
 {
+    if (lptr->head == NULL)
+    {
+        return;
+    }
+    
     node_double_linked_t* oldhead = lptr->head;
-    lptr->head = lptr->head->next;
-
+    lptr->head = oldhead->next;
+    
+    if (lptr->head != NULL)
+    {
+        lptr->head->previous = NULL;
+    }
+    else
+    {
+        lptr->tail = NULL;  // List became empty
+    }
+    
     free(oldhead->data);
     free(oldhead);
-
+    
     lptr->count--;
 }
 
 void list_double_linked_internal_remove_from_tail(list_double_linked_t* lptr)
 {
+    if (lptr->tail == NULL)
+    {
+        return;
+    }
+    
     node_double_linked_t* oldtail = lptr->tail;
-
-    if(lptr->tail != NULL)
+    lptr->tail = oldtail->previous;
+    
+    if (lptr->tail != NULL)
     {
         lptr->tail->next = NULL;
     }
-
+    else
+    {
+        lptr->head = NULL;  // List became empty
+    }
+    
     free(oldtail->data);
     free(oldtail);
-    oldtail = NULL;
+    
     lptr->count--;
 }
 
 void list_double_linked_internal_add_to_head(list_double_linked_t* lptr, node_double_linked_t* ptr)
 {
-    if(lptr->count == 0)
+    ptr->previous = NULL;
+    ptr->next = lptr->head;
+    
+    if (lptr->head != NULL)
     {
-        lptr->iterator = lptr->head = lptr->tail = ptr;
+        lptr->head->previous = ptr;
     }
-    else
+    
+    lptr->head = ptr;
+    
+    if (lptr->tail == NULL)
     {
-        ptr->next = lptr->head;
-        lptr->head = ptr;
+        lptr->tail = ptr;
     }
-
+    
     lptr->count++;
 }
 
 void list_double_linked_internal_add_to_tail(list_double_linked_t* lptr, node_double_linked_t* ptr)
 {
-    if(lptr->count == 0)
+    ptr->next = NULL;
+    ptr->previous = lptr->tail;
+    
+    if (lptr->tail != NULL)
     {
-        lptr->iterator = lptr->head = lptr->tail = ptr;
+        lptr->tail->next = ptr;
+    }
+    
+    lptr->tail = ptr;
+    
+    if (lptr->head == NULL)
+    {
+        lptr->head = ptr;
+    }
+    
+    lptr->count++;
+}
+
+list_double_linked_t* list_double_linked_internal_sort(list_double_linked_t* lptr, list_double_linked_compare_fn cmp)
+{
+    if (lptr == NULL || lptr->count <= 1 || cmp == NULL)
+    {
+        return lptr;
+    }
+
+    // Recursively sort starting from head
+    lptr->head = list_double_linked_internal_merge_sort_recursive(lptr->head, cmp);
+
+    // Reset tail and fix previous pointers
+    node_double_linked_t* current = lptr->head;
+    lptr->tail = NULL;
+
+    while (current != NULL)
+    {
+        if (current->next == NULL)
+        {
+            lptr->tail = current;
+        }
+        else
+        {
+            current->next->previous = current;
+        }
+        current = current->next;
+    }
+
+    lptr->iterator = NULL;
+
+    return lptr;
+}
+
+node_double_linked_t* list_double_linked_internal_merge_sort_recursive(
+    node_double_linked_t* head,
+    list_double_linked_compare_fn cmp)
+{
+    if (head == NULL || head->next == NULL)
+    {
+        return head;
+    }
+
+    node_double_linked_t* left = NULL;
+    node_double_linked_t* right = NULL;
+
+    list_double_linked_internal_split(head, &left, &right);
+
+    left = list_double_linked_internal_merge_sort_recursive(left, cmp);
+    right = list_double_linked_internal_merge_sort_recursive(right, cmp);
+
+    return list_double_linked_internal_merge_sorted(left, right, cmp);
+}
+
+void list_double_linked_internal_split(
+    node_double_linked_t* source,
+    node_double_linked_t** frontRef,
+    node_double_linked_t** backRef)
+{
+    node_double_linked_t* slow = source;
+    node_double_linked_t* fast = source->next;
+
+    while (fast != NULL)
+    {
+        fast = fast->next;
+        if (fast != NULL)
+        {
+            slow = slow->next;
+            fast = fast->next;
+        }
+    }
+
+    *frontRef = source;
+    *backRef = slow->next;
+    slow->next = NULL;
+
+    if (*backRef)
+    {
+        (*backRef)->previous = NULL;
+    }
+}
+
+node_double_linked_t* list_double_linked_internal_merge_sorted(
+    node_double_linked_t* left,
+    node_double_linked_t* right,
+    list_double_linked_compare_fn cmp)
+{
+    if (left == NULL)
+    {
+        return right;
+    }
+
+    if (right == NULL)
+    {
+        return left;
+    }
+
+    node_double_linked_t* result = NULL;
+
+    if (cmp(left->data, left->size, right->data, right->size) <= 0)
+    {
+        result = left;
+        result->next = list_double_linked_internal_merge_sorted(left->next, right, cmp);
+        if (result->next != NULL)
+        {
+            result->next->previous = result;
+        }
+        result->previous = NULL;
     }
     else
     {
-        lptr->tail->next = ptr;
-        lptr->tail = ptr;
+        result = right;
+        result->next = list_double_linked_internal_merge_sorted(left, right->next, cmp);
+        if (result->next != NULL)
+        {
+            result->next->previous = result;
+        }
+        result->previous = NULL;
     }
 
-    lptr->count++;
+    return result;
+}
+
+int list_double_linked_internal_default_compare(const void* a, size_t a_sz, const void* b, size_t b_sz)
+{
+    if (a_sz != sizeof(int) || b_sz != sizeof(int)) 
+    {
+        // Fallback or error handling
+        return 0;
+    }
+    int int_a = *(const int*)a;
+    int int_b = *(const int*)b;
+
+    if (int_a < int_b) return -1;
+    if (int_a > int_b) return 1;
+    return 0;
 }

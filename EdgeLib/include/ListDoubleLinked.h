@@ -41,9 +41,6 @@ extern LIBRARY_EXPORT list_double_linked_t* list_double_linked_allocate(list_dou
 extern LIBRARY_EXPORT void list_double_linked_clear(list_double_linked_t* lptr);
 extern LIBRARY_EXPORT void list_double_linked_free(list_double_linked_t* lptr);
 
-extern LIBRARY_EXPORT void list_double_linked_lock(list_double_linked_t* lptr);
-extern LIBRARY_EXPORT void list_double_linked_unlock(list_double_linked_t* lptr);
-
 extern LIBRARY_EXPORT void list_double_linked_add_to_head(list_double_linked_t* lptr, void* data, size_t sz);
 extern LIBRARY_EXPORT void list_double_linked_add_to_tail(list_double_linked_t* lptr, void* data, size_t sz);
 extern LIBRARY_EXPORT void list_double_linked_insert(list_double_linked_t* lptr, void* data, size_t sz, long pos);
@@ -64,9 +61,9 @@ extern LIBRARY_EXPORT void* list_double_linked_get_next(list_double_linked_t* lp
 extern LIBRARY_EXPORT void* list_double_linked_get_last(list_double_linked_t* lptr);
 extern LIBRARY_EXPORT void* list_double_linked_get_previous(list_double_linked_t* lptr);
 
-extern LIBRARY_EXPORT list_double_linked_t* list_sort(list_double_linked_t* lptr);
-extern LIBRARY_EXPORT list_double_linked_t* list_merge(list_double_linked_t* lptrFirst, list_double_linked_t* lptrSecond);
-extern LIBRARY_EXPORT list_double_linked_t* list_join(list_double_linked_t* lptrFirst, list_double_linked_t* lptrSecond);
+extern LIBRARY_EXPORT list_double_linked_t* list_double_linked_sort(list_double_linked_t* lptr);
+extern LIBRARY_EXPORT list_double_linked_t* list_double_linked_merge(list_double_linked_t* lptrFirst, list_double_linked_t* lptrSecond);
+extern LIBRARY_EXPORT list_double_linked_t* list_double_linked_join(list_double_linked_t* lptrFirst, list_double_linked_t* lptrSecond);
 
 #ifdef __cplusplus
 }
