@@ -6,6 +6,7 @@
 #include "PWM.h"
 #include "GPIO.h"
 #include "ADC.h"
+#include "CAN.h"
 
 static hal_device_info_t device_registry[MAX_DEVICES];
 static size_t device_count = 0;
@@ -28,7 +29,8 @@ bool hal_open(void)
     status |= pwm_init();
     status |= gpio_init();
     status |= adc_init(); 
-      
+    status |= can_init();
+  
     if (status == 0)
     {
         hal_initialized = true;
@@ -92,6 +94,20 @@ bool hal_enumerate(hal_device_info_t *device_list, size_t *num_devices)
     {
         total += count;
     }
+
+    // PWM
+    count = MAX_DEVICES - total;
+    if (pwm_enumerate(&device_list[total], &count) == 0)
+    {
+        total += count;
+    }
+
+    // CAN
+    count = MAX_DEVICES - total;            
+    if (can_enumerate(&device_list[total], &count) == 0)
+    {
+        total += count;
+    }   
 
     memcpy(device_registry, device_list, total * sizeof(hal_device_info_t));
     device_count = total;
