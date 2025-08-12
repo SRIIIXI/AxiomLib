@@ -1,32 +1,22 @@
  
-#include "hal.h"
-#include <string.h>
-#include <stdbool.h>
+#include "HAL.h"
+#include "UART.h"
+#include "SPI.h"
+#include "I2C.h"
+#include "PWM.h"
+#include "GPIO.h"
+#include "ADC.h"
 
-#define MAX_DEVICES 64
 static hal_device_info_t device_registry[MAX_DEVICES];
 static size_t device_count = 0;
 static bool hal_initialized = false;
 
-// Forward declarations
-extern int uart_init(void);
-extern int spi_init(void);
-extern int i2c_init(void);
 
-extern int pwm_init(void);
-extern int dio_init(void);
-extern int aio_init(void);
-
-
-extern int uart_enumerate(hal_device_info_t *list, size_t *count);
-extern int spi_enumerate(hal_device_info_t *list, size_t *count);
-extern int i2c_enumerate(hal_device_info_t *list, size_t *count);
-
-int hal_open(void)
+bool hal_open(void)
 {
-    if (hal_initialized)
+    if (!hal_initialized)
     {
-        return 0;
+        return false;
     }
 
     int status = 0;
@@ -34,7 +24,11 @@ int hal_open(void)
     status |= uart_init();
     status |= spi_init();
     status |= i2c_init();
-
+    status |= i2c_init();
+    status |= pwm_init();
+    status |= gpio_init();
+    status |= adc_init(); 
+      
     if (status == 0)
     {
         hal_initialized = true;
@@ -43,7 +37,7 @@ int hal_open(void)
     return status;
 }
 
-int hal_close(void)
+bool hal_close(void)
 {
     // Optional: driver-specific shutdowns
 
@@ -51,14 +45,14 @@ int hal_close(void)
     device_count = 0;
     memset(device_registry, 0, sizeof(device_registry));
 
-    return 0;
+    return true;
 }
 
-int hal_enumerate(hal_device_info_t *device_list, size_t *num_devices)
+bool hal_enumerate(hal_device_info_t *device_list, size_t *num_devices)
 {
     if (!hal_initialized || !device_list || !num_devices)
     {
-        return -1;
+        return false;
     }
 
     size_t total = 0;
@@ -85,9 +79,23 @@ int hal_enumerate(hal_device_info_t *device_list, size_t *num_devices)
         total += count;
     }
 
+     // ADC
+    count = MAX_DEVICES - total;
+    if (adc_enumerate(&device_list[total], &count) == 0)
+    {
+        total += count;
+    }
+
+    // GPIO
+    count = MAX_DEVICES - total;
+    if (gpio_enumerate(&device_list[total], &count) == 0)
+    {
+        total += count;
+    }
+
     memcpy(device_registry, device_list, total * sizeof(hal_device_info_t));
     device_count = total;
     *num_devices = total;
 
-    return 0;
+    return true;
 }
