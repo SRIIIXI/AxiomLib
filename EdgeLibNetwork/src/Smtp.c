@@ -496,7 +496,14 @@ bool smtp_resolve_public_ip_address()
 
     char* rx_buffer = NULL;
 
+    // This call reads the HTTP headers
     responder_receive_string(http_client, &rx_buffer, "\r\n\r\n");
+    free(rx_buffer);
+    rx_buffer = NULL;
+
+    // This call reads the body which contains the public IP address
+    responder_receive_buffer(http_client, &rx_buffer, 14, NULL, true);
+    free(rx_buffer);
 
     printf("Public IP Address: %s\n", rx_buffer);
 

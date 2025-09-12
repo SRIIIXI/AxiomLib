@@ -183,7 +183,7 @@ bool responder_close_socket(responder_t* ptr)
 	return false;
 }
 
-bool responder_receive_buffer(responder_t* ptr, char** iobuffer, size_t len, bool alloc_buffer)
+bool responder_receive_buffer(responder_t* ptr, char** iobuffer, size_t len, size_t* out_len, bool alloc_buffer)
 {
     if(!ptr)
     {
@@ -224,10 +224,28 @@ bool responder_receive_buffer(responder_t* ptr, char** iobuffer, size_t len, boo
         if (buffer)
         {
             bytesread = (ssize_t)recv(ptr->socket, buffer, (int)bytesleft, 0);
+
+            if (out_len)
+            {
+                *out_len += (size_t)bytesread;
+            }
+        }
+
+        if (bytesread == 0)
+        {
+            // Connection closed gracefully
+            if (buffer)
+            {
+                free(buffer);
+            }
+
+            ptr->connected = false;
+            return true;
         }
 
         // Error or link down
-        if(bytesread < 1 || buffer == NULL)
+
+        if(bytesread < 0 || buffer == NULL)
         {
             ptr->error_code = SOCKET_ERROR;
 
@@ -271,7 +289,6 @@ bool responder_receive_string(responder_t* ptr, char** iostr, const char* delime
         return  false;
     }
 
-    char*	data = NULL;
     char*   current_line = NULL;
     char*   next_line = NULL;
     size_t delimeter_len = strlen(delimeter);
@@ -305,26 +322,24 @@ bool responder_receive_string(responder_t* ptr, char** iostr, const char* delime
 
 			return true;
 		}
-
-        if(ptr->prefetched_buffer_size > 0)
-        {
-            data = (char*)calloc(1, ptr->prefetched_buffer_size + 1);
-            strcpy(data, (char*)ptr->prefetched_buffer);
-            ptr->prefetched_buffer_size = 0;
-            free(ptr->prefetched_buffer);
-            ptr->prefetched_buffer = NULL;
-        }
 	}
 
 	while(true)
 	{
         char* buffer = NULL;
 
-        if(!responder_receive_buffer(ptr, &buffer, 1024, true))
+        size_t out_len = 0;
+
+        if(!responder_receive_buffer(ptr, &buffer, 1024, &out_len, true))
         {
             if(*iostr)
             {
                 free(*iostr);
+            } 
+
+            if(buffer)
+            {
+                free(buffer);
             }
 
             ptr->connected = false;
@@ -332,11 +347,23 @@ bool responder_receive_string(responder_t* ptr, char** iostr, const char* delime
             return false;
         }
 
-        data = (char*)realloc(data, strlen(data) + 1024);
-        strcat(data, buffer);
+        // Append the newly received data to the pre-fetched buffer
+        if(ptr->prefetched_buffer == NULL)
+        {
+            ptr->prefetched_buffer = (unsigned char*)calloc(1, (sizeof (unsigned char)*out_len) + 1);
+            memcpy(ptr->prefetched_buffer, buffer, out_len);
+            ptr->prefetched_buffer_size = out_len;
+        }
+        else
+        {
+            ptr->prefetched_buffer = (unsigned char*)realloc(ptr->prefetched_buffer, (sizeof (unsigned char)*(ptr->prefetched_buffer_size + out_len)) + 1); 
+            memcpy(ptr->prefetched_buffer + ptr->prefetched_buffer_size, buffer, out_len);
+            ptr->prefetched_buffer_size = ptr->prefetched_buffer_size + out_len;
+        }
+
         free(buffer);
 
-        if(strstr(data, delimeter) != 0)
+        if(strstr(ptr->prefetched_buffer, delimeter) != 0)
 		{
             responder_internal_split_buffer((const char*)ptr->prefetched_buffer, ptr->prefetched_buffer_size, delimeter, delimeter_len, &current_line, &current_len, &next_line, &next_len);
 
@@ -351,14 +378,22 @@ bool responder_receive_string(responder_t* ptr, char** iostr, const char* delime
                 memcpy(ptr->prefetched_buffer, next_line, ptr->prefetched_buffer_size);
                 free(next_line);
             }
+            
+            if(*iostr == NULL)
+            {
+                *iostr = (char*)calloc(1, strlen(current_line) + 1);
+            }
+            else
+            {
+                *iostr = (char*)realloc(*iostr, strlen(*iostr) + strlen(current_line));
+            }
 
-            *iostr = (char*)realloc(*iostr, strlen(*iostr) + strlen(current_line));
             strcat(*iostr, current_line);
             free(current_line);
-            free(data);
 
             return true;
 		}
+
 	}
 	return true;
 }
