@@ -39,6 +39,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	#include <stddef.h>
 	#include <stdint.h>
 	#include <stdbool.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <string.h>
+	#include <math.h>
+	#include <time.h>
+	#include <errno.h>
+	#include <unistd.h>
+	#include <fcntl.h>
+	#include <sys/types.h>
+	#include <sys/stat.h>
+	#include <sys/ioctl.h>
+	#include <sys/mman.h>
 
 	#ifdef __cplusplus
 	}

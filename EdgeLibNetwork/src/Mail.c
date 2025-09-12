@@ -28,38 +28,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "Mail.h"
 
-/*
-typedef enum MailTextEncoding
-{
-    QuotedPrintable,
-    Base64,
-    XToken,
-    UnKnownEncoding
-}MailTextEncoding;
-
-typedef enum MimeType
-{
-    PlainText,
-    Html,
-    InlineImage,
-    Attachment,
-    Multipart,
-    UnKnownType
-}MimeType;
-
 typedef struct mime_node_t
 {
     char* NodeName;
     char* Data;
     MimeType NodeType;
     MailTextEncoding TextEncoding;
-    list_t* ChildNodes;
 }mime_node_t;
 
 typedef struct mail_body_t
 {
     char* MessageId;
-    list_t* MimeDataNodes;
+    mime_node_t* MimeDataNodes;
 }mail_body_t;
 
 typedef struct mail_t
@@ -68,21 +48,21 @@ typedef struct mail_t
     mail_body_t* Body;
     const char* SerializedBody;
 }mail_t;
-*/
 
 void mail_body_set_message_id(mail_body_t* mailbody, const char* msgid)
 {
-
+    if (mailbody == NULL || msgid == NULL) return;
+    if (mailbody->MessageId) free(mailbody->MessageId);
+    mailbody->MessageId = strdup(msgid);    
 }
 
-const char* nail_body_set_message_id(mail_body_t* mailbody)
+const char* nail_body_get_message_id(mail_body_t* mailbody)
 {
     return NULL;
 }
 
 void mail_body_add_node(mail_body_t* mailbody, mime_node_t* node)
 {
-
 }
 
 list_t* mail_body_get_data_nodes(mail_body_t* mailbody, mime_node_t* node)
