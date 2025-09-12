@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Dictionary.h"
 
 #include <memory.h>
+#include <netdb.h>
 
 typedef struct smtp_t
 {
@@ -41,7 +42,7 @@ typedef struct smtp_t
     uint16_t port;
     bool start_tls;
     const char* public_ip_address;
-    SecurityType securityType;
+    security_type_t securityType;
     char errorStr[65];
     dictionary_t* email_header;
     mail_body_t* email_body;
@@ -50,120 +51,158 @@ typedef struct smtp_t
     responder_t* bearer;
 }smtp_t;
 
-//SmtpClient::SmtpClient()
-//{
-//	host = "";
-//	username = "";
-//	password = "";
-//	port = 25;
-//	securityType = None;
-//	startTls = false;
-//}
-
-//SmtpClient::SmtpClient(const std::string hoststr, uint16_t portstr, std::string usernamestr, std::string passwordstr, SecurityType sectype)
-//{
-//	host = hoststr;
-//	username = usernamestr;
-//	password = passwordstr;
-//	port = portstr;
-//	securityType = sectype;
-//	startTls = false;
-//}
-
-//SmtpClient::~SmtpClient()
-//{
-//	bearer.CloseSocket();
-//}
-
 smtp_t* smtp_allocate(void)
 {
+    smtp_t* ptr = (smtp_t*)malloc(sizeof(smtp_t));
+
+    if (ptr)
+    {
+        memset(ptr, 0, sizeof(smtp_t));
+        ptr->port = 25;
+        ptr->securityType = None;
+        ptr->bearer = NULL;
+        ptr->email_body = NULL;
+        ptr->email_header = NULL;
+        ptr->public_ip_address = NULL;
+        ptr->start_tls = false;
+        ptr->errorStr[0] = 0;
+        return ptr;
+    }   
+
     return NULL;
 }
 
 void smtp_free(smtp_t* ptr)
 {
-    return;
+    if (ptr)
+    {
+        if (ptr->email_body)
+        {
+            free(ptr->email_body);
+            ptr->email_body = NULL;
+        }
+
+        if (ptr->email_header)
+        {
+            free(ptr->email_header);
+            ptr->email_header = NULL;
+        }
+
+        if (ptr->bearer)
+        {
+            free(ptr->bearer);
+            ptr->bearer = NULL;
+        }
+
+        free(ptr);
+        ptr = NULL;
+    }
 }
 
 
 
-void smtp_set_account_information(smtp_t* ptr, const char* hoststr, uint16_t portstr, const char* usernamestr, const char* passwordstr, SecurityType sectype)
+void smtp_set_account_information(smtp_t* ptr, const char* hoststr, uint16_t portstr, const char* usernamestr, const char* passwordstr, security_type_t sectype)
 {
-//	host = hoststr;
-//	username = usernamestr;
-//	password = passwordstr;
-//	port = portstr;
-//	securityType = sectype;
-//	startTls = false;
+    if (ptr == NULL)
+    {
+        return;
+    }   
 
-    return;
+    strncpy(ptr->host, hoststr, 32);
+    ptr->host[32] = 0;
+    strncpy(ptr->username, usernamestr, 32);
+    ptr->username[32] = 0;
+    strncpy(ptr->password, passwordstr, 32);
+    ptr->password[32] = 0;
+    ptr->port = portstr;
+    ptr->securityType = sectype;
 }
 
 bool smtp_connect(smtp_t* ptr)
 {
-//	bool need_ssl = false;
+    if( ptr == NULL)
+    {
+        return false;
+    }   
+    // Initialize the responder (bearer) here based on securityType
 
-//	// Note: For SMTP TLS sessions starts on plain sockets and switches to SSL sockets after STARTTLS negotiation
-//	if (securityType == None || securityType == Tls)
-//	{
-//		need_ssl = false;
-//	}
-//	else
-//	{
-//		need_ssl = true;
-//	}
+    if (ptr->securityType == Ssl) 
+    {
+        //ptr->bearer = responder_ssl_allocate();
+    } 
+    else
+    {
+        ptr->bearer = responder_allocate();
+    }
 
-//    int retcode;
+    if (ptr->bearer == NULL) 
+    {
+        snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to allocate responder");
+        return false;
+    }
 
-//    if (bearer.CreateSocket(host.c_str(), port, need_ssl))
-//    {
-//        if (bearer.ConnectSocket(retcode))
-//        {
-//			std::string resp;
-//			bearer.ReceiveString(resp);
-//            return true;
-//        }
-//    }
+    ptr->bearer = responder_create_socket(ptr->bearer, ptr->host, ptr->port);
+    if (ptr->bearer == NULL) 
+    {
+        snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to create socket");
+        return false;
+    }
 
-    return false;
+    bool connected = responder_connect_socket(ptr->bearer);
+
+    if (!connected) 
+    {
+        snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to connect to server");
+        return false;
+    }
+    return true;
 }
 
 bool smtp_disconnect(smtp_t* ptr)
 {
-//	if (bearer.IsConnected())
-//	{
-//		return bearer.CloseSocket();
-//	}
+    if (ptr == NULL || ptr->bearer == NULL) 
+    {
+        return false;
+    }   
 
-	return false;
+    bool closed = responder_close_socket(ptr->bearer);
+
+    if (!closed) 
+    {
+        snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to close connection");
+        return false;
+    }
+
+    return true;
 }
 
 bool smtp_send_helo(smtp_t* ptr)
 {
-//    std::string resp;
-//    char buff[128] = { 0 };
-//    sprintf(buff, "EHLO %s\r\n", publicIp.c_str());
+    char* selfIp = "127.0.0.1";
 
-//    std::string helo = buff;
-//    bearer.SendString(helo);
+    char tx_buffer[128] = { 0 };
+    sprintf(tx_buffer, "EHLO %s\r\n", selfIp);
 
-//    while (true)
-//    {
-//		if (!bearer.ReceiveString(resp))
-//		{
-//		    return false;
-//		}
+    if (!responder_send_string(ptr->bearer, tx_buffer))
+    {
+        snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to send EHLO");
+        return false;
+    }
 
-//		if (strcontains(resp.c_str(), "STARTTLS"))
-//		{
-//			startTls = true;
-//		}
+    char* rx_buffer = NULL;
 
-//        if(bearer.PendingPreFetchedBufferSize() < 1)
-//        {
-//            return true;
-//        }
-//    }
+    responder_receive_string(ptr->bearer, &rx_buffer, "\r\n");
+
+    if(strstr(rx_buffer, "STARTTLS") != NULL)
+    {
+        ptr->start_tls = true;
+    }
+    else
+    {
+        ptr->start_tls = false;
+    }
+
+    free(rx_buffer);
 
     return false;
 }
@@ -308,8 +347,12 @@ bool smtp_start_tls(smtp_t* ptr)
 
 bool smtp_need_tls(smtp_t* ptr)
 {
-    return false;
-    //return startTls;
+    if(ptr == NULL)
+    {
+        return false;
+    }   
+
+    return ptr->start_tls;
 }
 
 bool smtp_login(smtp_t* ptr)
@@ -383,28 +426,82 @@ bool smtp_login(smtp_t* ptr)
 
 bool smtp_logout(smtp_t* ptr)
 {
-//	std::string resp;
-//	std::vector<std::string> tokens;
+    if( ptr == NULL)
+    {
+        return false;
+    }   
 
-//	char buff[128] = { 0 };
+	char tx_buffer[128] = { 0 };
+	sprintf(tx_buffer, "QUIT\r\n");
 
-//	sprintf(buff, "QUIT\r\n");
-//	int len = (int)strlen(buff);
+    responder_send_string(ptr->bearer, tx_buffer);
 
-//	bearer.SendString(buff);
+    char* rx_buffer = NULL; 
+    responder_receive_string(ptr->bearer, &rx_buffer, "\r\n");
 
-//	while (true)
-//	{
-//		if (!bearer.ReceiveString(resp))
-//		{
-//			return false;
-//		}
+    //Check if the response contains "221"
+    if(strstr(rx_buffer, "221") == NULL)
+    {
+        snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to logout");
+        return false;   
+    }
 
-//		if (strcontains(resp.c_str(), "221"))
-//		{
-//			break;
-//		}
-//	}
+    free(rx_buffer);
 
 	return true;
+}
+
+bool smtp_is_connected(smtp_t* ptr)
+{
+    if( ptr == NULL || ptr->bearer == NULL)
+    {
+        return false;
+    }   
+
+    return responder_is_connected(ptr->bearer); 
+}
+
+bool smtp_resolve_public_ip_address()
+{
+    responder_t* http_client = responder_allocate();
+
+    if (http_client == NULL) 
+    {
+        return false;
+    }
+
+    http_client = responder_create_socket(http_client, "whatismyip.akamai.com", 80);
+
+    if (http_client == NULL) 
+    {
+        return false;
+    }
+
+    bool connected = responder_connect_socket(http_client);
+
+    if (!connected) 
+    {
+        printf("Failed to connect to whatismyip.akamai.com");
+        return false;
+    }
+
+    char tx_buffer[128] = { 0 };
+    sprintf(tx_buffer, "GET / HTTP/1.0\r\nHost: whatismyip.akamai.com\r\n\r\n");
+
+    if (!responder_send_string(http_client, tx_buffer))
+    {
+        printf("Failed to send HTTP GET");
+        return false;
+    }
+
+    char* rx_buffer = NULL;
+
+    responder_receive_string(http_client, &rx_buffer, "\r\n\r\n");
+
+    printf("Public IP Address: %s\n", rx_buffer);
+
+    responder_close_socket(http_client);
+    responder_free(http_client);
+    free(rx_buffer);
+    return true;
 }

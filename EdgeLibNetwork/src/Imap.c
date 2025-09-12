@@ -40,7 +40,7 @@ typedef struct imap_t
     char password[33];
     uint16_t port;
 
-    SecurityType securityType;
+    security_type_t securityType;
     char currentDirectory[65];
     char errorStr[65];
 
@@ -63,7 +63,7 @@ void imap_free(imap_t* ptr)
     free(ptr);
 }
 
-void imap_set_account_information(imap_t* ptr, const char* hoststr, uint16_t portstr, const char* usernamestr, const char* passwordstr, SecurityType sectype)
+void imap_set_account_information(imap_t* ptr, const char* hoststr, uint16_t portstr, const char* usernamestr, const char* passwordstr, security_type_t sectype)
 {
 	if (sectype == Tls)
 	{

@@ -41,7 +41,7 @@ typedef struct imap_t imap_t;
 
 extern LIBRARY_EXPORT imap_t* imap_allocate(void);
 extern LIBRARY_EXPORT void imap_free(imap_t* ptr);
-extern LIBRARY_EXPORT void imap_set_account_information(imap_t* ptr, const char* hoststr, uint16_t portstr, const char* usernamestr, const char* passwordstr, SecurityType sectype);
+extern LIBRARY_EXPORT void imap_set_account_information(imap_t* ptr, const char* hoststr, uint16_t portstr, const char* usernamestr, const char* passwordstr, security_type_t sectype);
 extern LIBRARY_EXPORT bool imap_connect(imap_t* ptr);
 extern LIBRARY_EXPORT bool imap_login(imap_t* ptr);
 extern LIBRARY_EXPORT bool imap_disconnect(imap_t* ptr);

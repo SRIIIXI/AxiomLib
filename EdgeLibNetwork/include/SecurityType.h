@@ -33,12 +33,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
-typedef enum SecurityType
+typedef enum security_type_t
 {
 	None = 'N',
 	Ssl = 'S',
 	Tls = 'T'
-}SecurityType;
+}security_type_t;
 
 #ifdef __cplusplus
 }

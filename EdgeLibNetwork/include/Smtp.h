@@ -41,7 +41,7 @@ typedef struct smtp_t smtp_t;
 
 extern LIBRARY_EXPORT smtp_t* smtp_allocate(void);
 extern LIBRARY_EXPORT void smtp_free(smtp_t* ptr);
-extern LIBRARY_EXPORT void smtp_set_account_information(smtp_t* ptr, const char* hoststr, uint16_t portstr, const char* usernamestr, const char* passwordstr, SecurityType sectype);
+extern LIBRARY_EXPORT void smtp_set_account_information(smtp_t* ptr, const char* hoststr, uint16_t portstr, const char* usernamestr, const char* passwordstr, security_type_t sectype);
 extern LIBRARY_EXPORT void smtp_set_public_ip_address(smtp_t* ptr, const char* ip);
 extern LIBRARY_EXPORT bool smtp_disconnect(smtp_t* ptr);
 extern LIBRARY_EXPORT bool smtp_connect(smtp_t* ptr);
@@ -53,6 +53,8 @@ extern LIBRARY_EXPORT bool smtp_logout(smtp_t* ptr);
 extern LIBRARY_EXPORT bool smtp_sendmail(smtp_t* ptr, const mail_t* mail);
 extern LIBRARY_EXPORT const char* smtp_get_account(smtp_t* ptr);
 extern LIBRARY_EXPORT const char* smtp_get_error(smtp_t* ptr);
+extern LIBRARY_EXPORT bool smtp_is_connected(smtp_t* ptr);
+extern LIBRARY_EXPORT bool smtp_resolve_public_ip_address();
 
 #ifdef __cplusplus
 }
