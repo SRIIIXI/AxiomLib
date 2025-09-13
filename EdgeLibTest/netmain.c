@@ -15,10 +15,10 @@ int main(int argc, char* argv[])
     }
 
     const char* host = "smtp.example.com";
-    uint16_t port = 587;
+    uint16_t port = 25;
     const char* username = "";
     const char* password = "";
-    security_type_t secType = Tls;
+    security_type_t secType = None;
 
     smtp_set_account_information(smtp, host, port, username, password, secType);
 
@@ -27,13 +27,15 @@ int main(int argc, char* argv[])
         printf("Failed to connect: %s\n", smtp_get_error(smtp));
         smtp_free(smtp);
         return 1;
-    }   
+    } 
+
     if(!smtp_send_helo(smtp))
     {
         printf("Failed to send HELO: %s\n", smtp_get_error(smtp));
         smtp_free(smtp);
         return 1;
     }
+    
     if(smtp_need_tls(smtp))
     {
         printf("Server requires STARTTLS\n");

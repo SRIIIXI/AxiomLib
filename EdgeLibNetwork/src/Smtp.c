@@ -51,6 +51,8 @@ typedef struct smtp_t
     responder_t* bearer;
 }smtp_t;
 
+char selfIp[16] = {0};
+
 smtp_t* smtp_allocate(void)
 {
     smtp_t* ptr = (smtp_t*)malloc(sizeof(smtp_t));
@@ -141,10 +143,12 @@ bool smtp_connect(smtp_t* ptr)
         return false;
     }
 
-    ptr->bearer = responder_create_socket(ptr->bearer, ptr->host, ptr->port);
-    if (ptr->bearer == NULL) 
+    bool created = responder_create_socket(ptr->bearer, ptr->host, ptr->port);
+    if (!created) 
     {
         snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to create socket");
+        responder_free(ptr->bearer);
+        ptr->bearer = NULL;
         return false;
     }
 
@@ -153,6 +157,8 @@ bool smtp_connect(smtp_t* ptr)
     if (!connected) 
     {
         snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to connect to server");
+        responder_free(ptr->bearer);
+        ptr->bearer = NULL;
         return false;
     }
     return true;
@@ -178,10 +184,8 @@ bool smtp_disconnect(smtp_t* ptr)
 
 bool smtp_send_helo(smtp_t* ptr)
 {
-    char* selfIp = "127.0.0.1";
-
     char tx_buffer[128] = { 0 };
-    sprintf(tx_buffer, "EHLO %s\r\n", selfIp);
+    sprintf(tx_buffer, "EHLO [%s]\r\n", selfIp);
 
     if (!responder_send_string(ptr->bearer, tx_buffer))
     {
@@ -470,10 +474,12 @@ bool smtp_resolve_public_ip_address()
         return false;
     }
 
-    http_client = responder_create_socket(http_client, "whatismyip.akamai.com", 80);
+    bool created = responder_create_socket(http_client, "whatismyip.akamai.com", 80);
 
-    if (http_client == NULL) 
+    if (!created) 
     {
+        printf("Failed to create socket");
+        responder_free(http_client);
         return false;
     }
 
@@ -482,6 +488,7 @@ bool smtp_resolve_public_ip_address()
     if (!connected) 
     {
         printf("Failed to connect to whatismyip.akamai.com");
+        responder_free(http_client);
         return false;
     }
 
@@ -505,6 +512,8 @@ bool smtp_resolve_public_ip_address()
     size_t remaining = responder_get_prefetched_buffer_size(http_client);
     responder_receive_buffer(http_client, &rx_buffer, remaining, NULL, true);
     printf("Public IP Address: %s\n", rx_buffer);
+    memset(selfIp, 0, 16);
+    strncpy(selfIp, rx_buffer, 15);
 
     responder_close_socket(http_client);
     responder_free(http_client);

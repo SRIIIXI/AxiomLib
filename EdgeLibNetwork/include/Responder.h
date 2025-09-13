@@ -40,7 +40,7 @@ typedef int socket_t;
 
 extern LIBRARY_EXPORT responder_t* responder_allocate();
 extern LIBRARY_EXPORT void responder_free(responder_t* ptr);
-extern LIBRARY_EXPORT responder_t* responder_create_socket(responder_t* ptr, const char* servername, int serverport);
+extern LIBRARY_EXPORT bool responder_create_socket(responder_t* ptr, const char* servername, int serverport);
 extern LIBRARY_EXPORT responder_t* responder_assign_socket(responder_t* ptr, int inSocket);
 extern LIBRARY_EXPORT bool responder_connect_socket(responder_t* ptr);
 extern LIBRARY_EXPORT bool responder_close_socket(responder_t* ptr);

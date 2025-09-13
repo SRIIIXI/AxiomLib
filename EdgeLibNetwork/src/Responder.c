@@ -70,14 +70,33 @@ responder_t* responder_allocate()
 
 void responder_free(responder_t* ptr)
 {
+    if(!ptr)
+    {
+        return;
+    }
+
+    if(ptr->connected)
+    {
+        shutdown(ptr->socket, 2);
+        close(ptr->socket);
+        ptr->connected = false;
+    }
+
+    if(ptr->prefetched_buffer)
+    {
+        free(ptr->prefetched_buffer);
+        ptr->prefetched_buffer = NULL;
+        ptr->prefetched_buffer_size = 0;
+    }
+
     free(ptr);
 }
 
-responder_t *responder_create_socket(responder_t *ptr, const char* servername, int serverport)
+bool responder_create_socket(responder_t *ptr, const char* servername, int serverport)
 {
     if(!ptr)
     {
-        return  NULL;
+        return  false;
     }
 
     strncpy(ptr->server_name, servername, 32);
@@ -96,8 +115,7 @@ responder_t *responder_create_socket(responder_t *ptr, const char* servername, i
         struct hostent* pHE = gethostbyname(ptr->server_name);
         if (pHE == 0)
         {
-            free(ptr);
-            return NULL;
+            return false;
         }
 
         memset(&(ptr->server_address), 0, sizeof(struct sockaddr_in));
@@ -115,11 +133,10 @@ responder_t *responder_create_socket(responder_t *ptr, const char* servername, i
 
     if(ptr->socket == INVALID_SOCKET)
     {
-        free(ptr);
-        return NULL;
+        return false;
     }
 
-    return ptr;
+    return true;
 }
 
 responder_t *responder_assign_socket(responder_t *ptr, int inSocket)
@@ -180,7 +197,7 @@ bool responder_close_socket(responder_t* ptr)
 
     ptr->connected = false;
 
-	return false;
+	return true;
 }
 
 bool responder_receive_buffer(responder_t* ptr, char** iobuffer, size_t len, size_t* out_len, bool alloc_buffer)
@@ -301,8 +318,8 @@ bool responder_receive_string(responder_t* ptr, char** iostr, const char* delime
 		{
             responder_internal_split_buffer((const char*)ptr->prefetched_buffer, ptr->prefetched_buffer_size, delimeter, delimeter_len, &current_line, &current_len, &next_line, &next_len);
 
-            ptr->prefetched_buffer = NULL;
             free(ptr->prefetched_buffer);
+            ptr->prefetched_buffer = NULL;
             ptr->prefetched_buffer_size = 0;
 
             if(current_line != NULL)
@@ -374,7 +391,7 @@ bool responder_receive_string(responder_t* ptr, char** iostr, const char* delime
             
             if(ptr->prefetched_buffer_size > 0)
             {
-                ptr->prefetched_buffer = (unsigned char*)calloc(1, sizeof (unsigned char));
+                ptr->prefetched_buffer = (unsigned char*)calloc(1, ptr->prefetched_buffer_size +1);
                 memcpy(ptr->prefetched_buffer, next_line, ptr->prefetched_buffer_size);
                 free(next_line);
             }
@@ -385,7 +402,7 @@ bool responder_receive_string(responder_t* ptr, char** iostr, const char* delime
             }
             else
             {
-                *iostr = (char*)realloc(*iostr, strlen(*iostr) + strlen(current_line));
+                *iostr = (char*)realloc(*iostr, strlen(*iostr) + strlen(current_line) + 1);
             }
 
             strcat(*iostr, current_line);
@@ -461,7 +478,12 @@ socket_t responder_get_socket(responder_t *ptr)
 
 int  responder_get_error_code(responder_t* ptr)
 {
-    return 0;
+    if(!ptr)
+    {
+        return  SOCKET_ERROR;
+    }
+
+    return ptr->error_code;
 }
 
 bool responder_internal_is_ip4_address(char* str)
