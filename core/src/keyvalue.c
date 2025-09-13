@@ -1,4 +1,4 @@
-﻿/*
+/*
 BSD 2-Clause License
 
 Copyright (c) 2017, Subrato Roy (subratoroy@hotmail.com)
@@ -26,17 +26,29 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "EdgeLib.h"
+#include "keyvalue.h"
 
-static unsigned long library_ref_count = 0;
+#include <string.h>
+#include <memory.h>
+#include <stdlib.h>
 
-void __attribute__((constructor)) library_load(void)
+void keyvalue_copy(key_value_t* dest, key_value_t* orig)
 {
-
+	buffer_copy(dest->Key, orig->Key);
+	buffer_copy(dest->Value, orig->Value);
 }
 
-void __attribute__((destructor)) library_unload(void)
+bool keyvalue_is_equal(key_value_t* first, key_value_t* second)
 {
-
+    return buffer_is_equal(first->Key, second->Key);
 }
 
+bool keyvalue_is_greater(key_value_t* first, key_value_t* second)
+{
+    return buffer_is_greater(first->Key, second->Key);
+}
+
+bool keyvalue_is_less(key_value_t* first, key_value_t* second)
+{
+    return buffer_is_less(first->Key, second->Key);
+}

@@ -26,8 +26,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "Directory.h"
-#include "StringEx.h"
+#include "directory.h"
+#include "stringex.h"
 
 #include <stdlib.h>
 #include <memory.h>

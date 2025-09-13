@@ -26,10 +26,10 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "Configuration.h"
-#include "StringEx.h"
-#include "Environment.h"
-#include "Directory.h"
+#include "configuration.h"
+#include "stringex.h"
+#include "environment.h"
+#include "directory.h"
 
 #include <memory.h>
 #include <stdlib.h>
