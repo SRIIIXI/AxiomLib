@@ -424,7 +424,7 @@ bool responder_send_string(responder_t* ptr, const char* str)
     return responder_send_buffer(ptr, str, len);
 }
 
-size_t responder_read_size(responder_t *ptr)
+size_t responder_get_prefetched_buffer_size(responder_t *ptr)
 {
     if(!ptr)
     {
@@ -541,7 +541,7 @@ void responder_internal_split_buffer(const char* orig, size_t orig_len, const ch
     {
         // If the delimiter is invalid or longer than the original buffer,
         // treat the whole original buffer as the left part and the right part as empty.
-        *left = (char*)malloc(orig_len);
+        *left = (char*)calloc(1, orig_len+1);
         if (*left)
         {
             memcpy(*left, orig, orig_len);
@@ -562,7 +562,7 @@ void responder_internal_split_buffer(const char* orig, size_t orig_len, const ch
             size_t right_size = orig_len - (left_size + delimeter_len);
 
             // Allocate and copy the left part.
-            *left = (char*)malloc(left_size);
+            *left = (char*)calloc(1, left_size+1);
             if (*left)
             {
                 memcpy(*left, orig, left_size);
@@ -570,7 +570,7 @@ void responder_internal_split_buffer(const char* orig, size_t orig_len, const ch
             }
 
             // Allocate and copy the right part.
-            *right = (char*)malloc(right_size);
+            *right = (char*)calloc(1, right_size+1);
             if (*right)
             {
                 memcpy(*right, p + delimeter_len, right_size);
@@ -582,7 +582,7 @@ void responder_internal_split_buffer(const char* orig, size_t orig_len, const ch
     }
 
     // If the delimiter is not found, the whole buffer is the "left" part.
-    *left = (char*)malloc(orig_len);
+    *left = (char*)calloc(1, orig_len+1);
     if (*left)
     {
         memcpy(*left, orig, orig_len);

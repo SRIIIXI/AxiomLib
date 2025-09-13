@@ -502,9 +502,8 @@ bool smtp_resolve_public_ip_address()
     rx_buffer = NULL;
 
     // This call reads the body which contains the public IP address
-    responder_receive_buffer(http_client, &rx_buffer, 14, NULL, true);
-    free(rx_buffer);
-
+    size_t remaining = responder_get_prefetched_buffer_size(http_client);
+    responder_receive_buffer(http_client, &rx_buffer, remaining, NULL, true);
     printf("Public IP Address: %s\n", rx_buffer);
 
     responder_close_socket(http_client);
