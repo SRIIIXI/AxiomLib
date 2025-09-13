@@ -29,7 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VARIANT_C
 #define VARIANT_C
 
-#include "Defines.h"
+#include "defines.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -26,25 +26,35 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef ENVIRONMENT_C
-#define ENVIRONMENT_C
+#ifndef	RESPONDER_SSL_C
+#define	RESPONDER_SSL_C
 
 #include "defines.h"
-#include "stringex.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern LIBRARY_EXPORT string_t*   env_get_current_process_name();
-extern LIBRARY_EXPORT string_t*   env_get_current_user_name();
-extern LIBRARY_EXPORT string_t*   env_get_lock_filename();
-extern LIBRARY_EXPORT bool    env_is_process_locked();
-extern LIBRARY_EXPORT bool    env_lock_process();
-extern LIBRARY_EXPORT bool    env_unlock_process();
+typedef struct responder_ssl_t responder_ssl_t;
+
+extern LIBRARY_EXPORT responder_ssl_t* responder_ssl_allocate();
+extern LIBRARY_EXPORT void responder_ssl_free(responder_ssl_t* ptr);
+extern LIBRARY_EXPORT responder_ssl_t* responder_ssl_create_socket(responder_ssl_t* ptr, const char* servername, int serverport);
+extern LIBRARY_EXPORT responder_ssl_t* responder_ssl_assign_socket(responder_ssl_t* ptr, int inSocket);
+extern LIBRARY_EXPORT bool responder_ssl_connect_socket(responder_ssl_t* ptr);
+extern LIBRARY_EXPORT bool responder_ssl_close_socket(responder_ssl_t* ptr);
+extern LIBRARY_EXPORT bool responder_ssl_send_buffer(responder_ssl_t* ptr, const char* data, size_t len);
+extern LIBRARY_EXPORT bool responder_ssl_send_string(responder_ssl_t* ptr, const char* str);
+extern LIBRARY_EXPORT bool responder_ssl_receive_buffer(responder_ssl_t* ptr, char** iobuffer, size_t len, bool alloc_buffer);
+extern LIBRARY_EXPORT bool responder_ssl_receive_string(responder_ssl_t* ptr, char** iostr, const char* delimeter);
+extern LIBRARY_EXPORT size_t responder_ssl_read_size(responder_ssl_t* ptr);
+extern LIBRARY_EXPORT bool responder_ssl_is_connected(responder_ssl_t* ptr);
+extern LIBRARY_EXPORT socket_t responder_ssl_get_socket(responder_ssl_t* ptr);
+extern LIBRARY_EXPORT int  responder_ssl_get_error_code(responder_ssl_t* ptr);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
+

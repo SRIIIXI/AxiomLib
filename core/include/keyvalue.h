@@ -29,8 +29,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef KEY_VALUE_C
 #define KEY_VALUE_C
 
-#include "Defines.h"
-#include "Buffer.h"
+#include "defines.h"
+#include "buffer.h"
 
 #ifdef __cplusplus
 extern "C" {

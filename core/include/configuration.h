@@ -29,8 +29,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef CONFIGURATION_C
 #define CONFIGURATION_C
 
-#include "Defines.h"
-#include "StringEx.h"
+#include "defines.h"
+#include "stringex.h"
 
 #ifdef __cplusplus
 extern "C" {

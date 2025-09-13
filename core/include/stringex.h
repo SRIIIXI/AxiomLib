@@ -29,7 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef STRING_EX_C
 #define STRING_EX_C
 
-#include "Defines.h"
+#include "defines.h"
 #include <wchar.h>
 
 #ifdef __cplusplus

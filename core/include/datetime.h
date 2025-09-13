@@ -29,7 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef DATE_TIME
 #define DATE_TIME
 
-#include "Defines.h"
+#include "defines.h"
 #include <string.h>
 #include <time.h>
 

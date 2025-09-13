@@ -29,7 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef FILE_C
 #define FILE_C
 
-#include "Defines.h"
+#include "defines.h"
 
 #ifdef __cplusplus
 extern "C" {

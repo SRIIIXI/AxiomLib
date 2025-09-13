@@ -1,4 +1,4 @@
-/*
+﻿/*
 BSD 2-Clause License
 
 Copyright (c) 2017, Subrato Roy (subratoroy@hotmail.com)
@@ -26,25 +26,17 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef ENVIRONMENT_C
-#define ENVIRONMENT_C
+#include "axiomlib.h"
 
-#include "defines.h"
-#include "stringex.h"
+static unsigned long library_ref_count = 0;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+void __attribute__((constructor)) library_load(void)
+{
 
-extern LIBRARY_EXPORT string_t*   env_get_current_process_name();
-extern LIBRARY_EXPORT string_t*   env_get_current_user_name();
-extern LIBRARY_EXPORT string_t*   env_get_lock_filename();
-extern LIBRARY_EXPORT bool    env_is_process_locked();
-extern LIBRARY_EXPORT bool    env_lock_process();
-extern LIBRARY_EXPORT bool    env_unlock_process();
-
-#ifdef __cplusplus
 }
-#endif
 
-#endif
+void __attribute__((destructor)) library_unload(void)
+{
+
+}
+

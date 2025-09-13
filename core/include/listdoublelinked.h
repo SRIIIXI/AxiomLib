@@ -29,7 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef LIST_DOUBLE_LINKED_C
 #define LIST_DOUBLE_LINKED_C
 
-#include "Defines.h"
+#include "defines.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -26,22 +26,35 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef ENVIRONMENT_C
-#define ENVIRONMENT_C
+#ifndef SMTP_C
+#define SMTP_C
 
 #include "defines.h"
-#include "stringex.h"
+#include "mail.h"
+#include "securitytypes.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern LIBRARY_EXPORT string_t*   env_get_current_process_name();
-extern LIBRARY_EXPORT string_t*   env_get_current_user_name();
-extern LIBRARY_EXPORT string_t*   env_get_lock_filename();
-extern LIBRARY_EXPORT bool    env_is_process_locked();
-extern LIBRARY_EXPORT bool    env_lock_process();
-extern LIBRARY_EXPORT bool    env_unlock_process();
+typedef struct smtp_t smtp_t;
+
+extern LIBRARY_EXPORT smtp_t* smtp_allocate(void);
+extern LIBRARY_EXPORT void smtp_free(smtp_t* ptr);
+extern LIBRARY_EXPORT void smtp_set_account_information(smtp_t* ptr, const char* hoststr, uint16_t portstr, const char* usernamestr, const char* passwordstr, security_type_t sectype);
+extern LIBRARY_EXPORT void smtp_set_public_ip_address(smtp_t* ptr, const char* ip);
+extern LIBRARY_EXPORT bool smtp_disconnect(smtp_t* ptr);
+extern LIBRARY_EXPORT bool smtp_connect(smtp_t* ptr);
+extern LIBRARY_EXPORT bool smtp_send_helo(smtp_t* ptr);
+extern LIBRARY_EXPORT bool smtp_start_tls(smtp_t* ptr);
+extern LIBRARY_EXPORT bool smtp_need_tls(smtp_t* ptr);
+extern LIBRARY_EXPORT bool smtp_login(smtp_t* ptr);
+extern LIBRARY_EXPORT bool smtp_logout(smtp_t* ptr);
+extern LIBRARY_EXPORT bool smtp_sendmail(smtp_t* ptr, const mail_t* mail);
+extern LIBRARY_EXPORT const char* smtp_get_account(smtp_t* ptr);
+extern LIBRARY_EXPORT const char* smtp_get_error(smtp_t* ptr);
+extern LIBRARY_EXPORT bool smtp_is_connected(smtp_t* ptr);
+extern LIBRARY_EXPORT bool smtp_resolve_public_ip_address();
 
 #ifdef __cplusplus
 }

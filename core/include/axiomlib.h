@@ -1,4 +1,4 @@
-/*
+﻿/*
 BSD 2-Clause License
 
 Copyright (c) 2017, Subrato Roy (subratoroy@hotmail.com)
@@ -26,22 +26,42 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef ENVIRONMENT_C
-#define ENVIRONMENT_C
+#ifndef AXIOM_LIB
+#define AXIOM_LIB
 
-#include "defines.h"
+#include<stdint.h>
+#include<stdbool.h>
+
+#include "base64.h"
+#include "buffer.h"
+#include "directory.h"
+#include "dictionary.h"
+#include "file.h"
+#include "keyvalue.h"
+#include "list.h"
+#include "logger.h"
+#include "queue.h"
+#include "stack.h"
 #include "stringex.h"
+#include "configuration.h"
+#include "environment.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern LIBRARY_EXPORT string_t*   env_get_current_process_name();
-extern LIBRARY_EXPORT string_t*   env_get_current_user_name();
-extern LIBRARY_EXPORT string_t*   env_get_lock_filename();
-extern LIBRARY_EXPORT bool    env_is_process_locked();
-extern LIBRARY_EXPORT bool    env_lock_process();
-extern LIBRARY_EXPORT bool    env_unlock_process();
+// Shared libary load/unload handlers
+
+#if defined (_WIN32) || defined (_WIN64)
+#include <WinSock2.h>
+#include <Windows.h>
+	BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
+	void library_load(void);
+	void library_unload(void);
+#else
+	void __attribute__((constructor)) library_load(void);
+	void __attribute__((destructor)) library_unload(void);
+#endif
 
 #ifdef __cplusplus
 }

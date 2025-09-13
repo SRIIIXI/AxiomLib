@@ -29,7 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef BASE_64_C
 #define BASE_64_C
 
-#include "Defines.h"
+#include "defines.h"
 
 #ifdef __cplusplus
 extern "C" {
