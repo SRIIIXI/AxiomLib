@@ -5,6 +5,7 @@
 
 int main(int argc, char* argv[])
 {
+    //Before we start a SMTP session we need to resolve our owm public IP Address or FQDN
     smtp_resolve_public_ip_address();
 
     smtp_t* smtp = smtp_allocate();
