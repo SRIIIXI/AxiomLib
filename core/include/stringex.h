@@ -104,8 +104,8 @@ extern LIBRARY_EXPORT string_t* string_replace_char_at(string_t* str, const char
 extern LIBRARY_EXPORT string_list_t* string_list_allocate_default(void);
 extern LIBRARY_EXPORT void string_split_key_value_by_char(const string_t* str, const char delimiter, string_t **key, string_t **value);
 extern LIBRARY_EXPORT void string_split_key_value_by_substr(const string_t* str, const char* delimiter, string_t **key, string_t **value);
-extern LIBRARY_EXPORT string_list_t* string_split_by_substr(const string_t* str, const char* delimiter);
-extern LIBRARY_EXPORT string_list_t* string_split_by_char(const string_t* str, const char delimiter);
+extern LIBRARY_EXPORT string_list_t* string_split_by_substr(const string_t* str, const char* delimiter, string_list_t* list);
+extern LIBRARY_EXPORT string_list_t* string_split_by_char(const string_t* str, const char delimiter, string_list_t* list);
 extern LIBRARY_EXPORT char* string_join_list_with_substr(const char **strlist, const char* delimiter);
 extern LIBRARY_EXPORT char* string_join_list_with_char(const char** strlist, const char delimiter);
 extern LIBRARY_EXPORT char* string_merge_list_with_substr(const char **strlist, const char* delimiter);

@@ -200,7 +200,7 @@ bool responder_close_socket(responder_t* ptr)
 	return true;
 }
 
-bool responder_receive_buffer(responder_t* ptr, char** iobuffer, size_t len, size_t* out_len, bool alloc_buffer)
+bool responder_receive_buffer_by_length(responder_t* ptr, char** iobuffer, size_t len, size_t* out_len, bool alloc_buffer)
 {
     if(!ptr)
     {
@@ -261,7 +261,6 @@ bool responder_receive_buffer(responder_t* ptr, char** iobuffer, size_t len, siz
         }
 
         // Error or link down
-
         if(bytesread < 0 || buffer == NULL)
         {
             ptr->error_code = SOCKET_ERROR;
@@ -298,6 +297,95 @@ bool responder_receive_buffer(responder_t* ptr, char** iobuffer, size_t len, siz
         }
     }
 }
+
+ bool responder_receive_buffer_by_delimeter(responder_t* ptr, char** iobuffer, bool alloc_buffer)
+ {
+    if(!ptr)
+    {
+        return  false;
+    }
+
+    // If there are pre-fetched bytes left, we have to copy that first and release memory
+
+    if(ptr->prefetched_buffer_size > 0)
+    {
+        if(alloc_buffer)
+        {
+            *iobuffer = (char*)calloc(1, ptr->prefetched_buffer_size + 1);
+        }
+
+        memcpy(*iobuffer, ptr->prefetched_buffer, ptr->prefetched_buffer_size);
+        ptr->prefetched_buffer_size = 0;
+        free(ptr->prefetched_buffer);
+        ptr->prefetched_buffer = NULL;
+    }
+
+    while(true)
+    {
+        char*	buffer = 0;
+        ssize_t	bytesread = 0;
+        buffer = (char*)calloc(1, bytesleft + 1);
+
+        if (buffer)
+        {
+            bytesread = (ssize_t)recv(ptr->socket, buffer, (int)bytesleft, 0);
+
+            if (out_len)
+            {
+                *out_len += (size_t)bytesread;
+            }
+        }
+
+        if (bytesread == 0)
+        {
+            // Connection closed gracefully
+            if (buffer)
+            {
+                free(buffer);
+            }
+
+            ptr->connected = false;
+            return true;
+        }
+
+        // Error or link down
+        if(bytesread < 0 || buffer == NULL)
+        {
+            ptr->error_code = SOCKET_ERROR;
+
+            if (buffer)
+            {
+                free(buffer);
+            }
+
+            if(alloc_buffer)
+            {
+                free(*iobuffer);
+            }
+            else
+            {
+                memset(*iobuffer, 0, len);
+            }
+
+            len	= 0;
+            ptr->connected = false;
+            return false;
+        }
+
+        memcpy(*iobuffer+bufferpos, buffer, (size_t)bytesread);
+        free(buffer);
+
+        bufferpos = bufferpos + (size_t)bytesread;
+
+        bytesleft = bytesleft - (size_t)bytesread;
+
+        if(bufferpos >= len)
+        {
+            return true;
+        }
+    }
+ }
+
 
 bool responder_receive_string(responder_t* ptr, char** iostr, const char* delimeter)
 {
@@ -347,7 +435,9 @@ bool responder_receive_string(responder_t* ptr, char** iostr, const char* delime
 
         size_t out_len = 0;
 
-        if(!responder_receive_buffer(ptr, &buffer, 1024, &out_len, true))
+        bool ret = responder_receive_buffer_by_length(ptr, &buffer, 1024, &out_len, true);
+
+        if(!ret || out_len == 0)
         {
             if(*iostr)
             {
@@ -610,4 +700,21 @@ void responder_internal_split_buffer(const char* orig, size_t orig_len, const ch
         memcpy(*left, orig, orig_len);
         *left_len = orig_len;
     }
+}
+
+void responder_clear_buffer(responder_t* ptr)
+{
+    if(ptr == NULL)
+    {
+        return;
+    }
+
+    if(ptr->prefetched_buffer_size > 0)
+    {
+        printf("Clearing %d bytes from prefetched buffer", ptr->prefetched_buffer_size);
+    }
+
+    free(ptr->prefetched_buffer);
+    ptr->prefetched_buffer = NULL;
+    ptr->prefetched_buffer_size = 0;
 }

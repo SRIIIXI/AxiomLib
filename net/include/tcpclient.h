@@ -26,41 +26,37 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef BUFFER_C
-#define BUFFER_C
+#ifndef TCP_CLIENT_C
+#define RESPONDTCP_CLIENT_CER_C
 
 #include "defines.h"
+#include "buffer.h"
 #include "stringex.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-typedef struct buffer_t buffer_t;
+  typedef struct tcp_client_t tcp_client_t;
+  typedef int socket_t;
 
-extern LIBRARY_EXPORT buffer_t* buffer_allocate(const void* data, size_t sz);
-extern LIBRARY_EXPORT buffer_t* buffer_allocate_default(void);
-extern LIBRARY_EXPORT buffer_t* buffer_allocate_length(size_t len);
+  extern LIBRARY_EXPORT tcp_client_t *tcp_client_allocate();
+  extern LIBRARY_EXPORT void tcp_client_free(tcp_client_t *ptr);
+  extern LIBRARY_EXPORT bool tcp_client_create_socket(tcp_client_t *ptr, const char *servername, int serverport);
+  extern LIBRARY_EXPORT bool tcp_client_connect_socket(tcp_client_t *ptr);
+  extern LIBRARY_EXPORT bool tcp_client_close_socket(tcp_client_t *ptr);
+  extern LIBRARY_EXPORT bool tcp_client_is_connected(tcp_client_t *ptr);
 
-extern LIBRARY_EXPORT buffer_t* buffer_copy(buffer_t* dest, buffer_t* orig);
-extern LIBRARY_EXPORT buffer_t* buffer_append(buffer_t* dest, const void* data, size_t sz);
+  extern LIBRARY_EXPORT bool tcp_client_send_buffer(tcp_client_t *ptr, const char *data, size_t len);
+  extern LIBRARY_EXPORT bool tcp_client_send_string(tcp_client_t *ptr, const char *str);
 
-extern LIBRARY_EXPORT void buffer_remove(buffer_t* ptr, size_t start, size_t len);
-extern LIBRARY_EXPORT void buffer_remove_end(buffer_t* ptr, size_t len);
-extern LIBRARY_EXPORT void buffer_remove_start(buffer_t* ptr, size_t len);
+  extern LIBRARY_EXPORT buffer_t* tcp_client_receive_buffer_by_length(tcp_client_t *ptr, buffer_t *iobuffer, size_t len, bool alloc_buffer);
+  extern LIBRARY_EXPORT buffer_t* tcp_client_receive_buffer_by_delimeter(tcp_client_t *ptr, buffer_t *iobuffer, const char *delimeter, size_t delimeterlen, bool alloc_buffer);
+  extern LIBRARY_EXPORT string_t* tcp_client_receive_string(tcp_client_t *ptr, string_t *iostr, const char *delimeter, bool alloc_buffer);
 
-extern LIBRARY_EXPORT void buffer_clear(buffer_t* ptr);
-extern LIBRARY_EXPORT void buffer_free(buffer_t* ptr);
-
-extern LIBRARY_EXPORT bool buffer_is_equal(buffer_t* first, buffer_t* second);
-extern LIBRARY_EXPORT bool buffer_is_greater(buffer_t* first, buffer_t* second);
-extern LIBRARY_EXPORT bool buffer_is_less(buffer_t* first, buffer_t* second);
-extern LIBRARY_EXPORT bool buffer_is_null(buffer_t* ptr);
-
-extern LIBRARY_EXPORT const void* buffer_get_data(buffer_t* ptr);
-extern LIBRARY_EXPORT size_t buffer_get_size(buffer_t* ptr);
-extern LIBRARY_EXPORT string_t* buffer_convert_to_string(buffer_t* ptr);
-
+  extern LIBRARY_EXPORT socket_t tcp_client_get_socket(tcp_client_t *ptr);
+  extern LIBRARY_EXPORT int tcp_client_get_error_code(tcp_client_t *ptr);
 
 #ifdef __cplusplus
 }

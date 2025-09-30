@@ -124,6 +124,13 @@ string_t* string_allocate_length(size_t slen)
 
 void string_free(string_t* str)
 {
+    if(str == NULL)
+    {
+        return;
+    }
+
+    free(str->data);
+    str->data = NULL;
     free(str);
     str = NULL;
 }
@@ -445,6 +452,16 @@ string_t *string_segment_reverse(string_t *str, size_t start, size_t term)
 
 long string_index_of_substr(const string_t *str, const string_t *substr)
 {
+    if(str == NULL || substr == NULL)
+    {
+        return -1;
+    }
+
+    if(str->data == NULL || substr->data == NULL)
+    {
+        return -1;
+    }
+
     long result = -1;
 
     char* pdest = (char*)strstr( str->data, substr->data);
@@ -474,31 +491,35 @@ long string_index_of_char(const string_t *str, const char ch)
 
 long string_count_substr(const string_t *str, const string_t *substr)
 {
-    long ctr = 0;
+    if(str == NULL || substr == NULL)
+    {
+        0;
+    }
 
-    long offset = substr->data_size;
+    const char* string = string_c_str(str);
+    const char* substring = string_c_str(substr);
+    size_t count = 0;
 
-    const char* ptr = str->data;
-
-	bool contiue_scan = true;
-
-	while (contiue_scan)
-	{
-        long long index = string_index_of_substr(str, substr);
-
-		if (index > -1)
-		{
-			ptr = ptr + index + offset;
-			ctr++;
-			contiue_scan = true;
-		}
-		else
-		{
-			contiue_scan = false;
-		}
-	}
-
-    return ctr;
+    if (!string || !substring) 
+    {
+        return 0;
+    }
+    
+    size_t sub_len = strlen(substring);
+    if (sub_len == 0) 
+    {
+        return 0;
+    }
+    
+    const char* pos = string;
+    
+    while ((pos = strstr(pos, substring)) != NULL) 
+    {
+        count++;
+        pos += sub_len;  // Move past this occurrence
+    }
+    
+    return count;
 }
 
 long string_count_char(const string_t *str, const char ch)
@@ -1008,10 +1029,8 @@ void string_split_key_value_by_substr(const string_t *str, const char* delimiter
     return retval;
  }
 
-string_list_t *string_split_by_substr(const string_t *str, const char *delimiter)
+string_list_t *string_split_by_substr(const string_t *str, const char *delimiter, string_list_t* list)
 {
-    string_list_t* retval = NULL;
-
 	if(str == NULL || delimiter == NULL)
 	{
 		return NULL;
@@ -1038,21 +1057,11 @@ string_list_t *string_split_by_substr(const string_t *str, const char *delimiter
 
     memcpy(ptr, str->data, (unsigned long)str_len);
 
-	char** buffer = NULL;
-
-    buffer = (char **)calloc(1, (unsigned long)(substr_count + 1) * sizeof(char*));
-
-	if(buffer == NULL)
-	{
-        free(ptr);
-        string_free(delimeter_data);
-        return NULL;
-	}
+    list = (string_list_t*)calloc(1, sizeof(string_list_t));
 
 	char* temp_ptr = NULL;
 
 	temp_ptr = strtok(ptr, delimiter);
-    long index = 0;
 
 	while(temp_ptr != NULL)
 	{
@@ -1063,30 +1072,21 @@ string_list_t *string_split_by_substr(const string_t *str, const char *delimiter
             continue;
         }
 
-        buffer[index] = (char*)calloc(1, sizeof(char) * (unsigned long)(temp_str_len + 1));
-
-		if(buffer[index] == NULL)
-		{
-            string_free(delimeter_data);
-            return NULL;
-        }
-
-        strcpy(buffer[index], temp_ptr);
+        string_append_to_list(list, temp_ptr);
 		temp_ptr = strtok(NULL, delimiter);
-		index++;
 	}
 
     free(ptr);
     string_free(delimeter_data);
 
-	return retval;
+	return list;
 }
 
-string_list_t* string_split_by_char(const string_t* str, const char delimiter)
+string_list_t* string_split_by_char(const string_t* str, const char delimiter, string_list_t* list)
 {
 	char temp_delimiter[2] = {delimiter, 0};
 
-    return string_split_by_substr(str, temp_delimiter);
+    return string_split_by_substr(str, temp_delimiter, list);
 }
 
 char* string_join_list_with_substr(const char** strlist, const char* delimiter)
@@ -1283,8 +1283,14 @@ void string_free_list(string_list_t *strlist)
     {
         for(int x = 0; x < strlist->num_of_strings; x++)
         {
-            string_free(&strlist->strings[x]);
+            if(strlist->strings[x].data != NULL)
+            {
+                free(strlist->strings[x].data);
+                strlist->strings[x].data = NULL;
+            }
         }
+
+        free(strlist->strings);
         free(strlist);
     }
 }
@@ -1357,7 +1363,7 @@ string_t *string_get_next_from_list(string_list_t *strlist)
 {
     if(strlist != NULL)
     {
-        if(strlist->num_of_strings > 1)
+        if(strlist->num_of_strings > 1 && strlist->current_index < strlist->num_of_strings)
         {
             strlist->current_index++;
             return &strlist->strings[strlist->current_index];

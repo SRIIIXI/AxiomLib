@@ -26,10 +26,12 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "smtp.h"
+#include "tcpclient.h"
 #include "stringex.h"
-#include "responder.h"
+#include "securitytypes.h"
 #include "dictionary.h"
+#include "base64.h"
+#include "mail.h"
 
 #include <memory.h>
 #include <netdb.h>
@@ -48,7 +50,7 @@ typedef struct smtp_t
     mail_body_t* email_body;
     
     //responder_ssl_t* bearer;
-    responder_t* bearer;
+    tcp_client_t* bearer;
 }smtp_t;
 
 char selfIp[16] = {0};
@@ -131,10 +133,11 @@ bool smtp_connect(smtp_t* ptr)
     if (ptr->securityType == Ssl) 
     {
         //ptr->bearer = responder_ssl_allocate();
+        return false;
     } 
     else
     {
-        ptr->bearer = responder_allocate();
+        ptr->bearer = tcp_client_allocate();
     }
 
     if (ptr->bearer == NULL) 
@@ -143,24 +146,31 @@ bool smtp_connect(smtp_t* ptr)
         return false;
     }
 
-    bool created = responder_create_socket(ptr->bearer, ptr->host, ptr->port);
+    bool created = tcp_client_create_socket(ptr->bearer, ptr->host, ptr->port);
     if (!created) 
     {
         snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to create socket");
-        responder_free(ptr->bearer);
+        tcp_client_free(ptr->bearer);
         ptr->bearer = NULL;
         return false;
     }
 
-    bool connected = responder_connect_socket(ptr->bearer);
+    bool connected = tcp_client_connect_socket(ptr->bearer);
 
     if (!connected) 
     {
         snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to connect to server");
-        responder_free(ptr->bearer);
+        tcp_client_free(ptr->bearer);
         ptr->bearer = NULL;
         return false;
     }
+
+    string_t* rx_buffer = NULL;
+
+    rx_buffer = tcp_client_receive_string(ptr->bearer, rx_buffer, "\r\n", true);
+    printf("%s\n", string_c_str(rx_buffer));
+    string_free(rx_buffer);
+
     return true;
 }
 
@@ -171,7 +181,7 @@ bool smtp_disconnect(smtp_t* ptr)
         return false;
     }   
 
-    bool closed = responder_close_socket(ptr->bearer);
+    bool closed = tcp_client_close_socket(ptr->bearer);
 
     if (!closed) 
     {
@@ -185,35 +195,48 @@ bool smtp_disconnect(smtp_t* ptr)
 bool smtp_send_helo(smtp_t* ptr)
 {
     char tx_buffer[128] = { 0 };
-    sprintf(tx_buffer, "EHLO [%s]\r\n", selfIp);
+    sprintf(tx_buffer, "EHLO %s\r\n", selfIp);
+    printf(tx_buffer);
 
-    if (!responder_send_string(ptr->bearer, tx_buffer))
+    if (!tcp_client_send_string(ptr->bearer, tx_buffer))
     {
         snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to send EHLO");
         return false;
     }
 
-    char* rx_buffer = NULL;
+    string_t* rx_buffer = NULL;
+    string_t* eof_response = string_allocate("250 ");
+    string_t* tls_support = string_allocate("STARTTLS");
 
-    responder_receive_string(ptr->bearer, &rx_buffer, "\r\n");
-
-    if(strstr(rx_buffer, "STARTTLS") != NULL)
+    while(true)
     {
-        ptr->start_tls = true;
-    }
-    else
-    {
-        ptr->start_tls = false;
+        rx_buffer = tcp_client_receive_string(ptr->bearer, rx_buffer, "\r\n", true);
+        printf("%s", string_c_str(rx_buffer));
+
+        if(string_index_of_substr(rx_buffer, tls_support) >= 0)
+        {
+            ptr->start_tls = true;
+            string_free(tls_support);
+        }
+
+        if(string_index_of_substr(rx_buffer, eof_response) >= 0)
+        {
+            string_free(rx_buffer);
+            string_free(eof_response);
+            break;
+        }
+
+        string_free(rx_buffer);
+        rx_buffer = NULL;
     }
 
-    free(rx_buffer);
-
-    return false;
+    return true;
 }
 
 void smtp_set_public_ip_address(smtp_t* ptr, const char* ip)
 {
-    //publicIp = ip;
+    memset(selfIp, 0, sizeof(selfIp));
+    strncpy(selfIp, ip, 15);
 }
 
 const char* smtp_get_account(smtp_t* ptr)
@@ -318,7 +341,7 @@ bool smtp_sendmail(smtp_t* ptr, const mail_t* mail)
 
 bool smtp_start_tls(smtp_t* ptr)
 {
-    return false;
+    return true;
 
 //	std::string resp;
 //	char buff[128] = { 0 };
@@ -361,71 +384,109 @@ bool smtp_need_tls(smtp_t* ptr)
 
 bool smtp_login(smtp_t* ptr)
 {
-//	std::string resp;
-//	std::vector<std::string> tokens;
+    if (ptr == NULL || ptr->bearer == NULL) 
+    {
+        return false;
+    }
 
-//	char buff[128] = { 0 };
+    char tx_buffer[128] = {0};
+    sprintf(tx_buffer, "AUTH LOGIN\r\n");
+    printf(tx_buffer);
 
-//	sprintf(buff, "AUTH LOGIN\r\n");
-//	int len = (int)strlen(buff);
+    if (!tcp_client_send_string(ptr->bearer, tx_buffer)) 
+    {
+        snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to send AUTH LOGIN");
+        return false;
+    }
 
-//	bearer.SendString(buff);
+    string_t* rx_buffer = NULL;
+    string_t* respcode = string_allocate("334");
 
-//	while (true)
-//	{
-//		if (!bearer.ReceiveString(resp))
-//		{
-//			return false;
-//		}
+    rx_buffer = tcp_client_receive_string(ptr->bearer, rx_buffer, "\r\n", true);
+    printf("%s\n", string_c_str(rx_buffer));
 
-//		//Authentication challenge
-//		if (strcontains(resp.c_str(), "334"))
-//		{
-//			strremove(resp, '\n');
-//			strremove(resp, '\r');
-//			tokens.clear();
-//			strsplit(resp, tokens, ' ');
+    if (string_index_of_substr(rx_buffer, respcode) < 0) 
+    {
+        snprintf(ptr->errorStr, sizeof(ptr->errorStr), "AUTH LOGIN not accepted");
+        if (rx_buffer) free(rx_buffer);
+        return false;
+    }
 
-//			class Base64 codec_b64;
-//			std::string decoded_str;
-//			unsigned long olen;
-//			decoded_str = (char*)codec_b64.DecodeBase64(tokens[1].c_str(), tokens[1].length(), olen);
-//			decoded_str[olen] = 0;
+    string_free(rx_buffer);
+    rx_buffer = NULL;
 
-//			if (strcontains(decoded_str.c_str(), "Username"))
-//			{
-//				std::string encoded_uname;
-//				codec_b64.EncodeBase64((unsigned char*)username.c_str(), username.length(), olen, encoded_uname);
-//				encoded_uname += "\r\n";
-//				bearer.SendString(encoded_uname);
-//				continue;
-//			}
+    // Send base64(username)
+    char b64_buffer[64] = {0};
+    unsigned long b64_outlen = 0;
 
-//			if (strcontains(decoded_str.c_str(), "Password"))
-//			{
-//				std::string encoded_password;
-//				codec_b64.EncodeBase64((unsigned char*)password.c_str(), password.length(), olen, encoded_password);
-//				encoded_password += "\r\n";
-//				bearer.SendString(encoded_password);
-//				continue;
-//			}
-//		}
+    memset(tx_buffer, 0, sizeof(tx_buffer));
+    strcpy(b64_buffer, base64_encode((const unsigned char*)ptr->username, strlen(ptr->username), b64_buffer, &b64_outlen));
+    snprintf(tx_buffer, sizeof(tx_buffer), "%s\r\n", b64_buffer);
+    if (!tcp_client_send_string(ptr->bearer, tx_buffer)) 
+    {
+        snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to send username");
+        return false;
+    }
 
-//		if (bearer.PendingPreFetchedBufferSize() < 1)
-//		{
-//			tokens.clear();
-//			strsplit(resp, tokens, ' ');
-			
-//			if (tokens[0] == "235")
-//			{
-//				return true;
-//			}
+    rx_buffer = tcp_client_receive_string(ptr->bearer, rx_buffer, "\r\n", true);
+    printf("%s\n", string_c_str(rx_buffer));
+    if (string_index_of_substr(rx_buffer, respcode) < 0) 
+    {
+        snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Username not accepted");
+        if (rx_buffer) 
+        {
+            string_free(rx_buffer);
+        }
+        return false;
+    }
 
-//			break;
-//		}
-//	}
+    free(rx_buffer);
+    rx_buffer = NULL;
 
-	return false;
+    // Send base64(password)
+    memset(b64_buffer, 0, sizeof(b64_buffer));
+    b64_outlen = 0;
+
+    memset(tx_buffer, 0, sizeof(tx_buffer));
+    strcpy(b64_buffer, base64_encode((const unsigned char*)ptr->password, strlen(ptr->password), b64_buffer, &b64_outlen));
+    snprintf(tx_buffer, sizeof(tx_buffer), "%s\r\n", b64_buffer);
+    if (!tcp_client_send_string(ptr->bearer, tx_buffer)) 
+    {
+        snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to send password");
+        return false;
+    }
+
+    string_free(respcode);
+
+    string_free(rx_buffer);
+    rx_buffer = NULL;
+
+    rx_buffer = tcp_client_receive_string(ptr->bearer, rx_buffer, "\r\n", true);
+    printf("%s\n", string_c_str(rx_buffer));
+
+    if (!rx_buffer) 
+    {
+        snprintf(ptr->errorStr, sizeof(ptr->errorStr), "No response after password");
+        return false;
+    }
+
+    // Success if response contains "235"
+    respcode = string_allocate("235");
+
+    if (string_index_of_substr(rx_buffer, respcode) < 0) 
+    {
+        snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Authentication failed");
+        if (rx_buffer) 
+        {
+            string_free(rx_buffer);
+        }
+        return false;
+    }
+
+    string_free(rx_buffer);
+    string_free(respcode);
+
+    return true;
 }
 
 bool smtp_logout(smtp_t* ptr)
@@ -438,19 +499,25 @@ bool smtp_logout(smtp_t* ptr)
 	char tx_buffer[128] = { 0 };
 	sprintf(tx_buffer, "QUIT\r\n");
 
-    responder_send_string(ptr->bearer, tx_buffer);
+    tcp_client_send_string(ptr->bearer, tx_buffer);
 
-    char* rx_buffer = NULL; 
-    responder_receive_string(ptr->bearer, &rx_buffer, "\r\n");
+    string_t* rx_buffer = NULL; 
+    rx_buffer = tcp_client_receive_string(ptr->bearer, rx_buffer, "\r\n", true);
+    printf("%s\n", string_c_str(rx_buffer));
+
+    string_t *resp = NULL;
+
+    resp = string_allocate("221");
 
     //Check if the response contains "221"
-    if(strstr(rx_buffer, "221") == NULL)
+    if(string_index_of_substr(rx_buffer, resp) < 0)
     {
         snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to logout");
         return false;   
     }
 
-    free(rx_buffer);
+    string_free(rx_buffer);
+    string_free(resp);
 
 	return true;
 }
@@ -462,61 +529,98 @@ bool smtp_is_connected(smtp_t* ptr)
         return false;
     }   
 
-    return responder_is_connected(ptr->bearer); 
+    return tcp_client_is_connected(ptr->bearer); 
 }
 
 bool smtp_resolve_public_ip_address()
 {
-    responder_t* http_client = responder_allocate();
+    tcp_client_t* http_client = tcp_client_allocate();
 
     if (http_client == NULL) 
     {
         return false;
     }
 
-    bool created = responder_create_socket(http_client, "whatismyip.akamai.com", 80);
+    bool created = tcp_client_create_socket(http_client, "whatismyip.akamai.com", 80);
 
     if (!created) 
     {
         printf("Failed to create socket");
-        responder_free(http_client);
+        tcp_client_free(http_client);
         return false;
     }
 
-    bool connected = responder_connect_socket(http_client);
+    bool connected = tcp_client_connect_socket(http_client);
 
     if (!connected) 
     {
         printf("Failed to connect to whatismyip.akamai.com");
-        responder_free(http_client);
+        tcp_client_free(http_client);
         return false;
     }
 
     char tx_buffer[128] = { 0 };
     sprintf(tx_buffer, "GET / HTTP/1.0\r\nHost: whatismyip.akamai.com\r\n\r\n");
 
-    if (!responder_send_string(http_client, tx_buffer))
+    if (!tcp_client_send_string(http_client, tx_buffer))
     {
         printf("Failed to send HTTP GET");
         return false;
     }
 
-    char* rx_buffer = NULL;
+    string_t* rx_string = string_allocate_default();
 
     // This call reads the HTTP headers
-    responder_receive_string(http_client, &rx_buffer, "\r\n\r\n");
-    free(rx_buffer);
-    rx_buffer = NULL;
+    rx_string = tcp_client_receive_string(http_client, rx_string, "\r\n\r\n", false);
+    //printf("%s", string_c_str(rx_string));
+    
+    string_list_t* headerlist = NULL;
+    headerlist = string_split_by_substr(rx_string, "\r\n", headerlist);
+
+    string_t* header = string_get_first_from_list(headerlist);
+    string_t* contentlenheader = string_allocate("Content-Length");
+    string_t* tag = NULL;
+    string_t* value = NULL;
+
+    while(header)
+    {
+        if(string_c_str(header) != NULL)
+        {
+            printf("%s\n", string_c_str(header));
+            fflush(stdout);
+        }
+
+        if(string_index_of_substr(header, contentlenheader) >= 0)
+        {
+            string_split_key_value_by_char(header, ':', &tag, &value);
+        }
+        header = string_get_next_from_list(headerlist);
+    }
+
+    string_free_list(headerlist);
+    string_free(rx_string);
+    rx_string = NULL;
+
+    size_t bodylen = 0;
+
+    if(value)
+    {
+        bodylen = atol(string_c_str(value));
+    }
+
+    free(tag);
+    free(value);
+
+    buffer_t* rx_buffer = NULL;
 
     // This call reads the body which contains the public IP address
-    size_t remaining = responder_get_prefetched_buffer_size(http_client);
-    responder_receive_buffer(http_client, &rx_buffer, remaining, NULL, true);
-    printf("Public IP Address: %s\n", rx_buffer);
+    rx_buffer = tcp_client_receive_buffer_by_length(http_client, rx_buffer, bodylen, true);
     memset(selfIp, 0, 16);
-    strncpy(selfIp, rx_buffer, 15);
+    strncpy(selfIp, buffer_get_data(rx_buffer), buffer_get_size(rx_buffer));
+    printf("Public IP Address: %s\n", selfIp);
 
-    responder_close_socket(http_client);
-    responder_free(http_client);
-    free(rx_buffer);
+    tcp_client_close_socket(http_client);
+    tcp_client_free(http_client);
+    buffer_free(rx_buffer);
     return true;
 }

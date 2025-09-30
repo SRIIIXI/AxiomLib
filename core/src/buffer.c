@@ -27,6 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "buffer.h"
+#include "stringex.h"
 
 #include <string.h>
 #include <memory.h>
@@ -87,7 +88,6 @@ buffer_t* buffer_allocate_length(size_t len)
     }
     return nd;
 }
-
 
 buffer_t* buffer_copy(buffer_t* dest, buffer_t* orig)
 {
@@ -335,4 +335,21 @@ buffer_t* buffer_internal_adjust_storage(buffer_t* buffer_ptr, size_t sz)
     }
 
     return  buffer_ptr;
+}
+
+string_t* buffer_convert_to_string(buffer_t* ptr)
+{
+    if(ptr == NULL)
+    {
+        return false;
+    }
+
+    //The caller must be absolutely sure that the buffer contains a string
+
+    char term[2] = {0};
+    buffer_append(ptr, term, 1);
+    
+    string_t* resp = string_allocate(buffer_get_data(ptr));
+
+    return resp;
 }

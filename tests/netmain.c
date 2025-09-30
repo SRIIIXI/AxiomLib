@@ -15,10 +15,10 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    const char* host = "smtp.example.com";
-    uint16_t port = 25;
-    const char* username = "";
-    const char* password = "";
+    const char* host = "sandbox.smtp.mailtrap.io";
+    uint16_t port = 2525;
+    const char* username = "c0b55e0c9f5568";
+    const char* password = "05a61dc37c019c";
     security_type_t secType = None;
 
     smtp_set_account_information(smtp, host, port, username, password, secType);
