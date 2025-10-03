@@ -229,8 +229,10 @@ bool tcp_client_send_string(tcp_client_t* ptr, const string_t* str)
 	return true;
 }
 
-buffer_t* tcp_client_receive_buffer_by_length(tcp_client_t* ptr, buffer_t* iobuffer, size_t len, bool alloc_buffer)
+buffer_t* tcp_client_receive_buffer_by_length(tcp_client_t* ptr, size_t len)
 {
+    buffer_t* iobuffer = NULL;
+
     if(!ptr)
     {
         return  NULL;
@@ -239,11 +241,6 @@ buffer_t* tcp_client_receive_buffer_by_length(tcp_client_t* ptr, buffer_t* iobuf
     size_t	bufferpos = 0;
     size_t  bytesleft = len;
     ssize_t  bytesread = 0;
-
-    if(alloc_buffer && iobuffer != NULL)
-    {
-        return NULL;
-    }
 
     char* buffer = (char*)calloc(1, bytesleft+1);
 
@@ -270,47 +267,24 @@ buffer_t* tcp_client_receive_buffer_by_length(tcp_client_t* ptr, buffer_t* iobuf
 
         if(bufferpos >= len)
         {
-            if(alloc_buffer && iobuffer == NULL)
-            {
-                iobuffer = buffer_allocate(buffer, len+1);
-            }
-            else
-            {
-                if(!alloc_buffer && iobuffer != NULL)
-                {
-                    buffer_t* temp = buffer_allocate(buffer, len+1);
-                    buffer_copy(iobuffer, temp);
-                    buffer_free(&temp);
-                }
-                else
-                {
-                    free(buffer);
-                    return NULL;
-                }
-            }
-
+            iobuffer = buffer_allocate(buffer, len);
             free(buffer);
             return iobuffer;
         }
     }
 }
 
- buffer_t* tcp_client_receive_buffer_by_delimeter(tcp_client_t* ptr, buffer_t* iobuffer, const char* delimeter, size_t delimeterlen, bool alloc_buffer)
+ buffer_t* tcp_client_receive_buffer_by_delimeter(tcp_client_t* ptr, const char* delimeter, size_t delimeterlen)
  {
+    // TBD - Not complete yet
+    buffer_t* iobuffer = NULL;
+
     if(!ptr)
     {
         return  NULL;
     }
 
-    if(alloc_buffer && iobuffer != NULL)
-    {
-        return NULL;
-    }
-
-    if(alloc_buffer && iobuffer == NULL)
-    {
-        iobuffer = buffer_allocate_default();
-    }
+    iobuffer = buffer_allocate_default();
 
     while(true)
     {
@@ -332,22 +306,16 @@ buffer_t* tcp_client_receive_buffer_by_length(tcp_client_t* ptr, buffer_t* iobuf
     return iobuffer;
  }
 
-string_t* tcp_client_receive_string(tcp_client_t* ptr, string_t* iostr, const char* delimeter, bool alloc_buffer)
+string_t* tcp_client_receive_string(tcp_client_t* ptr, const char* delimeter)
 {
+    string_t* iostr = NULL;
+
     if(!ptr)
     {
         return  NULL;
     }
 
-    if(alloc_buffer && iostr != NULL)
-    {
-        return false;
-    }
-
-    if(alloc_buffer && iostr == NULL)
-    {
-        iostr = string_allocate_default();
-    }
+    iostr = string_allocate_default();
 
     size_t delimeterlen = strlen(delimeter);
     size_t totalbytes = 0;
