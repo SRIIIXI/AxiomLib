@@ -291,7 +291,7 @@ bool buffer_is_null(buffer_t* ptr)
     return false;
 }
 
-const void *buffer_get_data(buffer_t* ptr)
+const void *buffer_get_data(const buffer_t* ptr)
 {
     if(ptr == NULL)
     {
@@ -301,7 +301,7 @@ const void *buffer_get_data(buffer_t* ptr)
     return ptr->data;
 }
 
-size_t buffer_get_size(buffer_t* ptr)
+size_t buffer_get_size(const buffer_t* ptr)
 {
     if(ptr == NULL)
     {

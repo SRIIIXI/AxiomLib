@@ -50,6 +50,7 @@ extern LIBRARY_EXPORT bool smtp_start_tls(smtp_t* ptr);
 extern LIBRARY_EXPORT bool smtp_need_tls(smtp_t* ptr);
 extern LIBRARY_EXPORT bool smtp_login(smtp_t* ptr);
 extern LIBRARY_EXPORT bool smtp_logout(smtp_t* ptr);
+extern LIBRARY_EXPORT bool smtp_sendmail_basic(smtp_t* ptr, const char* recipient, const char* subject, const char* plaintext_message );
 extern LIBRARY_EXPORT bool smtp_sendmail(smtp_t* ptr, const mail_t* mail);
 extern LIBRARY_EXPORT const char* smtp_get_account(smtp_t* ptr);
 extern LIBRARY_EXPORT const char* smtp_get_error(smtp_t* ptr);

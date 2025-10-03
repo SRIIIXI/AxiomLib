@@ -103,8 +103,6 @@ void smtp_free(smtp_t* ptr)
     }
 }
 
-
-
 void smtp_set_account_information(smtp_t* ptr, const char* hoststr, uint16_t portstr, const char* usernamestr, const char* passwordstr, security_type_t sectype)
 {
     if (ptr == NULL)
@@ -127,9 +125,9 @@ bool smtp_connect(smtp_t* ptr)
     if( ptr == NULL)
     {
         return false;
-    }   
-    // Initialize the responder (bearer) here based on securityType
+    }
 
+    // Initialize the responder (bearer) here based on securityType
     if (ptr->securityType == Ssl) 
     {
         //ptr->bearer = responder_ssl_allocate();
@@ -168,7 +166,6 @@ bool smtp_connect(smtp_t* ptr)
     string_t* rx_buffer = NULL;
 
     rx_buffer = tcp_client_receive_string(ptr->bearer, rx_buffer, "\r\n", true);
-    printf("%s\n", string_c_str(rx_buffer));
     string_free(rx_buffer);
 
     return true;
@@ -194,15 +191,21 @@ bool smtp_disconnect(smtp_t* ptr)
 
 bool smtp_send_helo(smtp_t* ptr)
 {
-    char tx_buffer[128] = { 0 };
-    sprintf(tx_buffer, "EHLO %s\r\n", selfIp);
-    printf(tx_buffer);
+    char tx_temp[128] = { 0 };
+    string_t* tx_buffer = NULL;
+
+    sprintf(tx_temp, "EHLO %s\r\n", selfIp);
+
+    tx_buffer = string_allocate(tx_temp);
 
     if (!tcp_client_send_string(ptr->bearer, tx_buffer))
     {
         snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to send EHLO");
+        string_free(tx_buffer);
         return false;
     }
+
+    string_free(tx_buffer);
 
     string_t* rx_buffer = NULL;
     string_t* eof_response = string_allocate("250 ");
@@ -211,7 +214,6 @@ bool smtp_send_helo(smtp_t* ptr)
     while(true)
     {
         rx_buffer = tcp_client_receive_string(ptr->bearer, rx_buffer, "\r\n", true);
-        printf("%s", string_c_str(rx_buffer));
 
         if(string_index_of_substr(rx_buffer, tls_support) >= 0)
         {
@@ -247,6 +249,97 @@ const char* smtp_get_account(smtp_t* ptr)
 const char* smtp_get_error(smtp_t* ptr)
 {
     return NULL;
+}
+
+bool smtp_sendmail_basic(smtp_t* ptr, const char* recipient, const char* subject, const char* plaintext_message )
+{
+    if(!ptr || !recipient || !subject || !plaintext_message)
+    {
+        return false;
+    }
+
+    string_t* tx_buffer = NULL;
+    string_t* rx_buffer = NULL;
+    string_t* respcode = NULL;
+	char tx_temp[128] = { 0 };
+
+    // Code for RCPT TO
+
+	memset(tx_temp, 0, sizeof(tx_temp));
+	sprintf(tx_temp, "MAIL FROM: <%s>\r\n", ptr->username);
+
+    tx_buffer = string_allocate(tx_temp);
+
+    if (!tcp_client_send_string(ptr->bearer, tx_buffer)) 
+    {
+        snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to send MAIL FROM");
+        string_free(tx_buffer);
+        return false;
+    }
+    string_free(tx_buffer);
+    tx_buffer = NULL;
+
+    rx_buffer = NULL;
+    respcode = string_allocate("334");
+
+    rx_buffer = tcp_client_receive_string(ptr->bearer, rx_buffer, "\r\n", true);
+
+    if (string_index_of_substr(rx_buffer, respcode) < 0) 
+    {
+        snprintf(ptr->errorStr, sizeof(ptr->errorStr), "MAIL FROM not accepted");
+        if (rx_buffer)
+        {
+            string_free(rx_buffer);
+        }
+        return false;
+    }
+
+    string_free(rx_buffer);
+    string_free(respcode);
+    rx_buffer = NULL;
+    respcode = NULL;
+
+    // Code for RCPT TO
+
+    memset(tx_temp, 0, sizeof(tx_temp));
+	sprintf(tx_temp, "RCPT TO: <%s>\r\n", recipient);
+
+    tx_buffer = string_allocate(tx_temp);
+
+    if (!tcp_client_send_string(ptr->bearer, tx_buffer)) 
+    {
+        snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to send RCPT TO");
+        string_free(tx_buffer);
+        return false;
+    }
+    string_free(tx_buffer);
+    tx_buffer = NULL;
+
+    rx_buffer = NULL;
+    respcode = string_allocate("334");
+
+    rx_buffer = tcp_client_receive_string(ptr->bearer, rx_buffer, "\r\n", true);
+
+    if (string_index_of_substr(rx_buffer, respcode) < 0) 
+    {
+        snprintf(ptr->errorStr, sizeof(ptr->errorStr), "RCPT TO not accepted");
+        if (rx_buffer)
+        {
+            string_free(rx_buffer);
+        }
+        return false;
+    }
+
+    string_free(rx_buffer);
+    string_free(respcode);
+    rx_buffer = NULL;
+    respcode = NULL;
+
+    // Code for VRFY --- FOR FUTURE
+    // Code for VRFY --- FOR FUTURE
+
+
+    return true;
 }
 
 bool smtp_sendmail(smtp_t* ptr, const mail_t* mail)
@@ -389,26 +482,33 @@ bool smtp_login(smtp_t* ptr)
         return false;
     }
 
-    char tx_buffer[128] = {0};
-    sprintf(tx_buffer, "AUTH LOGIN\r\n");
-    printf(tx_buffer);
+    char tx_temp[128] = {0};
+    sprintf(tx_temp, "AUTH LOGIN\r\n");
+
+    string_t* tx_buffer = string_allocate(tx_temp);
 
     if (!tcp_client_send_string(ptr->bearer, tx_buffer)) 
     {
         snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to send AUTH LOGIN");
+        string_free(tx_buffer);
         return false;
     }
+
+    string_free(tx_buffer);
+    tx_buffer = NULL;
 
     string_t* rx_buffer = NULL;
     string_t* respcode = string_allocate("334");
 
     rx_buffer = tcp_client_receive_string(ptr->bearer, rx_buffer, "\r\n", true);
-    printf("%s\n", string_c_str(rx_buffer));
 
     if (string_index_of_substr(rx_buffer, respcode) < 0) 
     {
         snprintf(ptr->errorStr, sizeof(ptr->errorStr), "AUTH LOGIN not accepted");
-        if (rx_buffer) free(rx_buffer);
+        if (rx_buffer)
+        {
+            string_free(rx_buffer);
+        }
         return false;
     }
 
@@ -419,17 +519,21 @@ bool smtp_login(smtp_t* ptr)
     char b64_buffer[64] = {0};
     unsigned long b64_outlen = 0;
 
-    memset(tx_buffer, 0, sizeof(tx_buffer));
+    memset(tx_temp, 0, sizeof(tx_temp));
     strcpy(b64_buffer, base64_encode((const unsigned char*)ptr->username, strlen(ptr->username), b64_buffer, &b64_outlen));
-    snprintf(tx_buffer, sizeof(tx_buffer), "%s\r\n", b64_buffer);
+    snprintf(tx_temp, sizeof(tx_temp), "%s\r\n", b64_buffer);
+    tx_buffer = string_allocate(tx_temp);
+
     if (!tcp_client_send_string(ptr->bearer, tx_buffer)) 
     {
         snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to send username");
+        string_free(tx_buffer);
         return false;
     }
+    string_free(tx_buffer);
+    tx_buffer = NULL;
 
     rx_buffer = tcp_client_receive_string(ptr->bearer, rx_buffer, "\r\n", true);
-    printf("%s\n", string_c_str(rx_buffer));
     if (string_index_of_substr(rx_buffer, respcode) < 0) 
     {
         snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Username not accepted");
@@ -445,24 +549,26 @@ bool smtp_login(smtp_t* ptr)
 
     // Send base64(password)
     memset(b64_buffer, 0, sizeof(b64_buffer));
+    memset(tx_temp, 0, sizeof(tx_temp));
     b64_outlen = 0;
 
-    memset(tx_buffer, 0, sizeof(tx_buffer));
     strcpy(b64_buffer, base64_encode((const unsigned char*)ptr->password, strlen(ptr->password), b64_buffer, &b64_outlen));
-    snprintf(tx_buffer, sizeof(tx_buffer), "%s\r\n", b64_buffer);
+    snprintf(tx_temp, sizeof(tx_temp), "%s\r\n", b64_buffer);
+    tx_buffer = string_allocate(tx_temp);
     if (!tcp_client_send_string(ptr->bearer, tx_buffer)) 
     {
         snprintf(ptr->errorStr, sizeof(ptr->errorStr), "Failed to send password");
+        string_free(tx_buffer);
         return false;
     }
 
+    string_free(tx_buffer);
     string_free(respcode);
-
     string_free(rx_buffer);
     rx_buffer = NULL;
+    tx_buffer = NULL;
 
     rx_buffer = tcp_client_receive_string(ptr->bearer, rx_buffer, "\r\n", true);
-    printf("%s\n", string_c_str(rx_buffer));
 
     if (!rx_buffer) 
     {
@@ -496,14 +602,15 @@ bool smtp_logout(smtp_t* ptr)
         return false;
     }   
 
-	char tx_buffer[128] = { 0 };
-	sprintf(tx_buffer, "QUIT\r\n");
+	char tx_temp[128] = { 0 };
+	sprintf(tx_temp, "QUIT\r\n");
+
+    string_t* tx_buffer = string_allocate(tx_temp);
 
     tcp_client_send_string(ptr->bearer, tx_buffer);
 
     string_t* rx_buffer = NULL; 
     rx_buffer = tcp_client_receive_string(ptr->bearer, rx_buffer, "\r\n", true);
-    printf("%s\n", string_c_str(rx_buffer));
 
     string_t *resp = NULL;
 
@@ -516,6 +623,7 @@ bool smtp_logout(smtp_t* ptr)
         return false;   
     }
 
+    string_free(tx_buffer);
     string_free(rx_buffer);
     string_free(resp);
 
@@ -559,20 +667,23 @@ bool smtp_resolve_public_ip_address()
         return false;
     }
 
-    char tx_buffer[128] = { 0 };
-    sprintf(tx_buffer, "GET / HTTP/1.0\r\nHost: whatismyip.akamai.com\r\n\r\n");
+    char tx_temp[128] = { 0 };
+    sprintf(tx_temp, "GET / HTTP/1.0\r\nHost: whatismyip.akamai.com\r\n\r\n");
+    string_t* tx_buffer = string_allocate(tx_temp);
 
     if (!tcp_client_send_string(http_client, tx_buffer))
     {
         printf("Failed to send HTTP GET");
+        string_free(tx_buffer);
         return false;
     }
+
+    string_free(tx_buffer);
 
     string_t* rx_string = string_allocate_default();
 
     // This call reads the HTTP headers
     rx_string = tcp_client_receive_string(http_client, rx_string, "\r\n\r\n", false);
-    //printf("%s", string_c_str(rx_string));
     
     string_list_t* headerlist = NULL;
     headerlist = string_split_by_substr(rx_string, "\r\n", headerlist);
@@ -584,12 +695,6 @@ bool smtp_resolve_public_ip_address()
 
     while(header)
     {
-        if(string_c_str(header) != NULL)
-        {
-            printf("%s\n", string_c_str(header));
-            fflush(stdout);
-        }
-
         if(string_index_of_substr(header, contentlenheader) >= 0)
         {
             string_split_key_value_by_char(header, ':', &tag, &value);
@@ -617,7 +722,6 @@ bool smtp_resolve_public_ip_address()
     rx_buffer = tcp_client_receive_buffer_by_length(http_client, rx_buffer, bodylen, true);
     memset(selfIp, 0, 16);
     strncpy(selfIp, buffer_get_data(rx_buffer), buffer_get_size(rx_buffer));
-    printf("Public IP Address: %s\n", selfIp);
 
     tcp_client_close_socket(http_client);
     tcp_client_free(http_client);

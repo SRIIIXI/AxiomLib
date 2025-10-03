@@ -179,16 +179,22 @@ bool tcp_client_close_socket(tcp_client_t* ptr)
 	return true;
 }
 
-bool tcp_client_send_buffer(tcp_client_t* ptr, const char* data, size_t len)
+bool tcp_client_send_buffer(tcp_client_t* ptr, const buffer_t* data)
 {
     if(!ptr)
     {
         return  false;
     }
 
+    if(!data)
+    {
+        return false;
+    }
+
+    long len = buffer_get_size(data);
 	long sentsize =0;
 
-    sentsize = send(ptr->socket, data, (int)len, (int)0);
+    sentsize = send(ptr->socket, buffer_get_data(data), (int)len, (int)0);
 
     if(sentsize == SOCKET_ERROR)
 	{
@@ -198,11 +204,29 @@ bool tcp_client_send_buffer(tcp_client_t* ptr, const char* data, size_t len)
 	return true;
 }
 
-bool tcp_client_send_string(tcp_client_t* ptr, const char* str)
+bool tcp_client_send_string(tcp_client_t* ptr, const string_t* str)
 {
-    size_t len = strlen(str);
+    if(!ptr)
+    {
+        return  false;
+    }
 
-    return tcp_client_send_buffer(ptr, str, len);
+    if(!str)
+    {
+        return  false;
+    }
+
+    long len = string_get_length(str);
+	long sentsize =0;
+
+    sentsize = send(ptr->socket, string_c_str(str), (int)len, (int)0);
+
+    if(sentsize == SOCKET_ERROR)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 buffer_t* tcp_client_receive_buffer_by_length(tcp_client_t* ptr, buffer_t* iobuffer, size_t len, bool alloc_buffer)

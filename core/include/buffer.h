@@ -57,8 +57,8 @@ extern LIBRARY_EXPORT bool buffer_is_greater(buffer_t* first, buffer_t* second);
 extern LIBRARY_EXPORT bool buffer_is_less(buffer_t* first, buffer_t* second);
 extern LIBRARY_EXPORT bool buffer_is_null(buffer_t* ptr);
 
-extern LIBRARY_EXPORT const void* buffer_get_data(buffer_t* ptr);
-extern LIBRARY_EXPORT size_t buffer_get_size(buffer_t* ptr);
+extern LIBRARY_EXPORT const void* buffer_get_data(const buffer_t* ptr);
+extern LIBRARY_EXPORT size_t buffer_get_size(const buffer_t* ptr);
 extern LIBRARY_EXPORT string_t* buffer_convert_to_string(buffer_t* ptr);
 
 

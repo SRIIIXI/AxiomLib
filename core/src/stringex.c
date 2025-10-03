@@ -234,12 +234,12 @@ bool string_is_null(string_t* ptr)
     return false;
 }
 
-size_t string_get_length(string_t* str)
+size_t string_get_length(const string_t* str)
 {
     return str->data_size;
 }
 
-const char* string_c_str(string_t* str)
+const char* string_c_str(const string_t* str)
 {
     return str->data;
 }

@@ -50,8 +50,8 @@ extern LIBRARY_EXPORT bool string_is_greater(string_t* first, string_t* second);
 extern LIBRARY_EXPORT bool string_is_less(string_t* first, string_t* second);
 extern LIBRARY_EXPORT bool string_is_null(string_t* ptr);
 
-extern LIBRARY_EXPORT size_t string_get_length(string_t* str);
-extern LIBRARY_EXPORT const char* string_c_str(string_t* str);
+extern LIBRARY_EXPORT size_t string_get_length(const string_t* str);
+extern LIBRARY_EXPORT const char* string_c_str(const string_t* str);
 
 extern LIBRARY_EXPORT wchar_t* string_c_to_wstr(const char* str);
 extern LIBRARY_EXPORT wchar_t* string_to_wstr(const string_t* str);
