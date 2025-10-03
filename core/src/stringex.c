@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
+#include <stdarg.h>
 
 typedef struct string_t
 {
@@ -121,18 +122,59 @@ string_t* string_allocate_length(size_t slen)
     return nd;
 }
 
-
-void string_free(string_t* str)
+string_t* string_allocate_formatted(const char* format, ...)
 {
-    if(str == NULL)
+    if(format == NULL)
+    {
+        return NULL;
+    }
+    
+    va_list args;
+    va_list args_copy;
+    
+    // First pass: determine required buffer size
+    va_start(args, format);
+    va_copy(args_copy, args);
+    
+    int needed_size = vsnprintf(NULL, 0, format, args);
+    va_end(args);
+    
+    if(needed_size < 0)
+    {
+        va_end(args_copy);
+        return NULL;
+    }
+    
+    // Allocate string_t with appropriate size
+    string_t* result = string_allocate_length(needed_size + 1);
+    
+    if(result == NULL)
+    {
+        va_end(args_copy);
+        return NULL;
+    }
+    
+    // Second pass: actually format into the buffer
+    vsnprintf(result->data, needed_size + 1, format, args_copy);
+    va_end(args_copy);
+    
+    // Update data_size
+    result->data_size = needed_size;
+    
+    return result;
+}
+
+void string_free(string_t** str)
+{
+    if(str == NULL || *str == NULL)
     {
         return;
     }
 
-    free(str->data);
-    str->data = NULL;
-    free(str);
-    str = NULL;
+    free((*str)->data);
+    (*str)->data = NULL;
+    free(*str);
+    *str = NULL; 
 }
 
 void string_clear(string_t* str)
@@ -147,10 +189,11 @@ void string_clear(string_t* str)
         for(size_t i = 0; i < str->data_size; ++i)
             str->data[i] = 0;
     }
+
     str->data_size = 0;
 }
 
-bool string_is_equal(string_t* first, string_t* second)
+bool string_is_equal(const string_t* first, const string_t* second)
 {
     if(first != NULL && second != NULL)
     {
@@ -171,7 +214,7 @@ bool string_is_equal(string_t* first, string_t* second)
     return false;
 }
 
-bool string_is_greater(string_t* first, string_t* second)
+bool string_is_greater(const string_t* first, const string_t* second)
 {
     if(first != NULL && second != NULL)
     {
@@ -192,7 +235,7 @@ bool string_is_greater(string_t* first, string_t* second)
     return false;
 }
 
-bool string_is_less(string_t* first, string_t* second)
+bool string_is_less(const string_t* first, const string_t* second)
 {
     if(first != NULL && second != NULL)
     {
@@ -213,7 +256,7 @@ bool string_is_less(string_t* first, string_t* second)
     return false;
 }
 
-bool string_is_null(string_t* ptr)
+bool string_is_null(const string_t* ptr)
 {
     if(ptr == NULL)
     {
@@ -309,17 +352,21 @@ string_t* string_copy(string_t* dest, string_t* orig)
         string_internal_adjust_storage(dest, orig->data_size);
     }
 
-    for(int x = 0; x < dest->memory_size; x++)
+    // Clear destination buffer
+    for(size_t ctr = 0; ctr < dest->memory_size; ctr++)
     {
-        dest->data[x] = 0;
+        dest->data[ctr] = 0;
     }
-
-    for(int x = 0; x < dest->memory_size; x++)
+    
+    // Deep copy the data
+    for(size_t ctr = 0; ctr < dest->memory_size; ctr++)
     {
-        dest->data[x] = orig->data[x];
-    }
-
-    return NULL;
+        dest->data[ctr] = orig->data[ctr];
+    }    
+    // Update destination size to match source
+    dest->data_size = orig->data_size;
+    
+    return dest; 
 }
 
 string_t* string_append(string_t* dest, const char *data)
@@ -357,21 +404,21 @@ string_t* string_append_string(string_t* dest, const string_t *str)
 
 string_t* string_append_integer(string_t* dest, const long data)
 {
-    char buffer[17] = {0};
+    char buffer[33] = {0};
     sprintf(buffer, "%ld", data);
     return string_append(dest, buffer);
 }
 
 string_t* string_append_real(string_t* dest, const double data)
 {
-    char buffer[17] = {0};
+    char buffer[33] = {0};
     sprintf(buffer, "%f", data);
     return string_append(dest, buffer);
 }
 
 string_t* string_append_real_scientific(string_t* dest, const double data)
 {
-    char buffer[17] = {0};
+    char buffer[33] = {0};
     sprintf(buffer, "%.3e", data);
     return string_append(dest, buffer);
 }
@@ -493,7 +540,7 @@ long string_count_substr(const string_t *str, const string_t *substr)
 {
     if(str == NULL || substr == NULL)
     {
-        0;
+        return 0;
     }
 
     const char* string = string_c_str(str);
@@ -587,6 +634,8 @@ string_t *string_left_trim(string_t *str)
 		ctr++;
 	}
 
+    str->data_size = strlen(str->data);
+
     return str;
 }
 
@@ -605,6 +654,8 @@ string_t *string_right_trim(string_t *str)
             break;
         }
     }
+
+    str->data_size = strlen(str->data);
 
     return str;
 }
@@ -628,6 +679,9 @@ string_t *string_remove_substr_first(string_t *str, const string_t *substr)
         strcpy(str->data + pos, str->data + pos + offset);
         str->data[str->data_size - (unsigned long)offset] = 0;
     }
+
+    str->data_size = strlen(str->data);
+
     return str;
 }
 
@@ -644,6 +698,9 @@ string_t *string_remove_substr_all(string_t *str, const string_t *substr)
         str->data[str->data_size - (unsigned long)offset] = 0;
         pos = string_index_of_substr(str, substr);
     }
+
+    str->data_size = strlen(str->data);
+
     return str;
 }
 
@@ -654,45 +711,50 @@ string_t* string_remove_substr_at(string_t *str, size_t pos, size_t len)
         strcpy(str->data + pos, str->data + pos + len);
         str->data[str->data_size - len] = 0;
     }
+
+    str->data_size = strlen(str->data);
+
     return str;
 }
 
-void string_remove_end(string_t* ptr, size_t len)
+void string_remove_end(string_t* str, size_t len)
 {
-    if (ptr == NULL || ptr->data == NULL)
+    if (str == NULL || str->data == NULL)
     {
         return;
     }
 
-    size_t cur_len = strlen(ptr->data);
+    size_t cur_len = strlen(str->data);
 
     if (len >= cur_len)
     {
         // Remove everything
-        memset(ptr->data, '\0', ptr->data_size);
+        memset(str->data, '\0', str->data_size);
         return;
     }
 
     // Null terminate after removing 'len' chars
     size_t new_len = cur_len - len;
-    ptr->data[new_len] = '\0';
+    str->data[new_len] = '\0';
 
     // Zero out the remainder of the buffer
-    if (ptr->data_size > new_len + 1)
+    if (str->data_size > new_len + 1)
     {
-        memset(ptr->data + new_len + 1, '\0',
-               ptr->data_size - (new_len + 1));
+        memset(str->data + new_len + 1, '\0',
+               str->data_size - (new_len + 1));
     }
+
+    str->data_size = strlen(str->data);
 }
 
-void string_remove_start(string_t* ptr, size_t len)
+void string_remove_start(string_t* str, size_t len)
 {
-    if (ptr == NULL || ptr->data == NULL)
+    if (str == NULL || str->data == NULL)
     {
         return;
     }
 
-    size_t cur_len = strlen(ptr->data);
+    size_t cur_len = strlen(str->data);
 
     if (len == 0 || cur_len == 0)
     {
@@ -702,20 +764,22 @@ void string_remove_start(string_t* ptr, size_t len)
     if (len >= cur_len)
     {
         // Remove everything
-        memset(ptr->data, '\0', ptr->data_size);
+        memset(str->data, '\0', str->data_size);
         return;
     }
 
     // Shift remaining characters to the front
-    memmove(ptr->data, ptr->data + len, cur_len - len + 1);
+    memmove(str->data, str->data + len, cur_len - len + 1);
 
     // Zero out the remainder of the buffer
-    size_t new_len = strlen(ptr->data);
-    if (ptr->data_size > new_len + 1)
+    size_t new_len = strlen(str->data);
+    if (str->data_size > new_len + 1)
     {
-        memset(ptr->data + new_len + 1, '\0',
-               ptr->data_size - (new_len + 1));
+        memset(str->data + new_len + 1, '\0',
+               str->data_size - (new_len + 1));
     }
+
+    str->data_size = strlen(str->data);
 }
 
 string_t *string_remove_char_first(string_t *str, const char oldchar)
@@ -754,6 +818,8 @@ string_t *string_remove_char_first(string_t *str, const char oldchar)
         str->data[j] = '\0';
     }
 
+    str->data_size = strlen(str->data);
+
     return str;
 }
 
@@ -767,6 +833,9 @@ string_t *string_remove_char_all(string_t *str, const char oldchar)
         str->data[str->data_size - 1] = 0;
         pos = string_index_of_char(str, oldchar);
     }
+
+    str->data_size = strlen(str->data);
+
     return str;
 }
 
@@ -774,6 +843,7 @@ string_t *string_remove_char_at(string_t *str, size_t pos)
 {
     strcpy(str->data + pos, str->data + pos + 1);
     str->data[str->data_size - 1] = 0;
+    str->data_size = strlen(str->data);
     return str;
 }
 
@@ -784,137 +854,157 @@ string_t *string_replace_substr_first(string_t *str, const string_t *oldsubstr, 
         return NULL;
     }
 
-    string_t* buffer = NULL;
-
     long pos = string_index_of_substr(str, oldsubstr);
-
     if(pos < 0)
     {
-        return NULL;
+        return str;  // No match found
     }
 
     long slen = str->data_size;
     long oldslen = oldsubstr->data_size;
     long newslen = newsubstr->data_size;
 
-    if(oldslen < 1 || newslen < 1)
+    if(oldslen < 1)
     {
         return NULL;
     }
 
-    long new_buffer_len = slen + (newslen - oldslen);
-
-    buffer = string_allocate_length(new_buffer_len + 1);
-
-    if(buffer == NULL)
+    long new_size = slen - oldslen + newslen;
+    
+    // Adjust storage if needed (expand)
+    if(new_size > str->memory_size)
     {
-        return NULL;
+        string_internal_adjust_storage(str, new_size - str->data_size);
     }
 
-    long copy_pos;
-    long ctr;
-
-    copy_pos = 0;
-    ctr = 0;
-
-    while(ctr < pos)
+    // Shift data if replacement size differs
+    if(newslen != oldslen)
     {
-        buffer->data[copy_pos] = str->data[ctr];
-        copy_pos++;
-        ctr++;
+        long shift = newslen - oldslen;
+        if(shift > 0)
+        {
+            // Shift right - start from end to avoid overwrite
+            for(long i = slen; i >= pos + oldslen; i--)
+            {
+                str->data[i + shift] = str->data[i];
+            }
+        }
+        else
+        {
+            // Shift left
+            for(long i = pos + oldslen; i <= slen; i++)
+            {
+                str->data[i + shift] = str->data[i];
+            }
+        }
     }
 
-    ctr = 0;
-
-    while(ctr < newslen)
+    // Copy new substring
+    for(long i = 0; i < newslen; i++)
     {
-        buffer->data[copy_pos] = newsubstr->data[ctr];
-        copy_pos++;
-        ctr++;
+        str->data[pos + i] = newsubstr->data[i];
     }
-
-    ctr = pos + oldslen;
-
-    while(str->data[ctr] != 0)
-    {
-        buffer->data[copy_pos] = str->data[ctr];
-        copy_pos++;
-        ctr++;
-    }
-
-    return buffer;
+    
+    str->data_size = new_size;
+    
+    // Shrink if wasting significant memory
+    string_internal_adjust_storage(str, 0);
+    
+    return str;
 }
 
 string_t *string_replace_substr_all(string_t *str, const string_t *oldsubstr, const string_t *newsubstr)
 {
-    string_t* buffer = NULL;
+    if(str == NULL || oldsubstr == NULL || newsubstr == NULL)
+    {
+        return NULL;
+    }
 
-	if(str == NULL || oldsubstr == NULL || newsubstr == NULL)
-	{
-		return NULL;
-	}
+    if(oldsubstr->data_size < 1)
+    {
+        return str; // Cannot replace an empty string
+    }
+
+    // Optimization: If old and new substrings are the same size, we can avoid repeated index lookups by shifting the search window.
+    // If they are different sizes, we must re-scan from the beginning after each replacement, as the base string shifts.
+    long pos = -1;
+    long search_start_index = 0;
+    
+    // We will use string_index_of_substr repeatedly.
+    // To implement the replacement logic cleanly and handle memory, we'll
+    // manually implement the replacement logic from string_replace_substr_first,
+    // or if we could rely on string_replace_substr_first not returning NULL on error, we could call it.
+    // Let's implement the logic here to control the search start point.
 
     long slen = str->data_size;
     long oldslen = oldsubstr->data_size;
     long newslen = newsubstr->data_size;
 
-	if(oldslen < 1 || newslen < 1)
-	{
-		return NULL;
-	}
+    // Use a while loop to find and replace all occurrences
+    while ( (pos = string_index_of_substr(str, oldsubstr)) >= 0 ) 
+    {
+        // Re-calculate lengths as 'str' may have been resized in previous loop iterations
+        slen = str->data_size; 
+        
+        long new_size = slen - oldslen + newslen;
+        
+        // Adjust storage if needed (expand). The function must return the potentially reallocated pointer.
+        str = string_internal_adjust_storage(str, new_size - str->data_size);
+        if (str == NULL) 
+        {
+             return NULL; // Allocation failure
+        }
+        
+        // Re-calculate lengths and position in case of reallocation
+        slen = str->data_size; 
+        
+        // Shift data if replacement size differs
+        if(newslen != oldslen)
+        {
+            long shift = newslen - oldslen;
+            if(shift > 0)
+            {
+                // Shift right - start from end to avoid overwrite
+                // We need to shift everything *after* the match.
+                // The shift starts from the old end (slen) and ends at the oldslen start (pos + oldslen)
+                for(long i = slen; i >= pos + oldslen; i--)
+                {
+                    str->data[i + shift] = str->data[i];
+                }
+            }
+            else // shift <= 0 (shift left)
+            {
+                // Shift left
+                // We need to shift everything *after* the match.
+                // The shift starts from the end of the old match (pos + oldslen) and ends at the old end (slen)
+                for(long i = pos + oldslen; i <= slen; i++)
+                {
+                    str->data[i + shift] = str->data[i];
+                }
+            }
+        }
+    
+        // Copy new substring
+        for(long i = 0; i < newslen; i++)
+        {
+            str->data[pos + i] = newsubstr->data[i];
+        }
+        
+        // Update data_size
+        str->data_size = new_size;
+        
+        // Null-terminate the new string (Crucial for string_index_of_substr and C-string functions)
+        str->data[str->data_size] = '\0';
+        
+        // Optional: Shrink if wasting significant memory (already in string_internal_adjust_storage, but called with sz=0)
+        // string_internal_adjust_storage(str, 0); 
 
-    long numsubstr = string_count_substr(str, oldsubstr);
+        // Set the next search start point to the end of the newly inserted substring
+        // This is important to avoid infinite loops when oldsubstr is a substring of newsubstr (e.g., replacing "a" with "aa")
+        search_start_index = pos + newslen;
+    }
 
-	if(numsubstr < 1)
-	{
-		return NULL;
-	}
-
-	if(newslen > oldslen)
-	{
-        buffer = string_allocate_length(slen + (newslen - oldslen)*numsubstr + 1);
-
-		if(buffer == NULL)
-		{
-			return NULL;
-		}
-	}
-	else
-	{
-		buffer = str;
-	}
-
-    long pos = string_index_of_substr(str, oldsubstr);
-
-	while(pos > -1)
-	{
-        long idx = 0;
-        long ctr = 0;
-
-		for(idx = 0; idx < slen; ++idx)
-		{
-			if(idx < pos)
-			{
-				buffer[idx] = str[idx];
-			}
-			else
-			{
-				if(idx < pos + newslen)
-				{
-					buffer[idx] = newsubstr[ctr];
-					ctr++;
-				}
-				else
-				{
-					buffer[idx] = buffer[idx + (oldslen - newslen)];
-				}
-			}
-		}
-
-        pos = string_index_of_substr(str, oldsubstr);
-	}
-
-	return buffer;
+    return str;
 }
 
 string_t *string_replace_char_first(string_t *str, const char oldchar, const char newchar)
@@ -1004,7 +1094,7 @@ void string_split_key_value_by_substr(const string_t *str, const char* delimiter
 
     if(pos < 0)
     {
-        string_free(delimeter_data);
+        string_free(&delimeter_data);
         return;
     }
 
@@ -1020,7 +1110,7 @@ void string_split_key_value_by_substr(const string_t *str, const char* delimiter
     *value = string_allocate_length(val_end - val_start + 1);
     strcpy((*value)->data, &str->data[val_start]);
 
-    string_free(delimeter_data);
+    string_free(&delimeter_data);
 }
 
  string_list_t* string_list_allocate_default(void)
@@ -1029,7 +1119,7 @@ void string_split_key_value_by_substr(const string_t *str, const char* delimiter
     return retval;
  }
 
-string_list_t *string_split_by_substr(const string_t *str, const char *delimiter, string_list_t* list)
+string_list_t *string_split_by_substr(const string_t *str, const char *delimiter)
 {
 	if(str == NULL || delimiter == NULL)
 	{
@@ -1043,7 +1133,7 @@ string_list_t *string_split_by_substr(const string_t *str, const char *delimiter
 
 	if(substr_count < 1)
 	{
-        string_free(delimeter_data);
+        string_free(&delimeter_data);
         return NULL;
 	}
 
@@ -1051,13 +1141,13 @@ string_list_t *string_split_by_substr(const string_t *str, const char *delimiter
 
 	if(ptr == NULL)
 	{
-        string_free(delimeter_data);
+        string_free(&delimeter_data);
         return NULL;
 	}
 
     memcpy(ptr, str->data, (unsigned long)str_len);
 
-    list = (string_list_t*)calloc(1, sizeof(string_list_t));
+    string_list_t* list = (string_list_t*)calloc(1, sizeof(string_list_t));
 
 	char* temp_ptr = NULL;
 
@@ -1077,16 +1167,16 @@ string_list_t *string_split_by_substr(const string_t *str, const char *delimiter
 	}
 
     free(ptr);
-    string_free(delimeter_data);
+    string_free(&delimeter_data);
 
 	return list;
 }
 
-string_list_t* string_split_by_char(const string_t* str, const char delimiter, string_list_t* list)
+string_list_t* string_split_by_char(const string_t* str, const char delimiter)
 {
 	char temp_delimiter[2] = {delimiter, 0};
 
-    return string_split_by_substr(str, temp_delimiter, list);
+    return string_split_by_substr(str, temp_delimiter);
 }
 
 char* string_join_list_with_substr(const char** strlist, const char* delimiter)
@@ -1319,7 +1409,7 @@ void  string_append_to_list(string_list_t *strlist, const char *str)
         string_t* temp = (string_t*)realloc(strlist->strings, (strlist->num_of_strings + 1) * sizeof(string_t));
         if (temp == NULL)
         {
-            string_free(new_string);
+            string_free(&new_string);
             return;
         }
         strlist->strings = temp;
@@ -1363,9 +1453,9 @@ string_t *string_get_next_from_list(string_list_t *strlist)
 {
     if(strlist != NULL)
     {
+        strlist->current_index++;
         if(strlist->num_of_strings > 1 && strlist->current_index < strlist->num_of_strings)
         {
-            strlist->current_index++;
             return &strlist->strings[strlist->current_index];
         }
     }
@@ -1383,23 +1473,54 @@ string_t* string_internal_adjust_storage(string_t* string_ptr, size_t sz)
         return NULL;
     }
 
-    size_t buffer_remaining = string_ptr->memory_size - string_ptr->data_size;
-
-    if(buffer_remaining < sz)
+    size_t psize = sysconf(_SC_PAGESIZE);
+    size_t required_size = string_ptr->data_size + sz;
+    
+    // Calculate pages needed for required size
+    size_t pcount = required_size / psize;
+    if(required_size % psize != 0)
     {
-        void* ptr = (char*)calloc(string_ptr->memory_size*2, sizeof (char));
-
-        if (ptr)
+        pcount++;
+    }
+    
+    size_t new_memory_size = psize * pcount;
+    
+    // Expand if needed
+    if(new_memory_size > string_ptr->memory_size)
+    {
+        void* ptr = (char*)calloc(new_memory_size, sizeof(char));
+        if(ptr)
         {
-            string_ptr->memory_size = string_ptr->memory_size*2;
-            memcpy(ptr, string_ptr->data, string_ptr->data_size);
+            // Copy existing data
+            for(size_t i = 0; i < string_ptr->data_size; i++)
+            {
+                ((char*)ptr)[i] = string_ptr->data[i];
+            }
+            
             free(string_ptr->data);
             string_ptr->data = ptr;
+            string_ptr->memory_size = new_memory_size;
         }
-
+    }
+    // Shrink if wasting more than 2 pages
+    else if(string_ptr->memory_size > new_memory_size + (2 * psize))
+    {
+        void* ptr = (char*)calloc(new_memory_size, sizeof(char));
+        if(ptr)
+        {
+            // Copy existing data
+            for(size_t i = 0; i < string_ptr->data_size; i++)
+            {
+                ((char*)ptr)[i] = string_ptr->data[i];
+            }
+            
+            free(string_ptr->data);
+            string_ptr->data = ptr;
+            string_ptr->memory_size = new_memory_size;
+        }
     }
 
-    return  string_ptr;
+    return string_ptr;
 }
 
 char* string_internal_from_int(long num)

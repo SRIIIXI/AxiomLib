@@ -130,17 +130,17 @@ string_t* env_get_lock_filename()
     
     temp = dir_get_temp_directory();
     string_append_string(lock_filename, temp);
-    string_free(temp);
+    string_free(&temp);
     string_append_char(lock_filename, '/');
 
     temp = env_get_current_process_name();
     string_append_string(lock_filename, temp);
-    string_free(temp);
+    string_free(&temp);
     string_append_char(lock_filename, '.');
 
     temp = env_get_current_user_name();
     string_append_string(lock_filename, temp);
-    string_free(temp);
+    string_free(&temp);
 
     string_append(lock_filename, ".lock");
 
@@ -165,7 +165,7 @@ bool env_lock_process()
     }
 
     lock_path = string_c_str(lock_filename);
-    string_free(lock_filename);
+    string_free(&lock_filename);
     
     if (lock_path == NULL)
     {
@@ -230,7 +230,7 @@ bool env_unlock_process()
     if (lock_filename != NULL)
     {
         lock_path = string_c_str(lock_filename);
-        string_free(lock_filename);
+        string_free(&lock_filename);
         
         if (lock_path != NULL)
         {
@@ -261,7 +261,7 @@ pid_t env_get_lock_file_pid()
     }
 
     lock_path = string_c_str(lock_filename);
-    string_free(lock_filename);
+    string_free(&lock_filename);
     
     if (lock_path == NULL)
     {

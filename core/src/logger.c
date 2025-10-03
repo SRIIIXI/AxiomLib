@@ -126,7 +126,7 @@ logger_t*	logger_allocate(size_t flszmb, const char* dirpath)
         string_t* logdir = dir_get_log_directory();
         memset(&logger_ptr->FileName[0], 0, MAX_PATHLEN + 1);
         strncpy(&logger_ptr->FileName[0], string_c_str(logdir), MAX_PATHLEN);
-        string_free(logdir);
+        string_free(&logdir);
     }
 
     string_t* dir_t_str = string_allocate(logger_ptr->FileName);
@@ -136,12 +136,12 @@ logger_t*	logger_allocate(size_t flszmb, const char* dirpath)
         dir_create_directory(dir_t_str);
     }
 
-    string_free(dir_t_str);
+    string_free(&dir_t_str);
     
     string_t* process_name = env_get_current_process_name();
     strcat(logger_ptr->FileName, string_c_str(process_name));
     strcat(logger_ptr->FileName, ".log");
-    string_free(process_name);
+    string_free(&process_name);
 
     logger_ptr->log_level = LOG_INFO;
     logger_ptr->console_out = false;
@@ -337,5 +337,5 @@ void normalize_function_name(char* func_name)
 
     memset(func_name, 0, len + 1);
     strcpy(func_name, string_c_str(func_name_str));
-    string_free(func_name_str);
+    string_free(&func_name_str);
 }

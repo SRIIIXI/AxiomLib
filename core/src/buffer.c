@@ -177,19 +177,17 @@ void buffer_remove_start(buffer_t* ptr, size_t len)
     buffer_remove_end(ptr, len);
 }
 
-void buffer_free(buffer_t* ptr)
+void buffer_free(buffer_t** ptr)
 {
-    if(ptr == NULL)
+    if(ptr == NULL || *ptr == NULL)
     {
         return;
     }
 
-    if(ptr->data)
-    {
-        free(ptr->data);
-    }
-
-    free(ptr);
+    free((*ptr)->data);
+    (*ptr)->data = NULL;
+    free(*ptr);
+    *ptr = NULL; 
 }
 
 void buffer_clear(buffer_t* ptr)

@@ -180,7 +180,7 @@ void test_string_list(void)
     string_append(mystr, "|");
     string_append(mystr, "Linux");
 
-    mylist = string_split_by_substr(mystr, "|", mylist);
+    mylist = string_split_by_substr(mystr, "|");
 
     free(mystr);
 

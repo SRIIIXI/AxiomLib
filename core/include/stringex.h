@@ -42,13 +42,15 @@ typedef struct string_list_t string_list_t;
 extern LIBRARY_EXPORT string_t* string_allocate(const char* data);
 extern LIBRARY_EXPORT string_t* string_allocate_default(void);
 extern LIBRARY_EXPORT string_t* string_allocate_length(size_t slen);
-extern LIBRARY_EXPORT void string_free(string_t* str);
+extern LIBRARY_EXPORT string_t* string_allocate_formatted(const char* format, ...);
+
+extern LIBRARY_EXPORT void string_free(string_t** str);
 extern LIBRARY_EXPORT void string_clear(string_t* str);
 
-extern LIBRARY_EXPORT bool string_is_equal(string_t* first, string_t* second);
-extern LIBRARY_EXPORT bool string_is_greater(string_t* first, string_t* second);
-extern LIBRARY_EXPORT bool string_is_less(string_t* first, string_t* second);
-extern LIBRARY_EXPORT bool string_is_null(string_t* ptr);
+extern LIBRARY_EXPORT bool string_is_equal(const string_t* first, const string_t* second);
+extern LIBRARY_EXPORT bool string_is_greater(const string_t* first, const string_t* second);
+extern LIBRARY_EXPORT bool string_is_less(const string_t* first, const string_t* second);
+extern LIBRARY_EXPORT bool string_is_null(const string_t* ptr);
 
 extern LIBRARY_EXPORT size_t string_get_length(const string_t* str);
 extern LIBRARY_EXPORT const char* string_c_str(const string_t* str);
@@ -104,8 +106,8 @@ extern LIBRARY_EXPORT string_t* string_replace_char_at(string_t* str, const char
 extern LIBRARY_EXPORT string_list_t* string_list_allocate_default(void);
 extern LIBRARY_EXPORT void string_split_key_value_by_char(const string_t* str, const char delimiter, string_t **key, string_t **value);
 extern LIBRARY_EXPORT void string_split_key_value_by_substr(const string_t* str, const char* delimiter, string_t **key, string_t **value);
-extern LIBRARY_EXPORT string_list_t* string_split_by_substr(const string_t* str, const char* delimiter, string_list_t* list);
-extern LIBRARY_EXPORT string_list_t* string_split_by_char(const string_t* str, const char delimiter, string_list_t* list);
+extern LIBRARY_EXPORT string_list_t* string_split_by_substr(const string_t* str, const char* delimiter);
+extern LIBRARY_EXPORT string_list_t* string_split_by_char(const string_t* str, const char delimiter);
 extern LIBRARY_EXPORT char* string_join_list_with_substr(const char **strlist, const char* delimiter);
 extern LIBRARY_EXPORT char* string_join_list_with_char(const char** strlist, const char delimiter);
 extern LIBRARY_EXPORT char* string_merge_list_with_substr(const char **strlist, const char* delimiter);

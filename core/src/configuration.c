@@ -138,7 +138,7 @@ configuration_t* configuration_allocate(const char* filename)
 
                 if(buffer[0] == 0 || buffer[0] == ';' || buffer[0] == '#')
                 {
-                    string_free(buffer_str);
+                    string_free(&buffer_str);
                     continue;
                 }
 
@@ -149,7 +149,7 @@ configuration_t* configuration_allocate(const char* filename)
                     configuration_internal_add_section(ptr, string_c_str(buffer_str));
                     memset(current_section, 0, 65);
                     strcpy(current_section, string_c_str(buffer_str));
-                    string_free(buffer_str);
+                    string_free(&buffer_str);
                     continue;
                 }
 
@@ -163,7 +163,7 @@ configuration_t* configuration_allocate(const char* filename)
                 configuration_internal_add_key_value(ptr, current_section, string_c_str(key), string_c_str(value));
                 free(key);
                 free(value);
-                string_free(buffer_str);
+                string_free(&buffer_str);
             }
         }
         fclose(fp);

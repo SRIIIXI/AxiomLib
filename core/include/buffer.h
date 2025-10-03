@@ -50,7 +50,7 @@ extern LIBRARY_EXPORT void buffer_remove_end(buffer_t* ptr, size_t len);
 extern LIBRARY_EXPORT void buffer_remove_start(buffer_t* ptr, size_t len);
 
 extern LIBRARY_EXPORT void buffer_clear(buffer_t* ptr);
-extern LIBRARY_EXPORT void buffer_free(buffer_t* ptr);
+extern LIBRARY_EXPORT void buffer_free(buffer_t** ptr);
 
 extern LIBRARY_EXPORT bool buffer_is_equal(buffer_t* first, buffer_t* second);
 extern LIBRARY_EXPORT bool buffer_is_greater(buffer_t* first, buffer_t* second);

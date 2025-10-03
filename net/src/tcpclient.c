@@ -280,7 +280,7 @@ buffer_t* tcp_client_receive_buffer_by_length(tcp_client_t* ptr, buffer_t* iobuf
                 {
                     buffer_t* temp = buffer_allocate(buffer, len+1);
                     buffer_copy(iobuffer, temp);
-                    buffer_free(temp);
+                    buffer_free(&temp);
                 }
                 else
                 {
